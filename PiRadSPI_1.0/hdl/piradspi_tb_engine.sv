@@ -23,7 +23,7 @@ module piradspi_tb_engine(
     );
     typedef piradspi_types #(
         .REG_WIDTH(32)
-    ) types_inst; 
+    ) spi_types; 
 
     wire clk;
     piradip_tb_clkgen #(.HALF_PERIOD(10)) clk_gen(.clk(clk));
@@ -36,25 +36,23 @@ module piradspi_tb_engine(
     wire [4:0] chip_selects;
     wire cmd_completed;
     
-    piradip_util_axis_master #(.WIDTH(types_inst::CMD_FIFO_WIDTH)) cmd_in(.clk(clk_gen.clk), .aresetn(rstn), .name("CMD"));
-    piradip_util_axis_master #(.WIDTH(types_inst::DATA_FIFO_WIDTH)) mosi_in(.clk(clk_gen.clk), .aresetn(rstn), .name("MOSI"));
-    piradip_util_axis_slave  #(.WIDTH(types_inst::DATA_FIFO_WIDTH)) miso_out(.clk(clk_gen.clk), .aresetn(rstn), .name("MISO"));
+    piradip_util_axis_master #(.WIDTH(spi_types::CMD_FIFO_WIDTH)) cmd_in(.clk(clk_gen.clk), .aresetn(rstn), .name("CMD"));
+    piradip_util_axis_master #(.WIDTH(spi_types::DATA_FIFO_WIDTH)) mosi_in(.clk(clk_gen.clk), .aresetn(rstn), .name("MOSI"));
+    piradip_util_axis_slave  #(.WIDTH(spi_types::DATA_FIFO_WIDTH)) miso_out(.clk(clk_gen.clk), .aresetn(rstn), .name("MISO"));
         
-    wire [types_inst::CMD_FIFO_WIDTH-1:0] cmd_out_data;
+    wire [spi_types::CMD_FIFO_WIDTH-1:0] cmd_out_data;
 
     wire cmd_out_ready, cmd_out_valid, cmd_out_last;
 
-    wire [types_inst::DATA_FIFO_WIDTH-1:0] mosi_out_data;
+    wire [spi_types::DATA_FIFO_WIDTH-1:0] mosi_out_data;
     
     wire mosi_out_ready, mosi_out_valid, mosi_out_last;
 
-    wire [types_inst::DATA_FIFO_WIDTH-1:0] miso_in_data;
+    wire [spi_types::DATA_FIFO_WIDTH-1:0] miso_in_data;
     wire miso_in_ready, miso_in_valid, miso_in_last;
-    
-    types_inst::command_u_t cmd;
 
     piradip_axis_fifo_sss #(
-        .WIDTH(types_inst::CMD_FIFO_WIDTH)
+        .WIDTH(spi_types::CMD_FIFO_WIDTH)
     ) cmd_fifo (
         .aclk(clk),
         .aresetn(rstn),
@@ -69,7 +67,7 @@ module piradspi_tb_engine(
     );
 
     piradip_axis_fifo_sss #(
-        .WIDTH(types_inst::DATA_FIFO_WIDTH)
+        .WIDTH(spi_types::DATA_FIFO_WIDTH)
     ) mosi_fifo (
         .aclk(clk),
         .aresetn(rstn),
@@ -84,7 +82,7 @@ module piradspi_tb_engine(
     );
     
     piradip_axis_fifo_sss #(
-        .WIDTH(types_inst::DATA_FIFO_WIDTH)
+        .WIDTH(spi_types::DATA_FIFO_WIDTH)
     ) miso_fifo (
         .aclk(clk),
         .aresetn(rstn),
@@ -183,9 +181,25 @@ module piradspi_tb_engine(
         .miso(miso),
         .csn(~(sel_active && (chip_selects == 3))),
         .name("Slave 11")
+    );
+    
+    piradip_tb_spi_slave #(
+        .WIDTH(24),
+        .CPOL(0),
+        .CPHA(0),
+        .INITIAL_VALUE(64'h01020304_05060708)
+    ) slave_00_24bit (
+        .rstn(rstn),
+        .sclk(sclk),
+        .mosi(mosi),
+        .miso(miso),
+        .csn(~(sel_active && (chip_selects == 4))),
+        .name("Slave 00 24 bit")
     ); 
     
+    int cmd_submitted;
     int cmd_completions;
+    int cmd_pending = cmd_submitted - cmd_completions;
     
     always @(posedge clk_gen.clk)
     begin
@@ -195,6 +209,37 @@ module piradspi_tb_engine(
             cmd_completions <= cmd_completions + 1;
         end
     end
+
+    int cmd_count = 0;
+
+    task automatic send_command(
+        input spi_types::dev_id_t dev,
+        input spi_types::xfer_len_t xfer_len,
+        input logic cpol, 
+        input logic cpha, 
+        input spi_types::wait_t sclk_cycles=1,
+        input spi_types::wait_t wait_start=1,
+        input spi_types::wait_t csn_to_sclk_cycles = 5,
+        input spi_types::wait_t sclk_to_csn_cycles = 5
+        );
+        
+        spi_types::command_u_t cmd;
+        
+        cmd.c.cmd.id = cmd_count;
+        cmd_count = cmd_count + 1;
+        
+        cmd.c.cmd.cpol = cpol;
+        cmd.c.cmd.cpha = cpha;
+        
+        cmd.c.cmd.device = dev;
+        cmd.c.cmd.sclk_cycles = sclk_cycles;
+        cmd.c.cmd.wait_start = wait_start;
+        cmd.c.cmd.csn_to_sclk_cycles = csn_to_sclk_cycles;
+        cmd.c.cmd.sclk_to_csn_cycles = sclk_to_csn_cycles;
+        cmd.c.cmd.xfer_len = xfer_len;
+        cmd.c.pad = 0;
+        cmd_in.send_one(cmd.data);        
+    endtask
         
     initial 
     begin
@@ -210,78 +255,41 @@ module piradspi_tb_engine(
  
         clk_gen.sleep(5);
 
-        cmd.c.cmd.cpol = 0;
-        cmd.c.cmd.cpha = 0;
-        cmd.c.cmd.id = 8'hA0;
-        cmd.c.cmd.device = 0;
-        cmd.c.cmd.sclk_cycles = 1;
-        cmd.c.cmd.wait_start = 1;
-        cmd.c.cmd.csn_to_sclk_cycles = 5;
-        cmd.c.cmd.sclk_to_csn_cycles = 5;
-        cmd.c.cmd.xfer_len = 64;
-        cmd.c.pad = 0;
+        send_command(0, 64, 0, 0);
+        send_command(1, 64, 1, 0);
+        send_command(2, 64, 0, 1);
+        send_command(3, 64, 1, 1);
+        send_command(4, 24, 0, 0);
+        send_command(0, 64, 0, 0);    
         
-        cmd_in.send_one(cmd.data);
-        
-        cmd.c.cmd.cpol = 1;
-        cmd.c.cmd.cpha = 0;
-        cmd.c.cmd.id = 8'hA1;
-        cmd.c.cmd.device = 1;
-        cmd.c.cmd.sclk_cycles = 1;
-        cmd.c.cmd.wait_start = 1;
-        cmd.c.cmd.csn_to_sclk_cycles = 5;
-        cmd.c.cmd.sclk_to_csn_cycles = 5;
-        cmd.c.cmd.xfer_len = 64;
-        cmd.c.pad = 0;       
-        
-        cmd_in.send_one(cmd.data);
-
-        cmd.c.cmd.cpol = 0;
-        cmd.c.cmd.cpha = 1;
-        cmd.c.cmd.id = 8'hA2;
-        cmd.c.cmd.device = 2;
-        cmd.c.cmd.sclk_cycles = 1;
-        cmd.c.cmd.wait_start = 1;
-        cmd.c.cmd.csn_to_sclk_cycles = 5;
-        cmd.c.cmd.sclk_to_csn_cycles = 5;
-        cmd.c.cmd.xfer_len = 64;
-        cmd.c.pad = 0;       
-        
-        cmd_in.send_one(cmd.data);
-        
-        cmd.c.cmd.cpol = 1;
-        cmd.c.cmd.cpha = 1;
-        cmd.c.cmd.id = 8'hA3;
-        cmd.c.cmd.device = 3;
-        cmd.c.cmd.sclk_cycles = 1;
-        cmd.c.cmd.wait_start = 1;
-        cmd.c.cmd.csn_to_sclk_cycles = 5;
-        cmd.c.cmd.sclk_to_csn_cycles = 5;
-        cmd.c.cmd.xfer_len = 64;
-        cmd.c.pad = 0;       
-        
-        cmd_in.send_one(cmd.data);        
-        
+        // Wait for the commands to all queue
         cmd_in.sync();
         
         mosi_in.send_one(32'hA5B6A5B6);        
         mosi_in.send_one(32'hBCBCBCBC);
-        mosi_in.send_one(32'hA5B6A5B6);        
-        mosi_in.send_one(32'hBCBCBCBC);       
-        mosi_in.sync();
         
+        // Todo -- write send_event, send_delay, send_event_delay
         wait(cmd_completed == 1);
        
         clk_gen.sleep(40);
-        
+
+        // Make the second command wait for data        
+        mosi_in.send_one(32'hA5B6A5B6);        
+        mosi_in.send_one(32'hBCBCBCBC);       
         mosi_in.send_one(32'hA5B6A5B6);        
         mosi_in.send_one(32'hBCBCBCBC);            
         mosi_in.send_one(32'hA5B6A5B6);        
         mosi_in.send_one(32'hBCBCBCBC);    
 
+        // 24 bit client
+        mosi_in.send_one(32'h11223344);    
+
+        mosi_in.send_one(32'hA5B6A5B6);        
+        mosi_in.send_one(32'hBCBCBCBC);  
+
         wait(cmd_completed == 1);
         
-        wait(cmd_completions == 4);
+        wait(cmd_completions == 6);
                
         clk_gen.sleep(10);
         $finish;

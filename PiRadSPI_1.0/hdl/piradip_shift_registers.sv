@@ -38,24 +38,15 @@ module piradip_stream_to_bit #(
             bit_count <= 0;
             shift_reg <= 0;
         end else begin
-            if (word_read) begin
-                shift_reg <= word_data;
-                bit_count <= WIDTH;
-            end
-            
-            if (bit_read) begin
-                if (bit_count == 1) begin
-                    if (word_valid) begin
-                        shift_reg <= word_data;
-                        bit_count <= WIDTH;
-                    end else begin
-                        bit_count <= bit_count - 1;
-                    end
-                end else begin
-                    shift_reg <= { shift_reg[WIDTH-2:0], 1'b0 };
-                    bit_count <= bit_count - 1;
-                end
-            end
+            bit_count = 
+                (align ? ((bit_count < WIDTH) ? 0 : WIDTH) : bit_count) +
+                (word_read ? WIDTH : 0) -
+                (bit_read ? 1 : 0);
+  
+            shift_reg = word_read ? (
+                    (bit_count == 0) ? { word_data, 1'b0 } : { shift_reg[WIDTH], word_data }) :
+                bit_read ? ( { shift_reg[WIDTH-1:0], 1'b0 } ) :
+                shift_reg;
         end
     end   
 endmodule
@@ -89,9 +80,17 @@ module piradip_bit_to_stream #(
     always @(posedge clk)
     begin
         if (~rstn) begin
-            shift_reg <= 0;
-            bit_count <= WIDTH + 1;
+            shift_reg = 0;
+            bit_count = WIDTH + 1;
         end else begin
+            if (align) begin
+                if (bit_count < WIDTH+1) begin
+                    bit_count = 0;
+                end else begin
+                    bit_count = WIDTH+1;
+                end
+            end
+            
             if (word_valid & word_ready) begin
                 bit_count = bit_count + WIDTH;
             end

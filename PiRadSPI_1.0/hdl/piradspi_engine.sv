@@ -21,7 +21,7 @@
 
 class piradspi_types #(parameter integer REG_WIDTH       = 32,
         parameter integer WAIT_WIDTH      = 8,
-        parameter integer ID_WIDTH        = 8,
+        parameter integer CMD_ID_WIDTH    = 8,
         parameter integer XFER_LEN_WIDTH  = 16,
         parameter integer DEVICE_ID_WIDTH = 8,
         parameter integer CMD_FIFO_DEPTH  = 16,
@@ -30,21 +30,27 @@ class piradspi_types #(parameter integer REG_WIDTH       = 32,
         parameter integer MAGIC_WIDTH     = 8);
     
     localparam RESPONSE_MAGIC = 8'hAD;    
-    localparam RESPONSE_PAD_WIDTH=DATA_FIFO_WIDTH-MAGIC_WIDTH-ID_WIDTH;
+    localparam RESPONSE_PAD_WIDTH=DATA_FIFO_WIDTH-MAGIC_WIDTH-CMD_ID_WIDTH;
     localparam BIT_COUNT_WIDTH = $clog2(DATA_FIFO_WIDTH+1);
     
     typedef logic [BIT_COUNT_WIDTH-1:0] bit_count_t;
+    
+    typedef logic [WAIT_WIDTH-1:0] wait_t;
+    typedef logic [CMD_ID_WIDTH-1:0] cmd_id_t;
+    typedef logic [XFER_LEN_WIDTH-1:0] xfer_len_t;
+    typedef logic [DEVICE_ID_WIDTH-1:0] dev_id_t;
+    typedef logic [MAGIC_WIDTH-1:0] magic_t;
               
     typedef struct packed {
-        logic cpol;
-        logic cpha;
-        logic [ID_WIDTH-1:0] id;
-        logic [DEVICE_ID_WIDTH-1:0] device;
-        logic [WAIT_WIDTH-1:0] sclk_cycles;
-        logic [WAIT_WIDTH-1:0] wait_start;
-        logic [WAIT_WIDTH-1:0] csn_to_sclk_cycles;
-        logic [WAIT_WIDTH-1:0] sclk_to_csn_cycles;        
-        logic [XFER_LEN_WIDTH-1:0] xfer_len;
+        logic       cpol;
+        logic       cpha;
+        cmd_id_t    id;
+        dev_id_t    device;
+        wait_t      sclk_cycles;
+        wait_t      wait_start;
+        wait_t      csn_to_sclk_cycles;
+        wait_t      sclk_to_csn_cycles;        
+        xfer_len_t  xfer_len;
     } command_t;
 
     localparam CMD_FIFO_WIDTH = 8*($bits(command_t)/8 + (($bits(command_t) & 3'h7) ? 1 : 0));    
@@ -52,8 +58,8 @@ class piradspi_types #(parameter integer REG_WIDTH       = 32,
     //$error("CMD_FIFO_WIDTH: %d bits: %d\n", CMD_FIFO_WIDTH, $bits(command_t));
         
     typedef struct packed {
-        logic [MAGIC_WIDTH-1:0]        magic;
-        logic [ID_WIDTH-1:0]           id;
+        magic_t        magic;
+        cmd_id_t       id;
         logic [RESPONSE_PAD_WIDTH-1:0] pad; 
     } response_t;
     
@@ -184,7 +190,7 @@ module piradspi_engine #(
     assign consume_cmd = cmd_ready & cmd_valid;
     
     wire mosi_align, mosi_bit_valid, mosi_bit_data, mosi_bit_empty;
-    reg mosi_bit_ready;
+    wire mosi_bit_ready;
     
     reg mosi_bit_read;
     
@@ -248,6 +254,12 @@ module piradspi_engine #(
     
     assign sclk_hold = (mosi_bit_ready & ~mosi_bit_valid) || (~miso_bit_ready & miso_bit_valid);
 
+    reg mosi_bit_complete;
+    always @(posedge clk) mosi_bit_complete <= mosi_bit_valid & mosi_bit_ready;
+
+    assign mosi_bit_ready = (~rstn) ? 1'b0 : 
+        (mosi_bit_ready | ((state == LATCH) & ~(~miso_bit_ready & miso_bit_valid) & (sclk_cnt == 0))) & ~mosi_bit_complete;
+
     always @(posedge clk)
     begin
         if (~rstn) begin
@@ -257,7 +269,6 @@ module piradspi_engine #(
             cur_cmd.cpol <= 1'b0;
             cur_cmd.cpha <= 1'b0;
             cmd_ready <= 1'b0;
-            mosi_bit_ready <= 1'b0;
             miso_bit_valid <= 1'b0;
             xfer_bits <= 0;
         end else begin
@@ -325,11 +336,9 @@ module piradspi_engine #(
                         sclk_cnt <= sclk_cnt - 1;
                     end else if (~sclk_hold) begin
                         if (cur_cmd.cpha == 1 && xfer_bits == 0) begin
-                            mosi_bit_ready <= 1'b1;
                             state_cycles <= pending_cmd.c.cmd.sclk_to_csn_cycles;
                             state <= DESELECT_DEVICE;                           
                         end else begin
-                            mosi_bit_ready <= 1'b1;
                             sclk_cnt <= cur_cmd.sclk_cycles;
                             sclk_gen <= ~sclk_gen;
                             state <= SHIFT;
@@ -338,10 +347,6 @@ module piradspi_engine #(
                 end
                 
                 SHIFT: begin
-                    if (mosi_bit_ready & mosi_bit_valid) begin
-                        mosi_bit_ready <= 1'b0;
-                    end
-                    
                     if (sclk_cnt != 0) begin
                         sclk_cnt <= sclk_cnt - 1;
                     end else if (~sclk_hold) begin
@@ -359,7 +364,6 @@ module piradspi_engine #(
                 end
                                 
                 DESELECT_DEVICE: begin
-                    mosi_bit_ready <= 1'b0;
                     if (state_trigger) begin
                         state <= WAIT_END_CMD;
                     end
