@@ -18,7 +18,7 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-module piradspi_tb_engine(
+module piradspi_tb_engine_on_board(
 
     );
     typedef piradspi_types #(
@@ -32,7 +32,6 @@ module piradspi_tb_engine(
     wire sclk, mosi;
     reg miso;
     
-    wire sel_active;
     wire [4:0] chip_selects;
     wire cmd_completed;
     
@@ -107,7 +106,6 @@ module piradspi_tb_engine(
         .sclk(sclk),
         .mosi(mosi),
         .miso(miso),
-        .sel_active(sel_active),
         .csn(chip_selects),
         .cmd_completed(cmd_completed),
         
@@ -126,163 +124,47 @@ module piradspi_tb_engine(
         .miso_data(miso_in_data),
         .miso_tlast(miso_in_last)
     );
-    
-    assign sclk_hold = engine.sclk_hold;
 
-    piradip_tb_spi_slave #(
-        .WIDTH(64),
-        .CPOL(0),
-        .CPHA(0),
-        .INITIAL_VALUE(64'h01020304_05060708)
-    ) slave_00 (
-        .rstn(rstn),
-        .sclk(sclk),
-        .mosi(mosi),
-        .miso(miso),
-        .csn(~(sel_active && (chip_selects == 0))),
-        .name("Slave 00")
-    );
 
-    piradip_tb_spi_slave #(
-        .WIDTH(64),
-        .CPOL(1),
-        .CPHA(0),
-        .INITIAL_VALUE(64'h01020304_05060708)
-    ) slave_10 (
-        .rstn(rstn),
-        .sclk(sclk),
+    piradio_v2_tb_spi_decoder v2_spi_decoder(.rstn(rstn),
         .mosi(mosi),
         .miso(miso),
-        .csn(~(sel_active && (chip_selects == 1))),
-        .name("Slave 10")
-    );
- 
-    piradip_tb_spi_slave #(
-        .WIDTH(64),
-        .CPOL(0),
-        .CPHA(1),
-        .INITIAL_VALUE(64'h01020304_05060708)
-    ) slave_01 (
-        .rstn(rstn),
         .sclk(sclk),
-        .mosi(mosi),
-        .miso(miso),
-        .csn(~(sel_active && (chip_selects == 2))),
-        .name("Slave 01")
-    ); 
+        .card_sel(chip_selects));
 
-    piradip_tb_spi_slave #(
-        .WIDTH(64),
-        .CPOL(1),
-        .CPHA(1),
-        .INITIAL_VALUE(64'h01020304_05060708)
-    ) slave_11 (
-        .rstn(rstn),
-        .sclk(sclk),
-        .mosi(mosi),
-        .miso(miso),
-        .csn(~(sel_active && (chip_selects == 3))),
-        .name("Slave 11")
-    ); 
-    
-    int cmd_completions;
-    
-    always @(posedge clk_gen.clk)
-    begin
-        if (~rstn) begin
-            cmd_completions <= 0;
-        end else if (cmd_completed) begin
-            cmd_completions <= cmd_completions + 1;
-        end
-    end
         
     initial 
     begin
-        $timeformat(-9, 2, " ns", 0);
         rstn <= 0;
         miso <= 0;
 
 
+
+        cmd.c.cmd.cpol <= 0;
+        cmd.c.cmd.cpha <= 0;
+        cmd.c.cmd.id <= 67;
+        cmd.c.cmd.device <= 3;
+        cmd.c.cmd.sclk_cycles <= 1;
+        cmd.c.cmd.wait_start <= 1;
+        cmd.c.cmd.csn_to_sclk_cycles <= 5;
+        cmd.c.cmd.sclk_to_csn_cycles <= 5;
+        cmd.c.cmd.xfer_len <= 64;
+        cmd.c.pad <= 0;
         
         clk_gen.sleep(5);
         
         rstn <= 1;
  
         clk_gen.sleep(5);
-
-        cmd.c.cmd.cpol = 0;
-        cmd.c.cmd.cpha = 0;
-        cmd.c.cmd.id = 8'hA0;
-        cmd.c.cmd.device = 0;
-        cmd.c.cmd.sclk_cycles = 1;
-        cmd.c.cmd.wait_start = 1;
-        cmd.c.cmd.csn_to_sclk_cycles = 5;
-        cmd.c.cmd.sclk_to_csn_cycles = 5;
-        cmd.c.cmd.xfer_len = 64;
-        cmd.c.pad = 0;
         
         cmd_in.send_one(cmd.data);
-        
-        cmd.c.cmd.cpol = 1;
-        cmd.c.cmd.cpha = 0;
-        cmd.c.cmd.id = 8'hA1;
-        cmd.c.cmd.device = 1;
-        cmd.c.cmd.sclk_cycles = 1;
-        cmd.c.cmd.wait_start = 1;
-        cmd.c.cmd.csn_to_sclk_cycles = 5;
-        cmd.c.cmd.sclk_to_csn_cycles = 5;
-        cmd.c.cmd.xfer_len = 64;
-        cmd.c.pad = 0;       
-        
-        cmd_in.send_one(cmd.data);
-
-        cmd.c.cmd.cpol = 0;
-        cmd.c.cmd.cpha = 1;
-        cmd.c.cmd.id = 8'hA2;
-        cmd.c.cmd.device = 2;
-        cmd.c.cmd.sclk_cycles = 1;
-        cmd.c.cmd.wait_start = 1;
-        cmd.c.cmd.csn_to_sclk_cycles = 5;
-        cmd.c.cmd.sclk_to_csn_cycles = 5;
-        cmd.c.cmd.xfer_len = 64;
-        cmd.c.pad = 0;       
-        
-        cmd_in.send_one(cmd.data);
-        
-        cmd.c.cmd.cpol = 1;
-        cmd.c.cmd.cpha = 1;
-        cmd.c.cmd.id = 8'hA3;
-        cmd.c.cmd.device = 3;
-        cmd.c.cmd.sclk_cycles = 1;
-        cmd.c.cmd.wait_start = 1;
-        cmd.c.cmd.csn_to_sclk_cycles = 5;
-        cmd.c.cmd.sclk_to_csn_cycles = 5;
-        cmd.c.cmd.xfer_len = 64;
-        cmd.c.pad = 0;       
-        
-        cmd_in.send_one(cmd.data);        
-        
-        cmd_in.sync();
-        
         mosi_in.send_one(32'hA5B6A5B6);        
         mosi_in.send_one(32'hBCBCBCBC);
-        mosi_in.send_one(32'hA5B6A5B6);        
-        mosi_in.send_one(32'hBCBCBCBC);       
-        mosi_in.sync();
         
         wait(cmd_completed == 1);
+        
+        
        
-        clk_gen.sleep(40);
-        
-        mosi_in.send_one(32'hA5B6A5B6);        
-        mosi_in.send_one(32'hBCBCBCBC);            
-        mosi_in.send_one(32'hA5B6A5B6);        
-        mosi_in.send_one(32'hBCBCBCBC);    
-
-        wait(cmd_completed == 1);
-        
-        wait(cmd_completions == 4);
-               
         clk_gen.sleep(10);
         $finish;
     end

@@ -31,6 +31,9 @@ class piradspi_types #(parameter integer REG_WIDTH       = 32,
     
     localparam RESPONSE_MAGIC = 8'hAD;    
     localparam RESPONSE_PAD_WIDTH=DATA_FIFO_WIDTH-MAGIC_WIDTH-ID_WIDTH;
+    localparam BIT_COUNT_WIDTH = $clog2(DATA_FIFO_WIDTH+1);
+    
+    typedef logic [BIT_COUNT_WIDTH-1:0] bit_count_t;
               
     typedef struct packed {
         logic cpol;
@@ -114,7 +117,7 @@ module piradspi_engine #(
         output reg sel_active,
          
         input wire cmd_valid,
-        output wire cmd_ready,
+        output reg cmd_ready,
         input wire [types::CMD_FIFO_WIDTH-1:0] cmd_data,
         input wire cmd_tlast,
         output wire cmd_completed,
@@ -145,22 +148,19 @@ module piradspi_engine #(
         
     reg sclk_gen;
     reg [types::WAIT_WIDTH-1:0] sclk_cnt;
-    wire sclk_hold;
     assign sclk = sclk_gen ^ cur_cmd.cpol;
 
-    types::response_u_t cur_data_out;
-    
-    assign miso_data = cur_data_out;
-    
+    typedef types::response_u_t response_u_t;
+
+    wire response_u_t cur_data_out;
+        
     typedef enum {
         IDLE = 0,
         FETCH1,
         WAIT_BEGIN_CMD,
-        FIRST_SHIFT,
         SELECT_DEVICE,
         LATCH,
         SHIFT,
-        LAST_LATCH,
         DESELECT_DEVICE,
         WAIT_END_CMD,
         END_CMD
@@ -170,6 +170,7 @@ module piradspi_engine #(
 
     reg [31:0] state_cycles;
     wire state_trigger;
+    reg [types::XFER_LEN_WIDTH-1:0] xfer_bits;
     
     piradip_state_timer state_timer(
         .rstn(rstn), 
@@ -178,79 +179,75 @@ module piradspi_engine #(
         .cycles(state_cycles), 
         .trigger(state_trigger));
 
-    reg [types::DATA_FIFO_WIDTH-1:0] mosi_shift_reg;
-    wire mosi_empty;
     wire consume_cmd;
     
-    reg [7:0] mosi_bits_avail;
-    
-    assign mosi_empty = (mosi_bits_avail == 0);
-    assign mosi_ready = mosi_empty;
-    assign mosi_reload_ack = mosi_empty & mosi_valid;
-    
-    typedef enum logic [1:0] {
-        PH_LATCH,
-        PH_SHIFT,
-        PH_NONE
-    } phase_t;
-    
-    wire phase_t phase;
-    
-    assign phase = (state == last_state) ? PH_NONE :
-                   (state == SHIFT) ? PH_SHIFT :
-                   (state == FIRST_SHIFT || (cur_cmd.cpol == 0 && state == SELECT_DEVICE)) ? PH_SHIFT :
-                   (state == LATCH) ? PH_LATCH :
-                   PH_NONE;
-    
     assign consume_cmd = cmd_ready & cmd_valid;
-    assign mosi = (~rstn) ? 0 :
-                  (phase == PH_SHIFT) ? mosi_shift_reg[types::DATA_FIFO_WIDTH-1] :
-                  mosi;
-                  
-    /* MOSI shift register */
-    always @(posedge clk)
-    begin
-        if (~rstn) begin
-            mosi_bits_avail <= 0;
-            mosi_shift_reg <= 0;
-        end else begin
-            if (mosi_empty & mosi_valid) begin
-                mosi_shift_reg <= mosi_data;
-                mosi_bits_avail <= types::DATA_FIFO_WIDTH;
-            end else if (phase == PH_SHIFT) begin
-                mosi_shift_reg <= { mosi_shift_reg[types::DATA_FIFO_WIDTH-2:0], 1'b0 };
-                mosi_bits_avail <= mosi_bits_avail - 1;
-            end else if (state == END_CMD) begin
-                mosi_bits_avail <= 0;
-            end
-        end
-    end
+    
+    wire mosi_align, mosi_bit_valid, mosi_bit_data, mosi_bit_empty;
+    reg mosi_bit_ready;
+    
+    reg mosi_bit_read;
+    
+    always @(posedge clk) mosi_bit_read = mosi_bit_ready & mosi_bit_valid;
+    
+    assign mosi = mosi_bit_data;
+    
+    assign mosi_align = state == END_CMD;
+        
+    piradip_stream_to_bit #(
+        .WIDTH(types::DATA_FIFO_WIDTH)
+    ) mosi_shift_reg(
+        .clk(clk), 
+        .rstn(rstn),
+        .align(mosi_align),
+        .empty(mosi_bit_empty),
+        .bit_ready(mosi_bit_ready),
+        .bit_valid(mosi_bit_valid),
+        .bit_data(mosi_bit_data),
+        .word_ready(mosi_ready),
+        .word_data(mosi_data),
+        .word_valid(mosi_valid)        
+    );
+
+    wire miso_align, miso_bit_full;
+    wire miso_bit_ready;
+    reg miso_bit_valid;
+    
+    assign miso_align = (state == END_CMD);
  
-    always @(posedge clk)
-    begin
-        if (~rstn) begin
-            cur_data_out.data <= 0;
-            miso_valid <= 1'b0;
-        end else begin
-            if (state == IDLE && consume_cmd) begin
-                cur_data_out.resp.magic = types::RESPONSE_MAGIC;
-                cur_data_out.resp.id = pending_cmd.c.cmd.id;
-                cur_data_out.resp.pad = 0;
-                miso_valid <= 1'b1;
-            end else if (phase == PH_SHIFT) begin
-                cur_data_out.data = { cur_data_out.data[types::DATA_FIFO_WIDTH-2:0], 1'b0 };
-            end else if (phase == PH_LATCH) begin
-                cur_data_out.data = { cur_data_out.data[types::DATA_FIFO_WIDTH-1:1], miso };
-            end
-            
-                
-        end
-    end
+    wire miso_words_ready, miso_words_valid;
+    wire [types::DATA_FIFO_WIDTH-1:0] miso_words_data;
+    
+    piradip_bit_to_stream #(
+        .WIDTH(types::DATA_FIFO_WIDTH)
+    ) miso_shift_reg(
+        .clk(clk), 
+        .rstn(rstn),
+        .align(miso_align),
+        .full(miso_bit_full),
+        .bit_ready(miso_bit_ready),
+        .bit_valid(miso_bit_valid),
+        .bit_data(miso),
+        .word_ready(miso_words_ready),
+        .word_data(miso_words_data),
+        .word_valid(miso_words_valid)        
+    );
+
+    assign miso_words_ready = ~consume_cmd & miso_ready;
+    
+    assign miso_data = consume_cmd ? cur_data_out.data : miso_words_data;
+    assign miso_valid = consume_cmd ? 1'b1 : miso_words_valid;
+    
+    assign cur_data_out.resp.magic = types::RESPONSE_MAGIC;
+    assign cur_data_out.resp.id = pending_cmd.c.cmd.id;
+    assign cur_data_out.resp.pad = 0;
 
     assign cmd_completed = (state == END_CMD);
-    assign cmd_ready = rstn & (state == IDLE) & (mosi_bits_avail > 0) & miso_ready;
-    assign sclk_hold = (mosi_ready & ~mosi_valid);
-        
+
+    wire sclk_hold;
+    
+    assign sclk_hold = (mosi_bit_ready & ~mosi_bit_valid) || (~miso_bit_ready & miso_bit_valid);
+
     always @(posedge clk)
     begin
         if (~rstn) begin
@@ -258,10 +255,11 @@ module piradspi_engine #(
             sel_active <= 1'b0;
             state <= IDLE;
             cur_cmd.cpol <= 1'b0;
-            cur_cmd.cpha <= 1'b0;           
-            miso_valid <= 0;
-            cur_data_out.data <= 0;
-            miso_tlast <= 0;
+            cur_cmd.cpha <= 1'b0;
+            cmd_ready <= 1'b0;
+            mosi_bit_ready <= 1'b0;
+            miso_bit_valid <= 1'b0;
+            xfer_bits <= 0;
         end else begin
             last_state <= state;
             
@@ -273,9 +271,11 @@ module piradspi_engine #(
                     
                     if (consume_cmd) begin                    
                         // Register command
+                        cmd_ready <= 1'b0;
                         cur_cmd <= pending_cmd.c.cmd;
                         state_cycles <= pending_cmd.c.cmd.wait_start;
                         sclk_cnt <= pending_cmd.c.cmd.sclk_cycles;
+                        xfer_bits <= pending_cmd.c.cmd.xfer_len;
                         
                         if (pending_cmd.c.cmd.wait_start) begin
                             state <= WAIT_BEGIN_CMD;
@@ -284,10 +284,11 @@ module piradspi_engine #(
                         end
                     end else begin
                         state <= IDLE;
+                        cmd_ready <= ~mosi_bit_empty & miso_ready;
                     end
                 end
                 
-                WAIT_BEGIN_CMD: begin
+                WAIT_BEGIN_CMD: begin                   
                     miso_valid <= 1'b0;
                     if (state_trigger) begin
                         csn <= gen_sel(SEL_MODE, cur_cmd.device);
@@ -302,69 +303,71 @@ module piradspi_engine #(
                 SELECT_DEVICE: begin
                     miso_valid <= 1'b0;
                     if (state_trigger) begin
-                        cur_cmd.xfer_len <= cur_cmd.xfer_len - 1;
-                        state <= cur_cmd.cpha ? FIRST_SHIFT : LATCH;
+                        if (cur_cmd.cpha == 1) begin
+                            state <= SHIFT;
+                        end else begin
+                            miso_bit_valid <= 1'b1;
+                            state <= LATCH;
+                        end
+                        
                         sclk_gen <= ~sclk_gen;
                     end else begin
                         state <= SELECT_DEVICE;
                     end
                 end
                 
-                FIRST_SHIFT: begin
-                    if (~sclk_hold & sclk_cnt == 0) begin
-                        sclk_cnt <= cur_cmd.sclk_cycles;
-                        sclk_gen <= ~sclk_gen;
-                        state <= LATCH;
-                    end else begin
-                        sclk_cnt <= sclk_cnt - 1;
-                    end
-                end
-                
                 LATCH: begin
-                    if (~sclk_hold & sclk_cnt == 0) begin
-                        sclk_cnt <= cur_cmd.sclk_cycles;
-                        sclk_gen <= ~sclk_gen;
-                        state <= SHIFT;
-                    end else begin
+                    if (miso_bit_valid & miso_bit_ready) begin
+                        miso_bit_valid <= 1'b0;
+                    end
+                    
+                    if (sclk_cnt != 0) begin
                         sclk_cnt <= sclk_cnt - 1;
+                    end else if (~sclk_hold) begin
+                        if (cur_cmd.cpha == 1 && xfer_bits == 0) begin
+                            mosi_bit_ready <= 1'b1;
+                            state_cycles <= pending_cmd.c.cmd.sclk_to_csn_cycles;
+                            state <= DESELECT_DEVICE;                           
+                        end else begin
+                            mosi_bit_ready <= 1'b1;
+                            sclk_cnt <= cur_cmd.sclk_cycles;
+                            sclk_gen <= ~sclk_gen;
+                            state <= SHIFT;
+                        end
                     end
                 end
                 
                 SHIFT: begin
-                    if (~sclk_hold & sclk_cnt == 0) begin
-                        sclk_cnt <= cur_cmd.sclk_cycles;
-                        sclk_gen <= ~sclk_gen;
-                        cur_cmd.xfer_len <= cur_cmd.xfer_len - 1;
-                        if (cur_cmd.xfer_len > 1) begin
-                            state <= LATCH;
-                        end else if (cur_cmd.cpha == 0) begin
-                            state <= LAST_LATCH;
-                        end else begin
+                    if (mosi_bit_ready & mosi_bit_valid) begin
+                        mosi_bit_ready <= 1'b0;
+                    end
+                    
+                    if (sclk_cnt != 0) begin
+                        sclk_cnt <= sclk_cnt - 1;
+                    end else if (~sclk_hold) begin
+                        if (cur_cmd.cpha == 0 && xfer_bits == 1) begin
                             state_cycles <= pending_cmd.c.cmd.sclk_to_csn_cycles;
                             state <= DESELECT_DEVICE;
+                        end else begin
+                            xfer_bits <= xfer_bits - 1;
+                            miso_bit_valid <= 1'b1;
+                            sclk_cnt <= cur_cmd.sclk_cycles;
+                            sclk_gen <= ~sclk_gen;
+                            state <= LATCH;
                         end
-                    end else begin
-                        sclk_cnt <= sclk_cnt - 1;
                     end
                 end
-                
-                LAST_LATCH: begin
-                    if (sclk_cnt == 0) begin
-                        sclk_gen <= ~sclk_gen;
-                        state_cycles <= pending_cmd.c.cmd.sclk_to_csn_cycles;
-                        state <= DESELECT_DEVICE;
-                    end else begin
-                        sclk_cnt <= sclk_cnt - 1;
-                    end
-                end
-                
+                                
                 DESELECT_DEVICE: begin
+                    mosi_bit_ready <= 1'b0;
                     if (state_trigger) begin
                         state <= WAIT_END_CMD;
                     end
                 end
                 
                 WAIT_END_CMD: begin
+                    sel_active <= 1'b0;
+                    csn <= 0;
                     state <= END_CMD;
                 end
                 

@@ -13,47 +13,87 @@ module piradip_tb_spi_slave #(
     input rstn,
     input string name
 );
+    reg [WIDTH-1:0] data;
 
-    reg [WIDTH-1:0] shift_reg;
-    reg mosi_r;
-    reg miso_r;
-    wire pha = sclk ^ CPOL ^ CPHA;
+    reg active;
+    reg mosi_r, miso_r;
     
-    assign miso = (~rstn || csn) ? 1'bZ :
-                  (pha == 0) ? shift_reg[WIDTH-1] :
-                  miso;
+    /* CPHA == 0 means that data is sampled on the first clock edge */
 
+    always @(rstn)
+    begin
+        active <= 0;
+        data <= INITIAL_VALUE;
+    end
+       
+
+    wire clk_raw = sclk ^ CPOL;
+    
+    integer shift_count, latch_count;
+    
     always @(negedge csn)
     begin
-        $display("%s: SPI Transaction begin: %x", name, shift_reg);
-        miso_r <= shift_reg[WIDTH-1];
-    end
-    
-    always @(posedge pha)
-    begin
-        if (~csn) begin
-            mosi_r <= mosi;
+        active <= 1;
+        $display("%s: SPI Transaction begin: %x", name, data);
+        mosi_r <= 1'b0;
+        miso_r <= data[WIDTH-1];
+        shift_count = 0;
+        latch_count = 0;
+    end    
+
+    generate
+        if (CPHA == 0) begin
+            assign miso = active ? data[WIDTH-1] : 1'bZ;
+            
+            always @(posedge clk_raw)
+            begin
+                if (active) begin
+                    //$display("%s: %1d %1d %1d: LATCH %1d %1d %x", name, sclk, CPOL, CPHA, miso, mosi, data);
+                    latch_count = latch_count + 1;
+                    mosi_r <= mosi;
+                end
+            end
+            
+            always @(negedge clk_raw)
+            begin
+                if (active) begin
+                    //$display("%s: %1d %1d %1d: SHIFT (%d) %1d %1d %x", name, sclk, CPOL, CPHA, shift_count, miso, mosi, data);
+                    shift_count <= shift_count + 1;
+                    data <= { data[WIDTH-2:0], mosi_r };
+                end
+            end
+        end else begin
+            assign miso = active ? miso_r : 1'bZ;        
+        
+            always @(posedge clk_raw)
+            begin
+                if (active) begin
+                    //$display("%s: %1d %1d %1d: SHIFT (%d) %1d %1d %x", name, sclk, CPOL, CPHA, shift_count, miso, mosi, data);
+                    shift_count <= shift_count + 1;
+                    { miso_r, data } <= { data[WIDTH-1:0], 1'b0 };
+                end
+            end
+            
+            always @(negedge clk_raw)
+            begin
+                if (active) begin
+                    //$display("%s: %1d %1d %1d: LATCH %1d %1d %x", name, sclk, CPOL, CPHA, miso, mosi, data);
+                    latch_count = latch_count + 1;
+                    data[0] <= mosi;
+                end
+            end                    
         end
-    end
-    
-    always @(negedge pha)
-    begin
-        if (~csn) begin 
-            miso_r <= shift_reg[WIDTH-1];
-            shift_reg <= { shift_reg[WIDTH-2:0], mosi_r };
-        end
-    end
-    
+    endgenerate
+
     always @(posedge csn)
     begin
-        $display("%s: SPI Transaction end: %x", name, shift_reg);
+        if (active) begin
+            active <= 0;
+            $display("%s: SPI Transaction end: %x shift_count: %d latch_count: %d", name, data, shift_count, latch_count);
+        end
     end
 
-    initial
-    begin
-        shift_reg = { 1'b0, INITIAL_VALUE };
-        miso_r = 1'bX;
-        mosi_r = 1'bX;
-    end
+
+
 
 endmodule

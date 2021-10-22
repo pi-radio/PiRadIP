@@ -45,7 +45,7 @@ module piradip_util_axis_master #(
     
     class op_t;
         opcode_t code;
-        logic [WIDTH-1:0] data;
+        reg [WIDTH-1:0] data;
         event e;
         
         function new (input opcode_t code, input logic [WIDTH-1:0] data);
@@ -56,40 +56,49 @@ module piradip_util_axis_master #(
            
     op_t op_q[$];
     
-    task send_one(input logic [WIDTH-1:0] data);
+    function automatic send_one(input logic [WIDTH-1:0] data);
         automatic op_t op = new(WRITE, data);
         
         op_q.push_back(op);   
+    endfunction
+   
+    task automatic sync();
+        automatic op_t op = new(SYNC, 0);
+        
+        op_q.push_back(op);
+        
+        wait(op.e.triggered);
+        $display("%s: SYNC complete", name);
     endtask
     
+    op_t cur_op;
+    
+    reg wait_flag;
+        
     initial
     begin
-        op_t op;
-        tdata <= 0;
-        tvalid <= 0;
-        tlast <= 0;
+        tdata = 0;
+        tvalid = 0;
+        tlast = 0;
         
-        fork
-            forever @(posedge clk) begin
-                while (op_q.size() > 0) 
-                begin
-                    op = op_q.pop_front();
-                    $display("%s: Master operation %d", name, op.code);
-                    
-                    case (op.code)
-                        WRITE: begin
-                            tdata <= op.data;
-                            tvalid <= 1;
-                            do @(posedge clk); while(~tready);
-                            $display("%s: Master write complete (%x)", name, op.data);   
-                        end
-                        
-                        SYNC: -> op.e;
-                    endcase;
+        forever
+        begin
+            wait(op_q.size() != 0);
+
+            cur_op = op_q.pop_front();
+            $display("%s: (%t) Master operation %d %x", name, $time, cur_op.code.name, cur_op.data);
+            
+            case (cur_op.code)
+                WRITE: begin
+                    tdata = cur_op.data;
+                    tvalid = 1;
+                    wait(tvalid & tready);
+                    @(posedge clk) tvalid = 0;
+                    $display("%s: (%t) Master write complete (%x)", name, $time, cur_op.data);   
                 end
 
-                tvalid <= 0;
-             end
-        join_none;
+                SYNC: -> cur_op.e;
+            endcase
+        end        
     end  
 endmodule
