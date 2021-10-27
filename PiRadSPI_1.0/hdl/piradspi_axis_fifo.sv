@@ -23,8 +23,8 @@ interface axis_simple #(WIDTH=32);
     logic tready, tvalid, tlast;
     logic [WIDTH-1:0] tdata;
     
-    modport SLAVE (input tvalid, tlast, tdata, output tready);
-    modport MASTER (output tvalid, tlast, tdata, input tready);
+    modport SUBORDINATE (input tvalid, tlast, tdata, output tready);
+    modport MANAGER (output tvalid, tlast, tdata, input tready);
 endinterface
 
 /* Simple, Symetric and Synchronous fifo */

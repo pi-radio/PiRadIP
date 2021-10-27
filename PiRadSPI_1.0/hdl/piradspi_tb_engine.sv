@@ -23,9 +23,9 @@ module piradspi_tb_engine();
     ) engine (
         .clk(clk),
         .rstn(rstn),
-        .axis_cmd(m2f_cmd.SLAVE),
-        .axis_mosi(m2f_mosi.SLAVE),
-        .axis_miso(f2s_miso.MASTER),
+        .axis_cmd(m2f_cmd.SUBORDINATE),
+        .axis_mosi(m2f_mosi.SUBORDINATE),
+        .axis_miso(f2s_miso.MANAGER),
         .cmd_completed(cmd_completed),
         .sclk(sclk),
         .mosi(mosi),
@@ -34,9 +34,9 @@ module piradspi_tb_engine();
         .sel_active(sel_active)
     );
 
-    piradip_util_axis_master #(.WIDTH(engine.CMD_FIFO_WIDTH)) cmd_in(.clk(clk_gen.clk), .aresetn(rstn), .name("CMD"), .masterout(m2f_cmd.MASTER));
-    piradip_util_axis_master #(.WIDTH(engine.DATA_FIFO_WIDTH)) mosi_in(.clk(clk_gen.clk), .aresetn(rstn), .name("MOSI"), .masterout(m2f_mosi.MASTER));
-    piradip_util_axis_slave  #(.WIDTH(engine.DATA_FIFO_WIDTH)) miso_out(.clk(clk_gen.clk), .aresetn(rstn), .name("MISO"), .slavein(f2s_miso.SLAVE));
+    piradip_util_axis_master #(.WIDTH(engine.CMD_FIFO_WIDTH)) cmd_in(.clk(clk_gen.clk), .aresetn(rstn), .name("CMD"), .masterout(m2f_cmd.MANAGER));
+    piradip_util_axis_master #(.WIDTH(engine.DATA_FIFO_WIDTH)) mosi_in(.clk(clk_gen.clk), .aresetn(rstn), .name("MOSI"), .masterout(m2f_mosi.MANAGER));
+    piradip_util_axis_slave  #(.WIDTH(engine.DATA_FIFO_WIDTH)) miso_out(.clk(clk_gen.clk), .aresetn(rstn), .name("MISO"), .slavein(f2s_miso.SUBORDINATE));
 
     piradip_tb_spi_slave #(
         .WIDTH(64),

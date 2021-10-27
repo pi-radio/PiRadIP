@@ -97,9 +97,9 @@ module piradspi_fifo_engine #(
         .sel_active(sel_active),
         .csn(chip_selects),
         .cmd_completed(cmd_completed),
-        .axis_cmd(f2e_cmd.SLAVE),
-        .axis_mosi(f2e_mosi.SLAVE),
-        .axis_miso(e2f_miso.MASTER)
+        .axis_cmd(f2e_cmd.SUBORDINATE),
+        .axis_mosi(f2e_mosi.SUBORDINATE),
+        .axis_miso(e2f_miso.MANAGER)
     );
     
     localparam CMD_FIFO_WIDTH = engine.CMD_FIFO_WIDTH;
@@ -116,7 +116,7 @@ module piradspi_fifo_engine #(
         .aclk(clk),
         .aresetn(rstn),
         .s_axis(axis_cmd),
-        .m_axis(f2e_cmd.MASTER)
+        .m_axis(f2e_cmd.MANAGER)
     );
 
     piradip_axis_fifo_sss #(
@@ -125,7 +125,7 @@ module piradspi_fifo_engine #(
         .aclk(clk),
         .aresetn(rstn),
         .s_axis(axis_mosi),
-        .m_axis(f2e_mosi.MASTER)
+        .m_axis(f2e_mosi.MANAGER)
     );
     
     piradip_axis_fifo_sss #(
@@ -133,7 +133,7 @@ module piradspi_fifo_engine #(
     ) miso_fifo (
         .aclk(clk),
         .aresetn(rstn),
-        .s_axis(e2f_miso.SLAVE),
+        .s_axis(e2f_miso.SUBORDINATE),
         .m_axis(axis_miso)
     );
 
