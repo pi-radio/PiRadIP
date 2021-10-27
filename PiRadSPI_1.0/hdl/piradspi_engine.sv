@@ -19,28 +19,163 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-class piradspi_types #(parameter integer REG_WIDTH       = 32,
+interface piradspi_support #(
+    type command_u_t,
+    parameter CMD_FIFO_WIDTH=0
+)();
+    function automatic logic [CMD_FIFO_WIDTH-1:0]  build_command(
+        input int dev,
+        input int xfer_len,
+        input int cmd_id,
+        input logic cpol, 
+        input logic cpha, 
+        input int sclk_cycles=1,
+        input int wait_start=1,
+        input int csn_to_sclk_cycles = 5,
+        input int sclk_to_csn_cycles = 5
+        );
+        
+        command_u_t cmd;
+        
+        cmd.c.cmd.id = cmd_id;
+        cmd.c.cmd.cpol = cpol;
+        cmd.c.cmd.cpha = cpha;
+        
+        cmd.c.cmd.device = dev;
+        cmd.c.cmd.sclk_cycles = sclk_cycles;
+        cmd.c.cmd.wait_start = wait_start;
+        cmd.c.cmd.csn_to_sclk_cycles = csn_to_sclk_cycles;
+        cmd.c.cmd.sclk_to_csn_cycles = sclk_to_csn_cycles;
+        cmd.c.cmd.xfer_len = xfer_len;
+        cmd.c.pad = 0;
+        
+        return cmd.data;
+    endfunction              
+endinterface
+
+module piradspi_fifo_engine #(
         parameter integer WAIT_WIDTH      = 8,
         parameter integer CMD_ID_WIDTH    = 8,
         parameter integer XFER_LEN_WIDTH  = 16,
         parameter integer DEVICE_ID_WIDTH = 8,
-        parameter integer CMD_FIFO_DEPTH  = 16,
-        parameter integer DATA_FIFO_DEPTH = 64,
+        parameter integer MAGIC_WIDTH     = 8,
         parameter integer DATA_FIFO_WIDTH = 32,
-        parameter integer MAGIC_WIDTH     = 8);
+	    parameter integer SEL_MODE        = 1,
+        parameter integer SEL_WIDTH       = 8
+    ) (
+        input clk,
+        input rstn,
+        
+        axis_simple axis_cmd,
+        axis_simple axis_mosi,
+        axis_simple axis_miso,
+        
+        output wire cmd_completed,
+        
+        output wire sclk,
+        output wire mosi,
+        input wire miso,
+        output reg [SEL_WIDTH-1:0] csn,
+        output reg sel_active
+    );
+    
+    piradspi_engine #(
+        .WAIT_WIDTH(WAIT_WIDTH),
+        .CMD_ID_WIDTH(CMD_ID_WIDTH),
+        .XFER_LEN_WIDTH(XFER_LEN_WIDTH),
+        .DEVICE_ID_WIDTH(DEVICE_ID_WIDTH),
+        .MAGIC_WIDTH(MAGIC_WIDTH),
+        .DATA_FIFO_WIDTH(DATA_FIFO_WIDTH),
+	    .SEL_MODE(SEL_MODE),
+        .SEL_WIDTH(SEL_WIDTH)
+    ) engine (
+        .clk(clk_gen.clk),
+        .rstn(rstn),
+        .sclk(sclk),
+        .mosi(mosi),
+        .miso(miso),
+        .sel_active(sel_active),
+        .csn(chip_selects),
+        .cmd_completed(cmd_completed),
+        .axis_cmd(f2e_cmd.SLAVE),
+        .axis_mosi(f2e_mosi.SLAVE),
+        .axis_miso(e2f_miso.MASTER)
+    );
+    
+    localparam CMD_FIFO_WIDTH = engine.CMD_FIFO_WIDTH;
+    //piradspi_support support = engine.support;
+
+    axis_simple #(.WIDTH(CMD_FIFO_WIDTH)) f2e_cmd();
+    axis_simple #(.WIDTH(DATA_FIFO_WIDTH)) f2e_mosi();
+    axis_simple #(.WIDTH(DATA_FIFO_WIDTH)) e2f_miso();
+
+
+    piradip_axis_fifo_sss #(
+        .WIDTH(CMD_FIFO_WIDTH)
+    ) cmd_fifo (
+        .aclk(clk),
+        .aresetn(rstn),
+        .s_axis(axis_cmd),
+        .m_axis(f2e_cmd.MASTER)
+    );
+
+    piradip_axis_fifo_sss #(
+        .WIDTH(DATA_FIFO_WIDTH)
+    ) mosi_fifo (
+        .aclk(clk),
+        .aresetn(rstn),
+        .s_axis(axis_mosi),
+        .m_axis(f2e_mosi.MASTER)
+    );
+    
+    piradip_axis_fifo_sss #(
+        .WIDTH(DATA_FIFO_WIDTH)
+    ) miso_fifo (
+        .aclk(clk),
+        .aresetn(rstn),
+        .s_axis(e2f_miso.SLAVE),
+        .m_axis(axis_miso)
+    );
+
+
+endmodule
+
+module piradspi_engine #(
+        parameter integer WAIT_WIDTH      = 8,
+        parameter integer CMD_ID_WIDTH    = 8,
+        parameter integer XFER_LEN_WIDTH  = 16,
+        parameter integer DEVICE_ID_WIDTH = 8,
+        parameter integer MAGIC_WIDTH     = 8,
+        parameter integer DATA_FIFO_WIDTH = 32,
+	    parameter integer SEL_MODE        = 1,
+        parameter integer SEL_WIDTH       = 8
+    ) (
+        input clk,
+        input rstn,
+        
+        axis_simple axis_cmd,
+        axis_simple axis_mosi,
+        axis_simple axis_miso,
+        
+        output wire cmd_completed,
+        
+        output wire sclk,
+        output wire mosi,
+        input wire miso,
+        output reg [SEL_WIDTH-1:0] csn,
+        output reg sel_active
+    );
     
     localparam RESPONSE_MAGIC = 8'hAD;    
     localparam RESPONSE_PAD_WIDTH=DATA_FIFO_WIDTH-MAGIC_WIDTH-CMD_ID_WIDTH;
     localparam BIT_COUNT_WIDTH = $clog2(DATA_FIFO_WIDTH+1);
-    
-    typedef logic [BIT_COUNT_WIDTH-1:0] bit_count_t;
-    
-    typedef logic [WAIT_WIDTH-1:0] wait_t;
+
+    typedef logic [WAIT_WIDTH-1:0] wait_t;          
     typedef logic [CMD_ID_WIDTH-1:0] cmd_id_t;
     typedef logic [XFER_LEN_WIDTH-1:0] xfer_len_t;
     typedef logic [DEVICE_ID_WIDTH-1:0] dev_id_t;
     typedef logic [MAGIC_WIDTH-1:0] magic_t;
-              
+    
     typedef struct packed {
         logic       cpol;
         logic       cpha;
@@ -51,12 +186,15 @@ class piradspi_types #(parameter integer REG_WIDTH       = 32,
         wait_t      csn_to_sclk_cycles;
         wait_t      sclk_to_csn_cycles;        
         xfer_len_t  xfer_len;
-    } command_t;
-
-    localparam CMD_FIFO_WIDTH = 8*($bits(command_t)/8 + (($bits(command_t) & 3'h7) ? 1 : 0));    
+    } command_t;    
     
-    //$error("CMD_FIFO_WIDTH: %d bits: %d\n", CMD_FIFO_WIDTH, $bits(command_t));
-        
+    localparam CMD_FIFO_WIDTH = 8*($bits(command_t)/8 + (($bits(command_t) & 3'h7) ? 1 : 0));
+
+    
+    typedef logic [CMD_FIFO_WIDTH-1:0] cmd_word_t;
+    typedef logic [DATA_FIFO_WIDTH-1:0] data_word_t;
+
+
     typedef struct packed {
         magic_t        magic;
         cmd_id_t       id;
@@ -68,81 +206,21 @@ class piradspi_types #(parameter integer REG_WIDTH       = 32,
             logic [CMD_FIFO_WIDTH-$bits(command_t)-1:0] pad;
             command_t cmd;
         } c;
-        logic [CMD_FIFO_WIDTH-1:0] data;
+        cmd_word_t data;
     } command_u_t;
-       
+ 
+        
     typedef union packed {
         response_t resp;
         logic [DATA_FIFO_WIDTH-1:0] data;
     } response_u_t;
-        
-endclass
-
-module piradip_state_timer #(parameter integer REG_WIDTH=32) (
-    input wire rstn,
-    input wire clk,
-    input wire [REG_WIDTH-1:0] state,
-    input wire [REG_WIDTH-1:0] cycles,
-    output wire trigger
-);
-    reg [REG_WIDTH-1:0] old_state;
-    reg [REG_WIDTH-1:0] counter;
     
-    assign trigger = ((state == old_state) && (counter == 0)) || ((state != old_state) && (cycles == 0));
-    
-    always @(posedge clk)
-    begin
-        if (~rstn) begin
-            counter <= 0;
-            old_state <= 0;                
-        end else begin
-            old_state <= state;
-            if (state != old_state) begin
-                counter <= (cycles > 0) ? cycles - 1 : 0;
-            end else if (counter > 0) begin
-                counter <= counter - 1;
-            end
-        end
-    end
-endmodule
-
-module piradspi_engine #(
-        type types = piradspi_types,
-	    parameter integer SEL_MODE        = 1,
-        parameter integer SEL_WIDTH       = 8,
-        
-        parameter integer DATA_FIFO_DEPTH = 32
-    ) (
-        input clk,
-        input rstn,
-        
-        output wire sclk,
-        output wire mosi,
-        input wire miso,
-        output reg [SEL_WIDTH-1:0] csn,
-        output reg sel_active,
-         
-        input wire cmd_valid,
-        output reg cmd_ready,
-        input wire [types::CMD_FIFO_WIDTH-1:0] cmd_data,
-        input wire cmd_tlast,
-        output wire cmd_completed,
-        
-        input wire mosi_valid,
-        output wire mosi_ready,
-        input wire [types::DATA_FIFO_WIDTH-1:0] mosi_data,
-        input wire mosi_tlast,
-        
-        output reg miso_valid,
-        input wire miso_ready,
-        output wire [types::DATA_FIFO_WIDTH-1:0] miso_data,
-        output reg miso_tlast
-    );
+    piradspi_support #(.command_u_t(command_u_t), .CMD_FIFO_WIDTH(CMD_FIFO_WIDTH)) support();
      
-    types::command_u_t pending_cmd;   
-    types::command_t cur_cmd;
+    command_u_t pending_cmd;   
+    command_t cur_cmd;
      
-    assign pending_cmd.data = cmd_data; 
+    assign pending_cmd.data = axis_cmd.tdata; 
       
     function logic [SEL_WIDTH-1:0] gen_sel(input int sel_mode, input int device);
         if (sel_mode == 0) begin
@@ -153,12 +231,10 @@ module piradspi_engine #(
     endfunction
         
     reg sclk_gen;
-    reg [types::WAIT_WIDTH-1:0] sclk_cnt;
+    wait_t sclk_cnt;
     assign sclk = sclk_gen ^ cur_cmd.cpol;
 
-    typedef types::response_u_t response_u_t;
-
-    wire response_u_t cur_data_out;
+    response_u_t cur_data_out;
         
     typedef enum {
         IDLE = 0,
@@ -176,7 +252,7 @@ module piradspi_engine #(
 
     reg [31:0] state_cycles;
     wire state_trigger;
-    reg [types::XFER_LEN_WIDTH-1:0] xfer_bits;
+    xfer_len_t xfer_bits;
     
     piradip_state_timer state_timer(
         .rstn(rstn), 
@@ -187,7 +263,7 @@ module piradspi_engine #(
 
     wire consume_cmd;
     
-    assign consume_cmd = cmd_ready & cmd_valid;
+    assign consume_cmd = axis_cmd.tready & axis_cmd.tvalid;
     
     wire mosi_align, mosi_bit_valid, mosi_bit_data, mosi_bit_empty;
     wire mosi_bit_ready;
@@ -201,7 +277,7 @@ module piradspi_engine #(
     assign mosi_align = state == END_CMD;
         
     piradip_stream_to_bit #(
-        .WIDTH(types::DATA_FIFO_WIDTH)
+        .WIDTH(DATA_FIFO_WIDTH)
     ) mosi_shift_reg(
         .clk(clk), 
         .rstn(rstn),
@@ -210,9 +286,9 @@ module piradspi_engine #(
         .bit_ready(mosi_bit_ready),
         .bit_valid(mosi_bit_valid),
         .bit_data(mosi_bit_data),
-        .word_ready(mosi_ready),
-        .word_data(mosi_data),
-        .word_valid(mosi_valid)        
+        .word_ready(axis_mosi.tready),
+        .word_data(axis_mosi.tdata),
+        .word_valid(axis_mosi.tvalid)        
     );
 
     wire miso_align, miso_bit_full;
@@ -222,10 +298,10 @@ module piradspi_engine #(
     assign miso_align = (state == END_CMD);
  
     wire miso_words_ready, miso_words_valid;
-    wire [types::DATA_FIFO_WIDTH-1:0] miso_words_data;
+    wire [DATA_FIFO_WIDTH-1:0] miso_words_data;
     
     piradip_bit_to_stream #(
-        .WIDTH(types::DATA_FIFO_WIDTH)
+        .WIDTH(DATA_FIFO_WIDTH)
     ) miso_shift_reg(
         .clk(clk), 
         .rstn(rstn),
@@ -239,12 +315,12 @@ module piradspi_engine #(
         .word_valid(miso_words_valid)        
     );
 
-    assign miso_words_ready = ~consume_cmd & miso_ready;
+    assign miso_words_ready = ~consume_cmd & axis_miso.tready;
     
-    assign miso_data = consume_cmd ? cur_data_out.data : miso_words_data;
-    assign miso_valid = consume_cmd ? 1'b1 : miso_words_valid;
+    assign axis_miso_data = consume_cmd ? cur_data_out.data : miso_words_data;
+    assign axis_miso_valid = consume_cmd ? 1'b1 : miso_words_valid;
     
-    assign cur_data_out.resp.magic = types::RESPONSE_MAGIC;
+    assign cur_data_out.resp.magic = RESPONSE_MAGIC;
     assign cur_data_out.resp.id = pending_cmd.c.cmd.id;
     assign cur_data_out.resp.pad = 0;
 
@@ -268,7 +344,7 @@ module piradspi_engine #(
             state <= IDLE;
             cur_cmd.cpol <= 1'b0;
             cur_cmd.cpha <= 1'b0;
-            cmd_ready <= 1'b0;
+            axis_cmd.tready <= 1'b0;
             miso_bit_valid <= 1'b0;
             xfer_bits <= 0;
         end else begin
@@ -282,7 +358,7 @@ module piradspi_engine #(
                     
                     if (consume_cmd) begin                    
                         // Register command
-                        cmd_ready <= 1'b0;
+                        axis_cmd.tready <= 1'b0;
                         cur_cmd <= pending_cmd.c.cmd;
                         state_cycles <= pending_cmd.c.cmd.wait_start;
                         sclk_cnt <= pending_cmd.c.cmd.sclk_cycles;
@@ -295,12 +371,12 @@ module piradspi_engine #(
                         end
                     end else begin
                         state <= IDLE;
-                        cmd_ready <= ~mosi_bit_empty & miso_ready;
+                        axis_cmd.tready <= ~mosi_bit_empty & axis_miso.tready;
                     end
                 end
                 
                 WAIT_BEGIN_CMD: begin                   
-                    miso_valid <= 1'b0;
+                    axis_miso.tvalid <= 1'b0;
                     if (state_trigger) begin
                         csn <= gen_sel(SEL_MODE, cur_cmd.device);
                         sel_active <= 1'b1;
@@ -312,7 +388,7 @@ module piradspi_engine #(
                 end
                 
                 SELECT_DEVICE: begin
-                    miso_valid <= 1'b0;
+                    axis_miso.tvalid <= 1'b0;
                     if (state_trigger) begin
                         if (cur_cmd.cpha == 1) begin
                             state <= SHIFT;
@@ -381,7 +457,4 @@ module piradspi_engine #(
             endcase
         end
     end
-  
-    
-    
 endmodule

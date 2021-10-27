@@ -6,7 +6,8 @@ module piradip_util_axis_slave #(
 ) (
     input wire clk,
     input wire aresetn,
-    input string name
+    input string name,
+    axis_simple slavein
 );
     wire [WIDTH-1:0] tdata;
     wire tvalid;
@@ -15,11 +16,11 @@ module piradip_util_axis_slave #(
     
     initial 
     begin
-        tready <= 1;
+        slavein.tready <= 1;
         
         forever begin
-            @(posedge clk) if (tvalid) begin
-                $display("%s: Recieved: %x", name, tdata);
+            @(posedge clk) if (slavein.tvalid) begin
+                $display("%s: Recieved: %x%s", name, slavein.tdata, slavein.tlast ? " LAST" : "");
             end
         end;
     end
@@ -31,13 +32,9 @@ module piradip_util_axis_master #(
 ) (
     input wire clk,
     input wire aresetn,
-    input string name
+    input string name,
+    axis_simple masterout
 );
-    reg [WIDTH-1:0] tdata;
-    reg tvalid;
-    wire tready;
-    reg tlast;
-        
     typedef enum {
         WRITE,
         SYNC
@@ -77,9 +74,9 @@ module piradip_util_axis_master #(
         
     initial
     begin
-        tdata = 0;
-        tvalid = 0;
-        tlast = 0;
+        masterout.tdata = 0;
+        masterout.tvalid = 0;
+        masterout.tlast = 0;
         
         forever
         begin
@@ -90,10 +87,10 @@ module piradip_util_axis_master #(
             
             case (cur_op.code)
                 WRITE: begin
-                    tdata = cur_op.data;
-                    tvalid = 1;
-                    wait(tvalid & tready);
-                    @(posedge clk) tvalid = 0;
+                    masterout.tdata = cur_op.data;
+                    masterout.tvalid = 1;
+                    wait(masterout.tvalid & masterout.tready);
+                    @(posedge clk) masterout.tvalid = 0;
                     $display("%s: (%t) Master write complete (%x)", name, $time, cur_op.data);   
                 end
 

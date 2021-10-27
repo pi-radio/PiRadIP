@@ -17,8 +17,9 @@ endfunction
 module PiRadSPI_v1_0 #(
     parameter integer C_SPI_SEL_MODE    = 1,
     parameter integer C_CSR_DATA_WIDTH	= 32,
-    parameter integer C_CSR_ADDR_WIDTH	= 4,
-    parameter integer C_SPI_SEL_WIDTH   = 3
+    parameter integer C_CSR_ADDR_WIDTH	= 8,
+    parameter integer C_SPI_SEL_WIDTH   = 3,
+    parameter integer C_NUM_PROFILES    = 16
 ) (
     output wire sclk,
     output wire mosi,
@@ -51,27 +52,24 @@ module PiRadSPI_v1_0 #(
 );
 
     localparam integer NSEL            = C_SPI_SEL_MODE ? (1 << C_SPI_SEL_WIDTH) : (C_SPI_SEL_WIDTH);
- 
-    typedef piradspi_types #(
-        .REG_WIDTH(C_CSR_DATA_WIDTH)
-    ) types_inst;
        
     wire [types_inst::CMD_FIFO_WIDTH-1:0] cmd_in_data, cmd_out_data;
     wire cmd_in_ready, cmd_in_valid, cmd_in_last;
     wire cmd_out_ready, cmd_out_valid, cmd_out_last;
 
-    wire [types_inst::mosi_FIFO_WIDTH-1:0] mosi_in_data, mosi_out_data;
+    wire [types_inst::DATA_FIFO_WIDTH-1:0] mosi_in_data, mosi_out_data;
     wire mosi_in_ready, mosi_in_valid, mosi_in_last;
     wire mosi_out_ready, mosi_out_valid, mosi_out_last;
 
-    wire [types_inst::miso_FIFO_WIDTH-1:0] miso_in_data, miso_out_data;
+    wire [types_inst::DATA_FIFO_WIDTH-1:0] miso_in_data, miso_out_data;
     wire miso_in_ready, miso_in_valid, miso_in_last;
     wire miso_out_ready, miso_out_valid, miso_out_last;
 
 
     piradspi_csr # ( 
         .C_S_AXI_DATA_WIDTH(C_CSR_DATA_WIDTH),
-        .C_S_AXI_ADDR_WIDTH(C_CSR_ADDR_WIDTH)
+        .C_S_AXI_ADDR_WIDTH(C_CSR_ADDR_WIDTH),
+        .NUM_PROFILES(C_NUM_PROFILES)
     ) csr (
         .s_axi_aclk(csr_aclk),
         .s_axi_aresetn(csr_aresetn),
@@ -97,7 +95,6 @@ module PiRadSPI_v1_0 #(
     );
     
     piradspi_engine #(
-        .types(types_inst),
         .SEL_MODE(C_SPI_SEL_MODE),
         .SEL_WIDTH(C_SPI_SEL_WIDTH)
     ) engine (

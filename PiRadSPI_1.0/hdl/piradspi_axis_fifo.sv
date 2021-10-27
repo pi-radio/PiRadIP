@@ -19,70 +19,71 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+interface axis_simple #(WIDTH=32);
+    logic tready, tvalid, tlast;
+    logic [WIDTH-1:0] tdata;
+    
+    modport SLAVE (input tvalid, tlast, tdata, output tready);
+    modport MASTER (output tvalid, tlast, tdata, input tready);
+endinterface
 
 /* Simple, Symetric and Synchronous fifo */
 module piradip_axis_fifo_sss #(
-        parameter integer WIDTH=32,
         parameter integer DEPTH=32
     ) (
         input aclk,
         input aresetn,
-        input [WIDTH-1:0] s_tdata,
-        output s_tready,
-        input s_tvalid,
-        input s_tlast,
-        output [WIDTH-1:0] m_tdata,
-        input m_tready,
-        output m_tvalid,
-        output m_tlast
+        axis_simple s_axis,
+        axis_simple m_axis
     );
     
     localparam TID=1'b0;
-    localparam TKEEP={{WIDTH/8}{1'b1}};
-    localparam TSTRB={{WIDTH/8}{1'b1}};
+    localparam TKEEP={{s_axis.WIDTH/8}{1'b1}};
+    localparam TSTRB={{s_axis.WIDTH/8}{1'b1}};
     localparam TUSER=1'b0;
+    localparam TDEST=0;
     
     xpm_fifo_axis #(
-        .CDC_SYNC_STAGES(2),            // DECIMAL
-        .CLOCKING_MODE("common_clock"), // String
-        .ECC_MODE("no_ecc"),            // String
-        .FIFO_DEPTH(DEPTH),              // DECIMAL
-        .FIFO_MEMORY_TYPE("auto"),      // String
-        .PACKET_FIFO("false"),          // String
-        .PROG_EMPTY_THRESH(10),         // DECIMAL
-        .PROG_FULL_THRESH(10),          // DECIMAL
-        .RD_DATA_COUNT_WIDTH(1),        // DECIMAL
-        .RELATED_CLOCKS(0),             // DECIMAL
-        .SIM_ASSERT_CHK(0),             // DECIMAL; 0=disable simulation messages, 1=enable simulation messages
-        .TDATA_WIDTH(WIDTH),               // DECIMAL
-        .TDEST_WIDTH(1),                // DECIMAL
-        .TID_WIDTH(1),                  // DECIMAL
-        .TUSER_WIDTH(1),                // DECIMAL
-        .USE_ADV_FEATURES("1000"),      // String
-        .WR_DATA_COUNT_WIDTH(1)         // DECIMAL
+        .CDC_SYNC_STAGES(2),
+        .CLOCKING_MODE("common_clock"),
+        .ECC_MODE("no_ecc"),
+        .FIFO_DEPTH(DEPTH),
+        .FIFO_MEMORY_TYPE("auto"),
+        .PACKET_FIFO("false"),
+        .PROG_EMPTY_THRESH(10),
+        .PROG_FULL_THRESH(10),
+        .RD_DATA_COUNT_WIDTH(1),
+        .RELATED_CLOCKS(0),
+        .SIM_ASSERT_CHK(0),
+        .TDATA_WIDTH(s_axis.WIDTH),
+        .TDEST_WIDTH(1),
+        .TID_WIDTH(1),
+        .TUSER_WIDTH(1),
+        .USE_ADV_FEATURES("1000"),
+        .WR_DATA_COUNT_WIDTH(1)
     ) xpm_fifo (
         .s_aclk(aclk),
         .s_aresetn(aresetn),
-        .s_axis_tready(s_tready),
-        .s_axis_tdata(s_tdata),
-        .s_axis_tdest(s_tdest),
+        .s_axis_tready(s_axis.tready),
+        .s_axis_tdata(s_axis.tdata),
+        .s_axis_tlast(s_axis.tlast),
+        .s_axis_tvalid(s_axis.tvalid),
+        .s_axis_tdest(TDEST),
         .s_axis_tid(TID),
         .s_axis_tkeep(TKEEP),
-        .s_axis_tlast(s_tlast),
         .s_axis_tstrb(TSTRB),
         .s_axis_tuser(TUSER),
-        .s_axis_tvalid(s_tvalid),
         
         .m_aclk(aclk),
-        .m_axis_tready(m_tready),
-        .m_axis_tdata(m_tdata),
+        .m_axis_tready(m_axis.tready),
+        .m_axis_tdata(m_axis.tdata),
+        .m_axis_tlast(m_axis.tlast),
+        .m_axis_tvalid(m_axis.tvalid),
         //.m_axis_tdest(m_tdest),
         //.m_axis_tid(m_tid),
         //.m_axis_tkeep(m_tkeep),
-        .m_axis_tlast(m_tlast),
         //.m_axis_tstrb(m_tstrb),
         //.m_axis_tuser(m_axis_tuser),
-        .m_axis_tvalid(m_tvalid),
         
         /*
         .almost_empty_axis(almost_empty_axis),
