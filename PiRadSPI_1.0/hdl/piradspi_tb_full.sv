@@ -33,7 +33,21 @@ module piradspi_tb_full(
 
     piradip_tb_clkgen #(.HALF_PERIOD(10)) clk_gen(.clk(clk));
     
-    aximm_lite axilite_bus(.aclk(clk), .aresetn(rstn));
+    axi4mm_lite axilite_bus(.aclk(clk), .aresetn(rstn));
+    
+    piradip_tb_spi_slave #(
+        .WIDTH(64),
+        .CPOL(0),
+        .CPHA(0),
+        .INITIAL_VALUE(64'h01020304_05060708)
+    ) slave_00 (
+        .rstn(rstn),
+        .sclk(sclk),
+        .mosi(mosi),
+        .miso(miso),
+        .csn(~(sel_active && (chip_selects == 0))),
+        .name("Slave 00")
+    );
     
     PiRadSPI_v1_0 #(
         .C_SPI_SEL_MODE(1),
@@ -47,6 +61,8 @@ module piradspi_tb_full(
         .miso(miso),
         .csn_active(csn_active),
         .csn(csn_mode_1),
+        .csr_aclk(clk),
+        .csr_aresetn(rstn),
         .csr_awaddr(axilite_bus.awaddr),
         .csr_awprot(axilite_bus.awprot),
         .csr_awvalid(axilite_bus.awvalid),
@@ -72,11 +88,19 @@ module piradspi_tb_full(
 
     initial 
     begin
+        logic [31:0] data;
+        
         $timeformat(-9, 2, " ns", 0);
         rstn <= 0;
 
         clk_gen.sleep(5);
         
         rstn <= 1;
+
+        clk_gen.sleep(5);
+        
+        master.read(0, data);
+        
+        $finish;
     end
 endmodule

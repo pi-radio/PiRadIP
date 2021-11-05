@@ -19,14 +19,6 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-interface axis_simple #(WIDTH=32);
-    logic tready, tvalid, tlast;
-    logic [WIDTH-1:0] tdata;
-    
-    modport SUBORDINATE (input tvalid, tlast, tdata, output tready);
-    modport MANAGER (output tvalid, tlast, tdata, input tready);
-endinterface
-
 /* Simple, Symetric and Synchronous fifo */
 module piradip_axis_fifo_sss #(
         parameter integer DEPTH=32
@@ -38,8 +30,6 @@ module piradip_axis_fifo_sss #(
     );
     
     localparam TID=1'b0;
-    localparam TKEEP={{s_axis.WIDTH/8}{1'b1}};
-    localparam TSTRB={{s_axis.WIDTH/8}{1'b1}};
     localparam TUSER=1'b0;
     localparam TDEST=0;
     
@@ -70,8 +60,8 @@ module piradip_axis_fifo_sss #(
         .s_axis_tvalid(s_axis.tvalid),
         .s_axis_tdest(TDEST),
         .s_axis_tid(TID),
-        .s_axis_tkeep(TKEEP),
-        .s_axis_tstrb(TSTRB),
+        .s_axis_tkeep(s_axis.BYTE_MASK),
+        .s_axis_tstrb(s_axis.BYTE_MASK),
         .s_axis_tuser(TUSER),
         
         .m_aclk(aclk),

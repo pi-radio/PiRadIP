@@ -1,13 +1,13 @@
 `timescale 1ns / 1ps
 
 
-module piradip_util_axis_slave #(
+module piradip_util_axis_subordinate #(
     parameter WIDTH=32
 ) (
     input wire clk,
     input wire aresetn,
     input string name,
-    axis_simple slavein
+    axis_simple subordinatein
 );
     wire [WIDTH-1:0] tdata;
     wire tvalid;
@@ -16,18 +16,18 @@ module piradip_util_axis_slave #(
     
     initial 
     begin
-        slavein.tready <= 1;
+        subordinatein.tready <= 1;
         
         forever begin
-            @(posedge clk) if (slavein.tvalid) begin
-                $display("%s: Recieved: %x%s", name, slavein.tdata, slavein.tlast ? " LAST" : "");
+            @(posedge clk) if (subordinatein.tvalid) begin
+                $display("%s: Recieved: %x%s", name, subordinatein.tdata, subordinatein.tlast ? " LAST" : "");
             end
         end;
     end
         
 endmodule
     
-module piradip_util_axis_master #(
+module piradip_util_axis_manager #(
     parameter WIDTH=32
 ) (
     input wire clk,

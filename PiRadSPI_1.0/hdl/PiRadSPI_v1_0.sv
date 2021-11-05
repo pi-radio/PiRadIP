@@ -1,19 +1,6 @@
 
 `timescale 1 ns / 1 ps
 
-function integer piradspi_selwidth(input integer mode, input integer nsel);
-    integer width, exp2;
-    begin
-        if (mode == 0) begin
-            piradspi_selwidth = nsel;
-        end else begin
-            width=1;
-            for (exp2 = 1; (exp2 << 1) <= nsel; exp2 = exp2 << 1) width = width + 1;
-            piradspi_selwidth = width;
-        end
-    end
-endfunction
-
 module PiRadSPI_v1_0 #(
     parameter integer C_SPI_SEL_MODE    = 1,
     parameter integer C_CSR_DATA_WIDTH	= 32,
@@ -50,12 +37,14 @@ module PiRadSPI_v1_0 #(
     output wire  csr_rvalid,
     input wire  csr_rready
 );
-
+    import piradspi::*;
+    
     localparam integer NSEL            = C_SPI_SEL_MODE ? (1 << C_SPI_SEL_WIDTH) : (C_SPI_SEL_WIDTH);
+    localparam DATA_FIFO_WIDTH         = C_CSR_DATA_WIDTH;
        
     piradspi_csr # ( 
-        .C_S_AXI_DATA_WIDTH(C_CSR_DATA_WIDTH),
-        .C_S_AXI_ADDR_WIDTH(C_CSR_ADDR_WIDTH),
+        .DATA_WIDTH(C_CSR_DATA_WIDTH),
+        .ADDR_WIDTH(C_CSR_ADDR_WIDTH),
         .NUM_PROFILES(C_NUM_PROFILES)
     ) csr (
         .s_axi_aclk(csr_aclk),
@@ -83,12 +72,12 @@ module PiRadSPI_v1_0 #(
         .axis_cmd(cmd_stream.MANAGER),
         .axis_mosi(mosi_stream.MANAGER),
         .axis_miso(miso_stream.SUBORDINATE)
-
     );
     
-    axis_simple #(.WIDTH(engine.CMD_FIFO_WIDTH)) cmd_stream();
-    axis_simple #(.WIDTH(engine.DATA_FIFO_WIDTH)) mosi_stream();
-    axis_simple #(.WIDTH(engine.DATA_FIFO_WIDTH)) miso_stream();    
+    
+    axis_simple #(.WIDTH(CMD_FIFO_WIDTH)) cmd_stream();
+    axis_simple #(.WIDTH(DATA_FIFO_WIDTH)) mosi_stream();
+    axis_simple #(.WIDTH(DATA_FIFO_WIDTH)) miso_stream();    
     
     piradspi_fifo_engine #(
         .SEL_MODE(C_SPI_SEL_MODE),
