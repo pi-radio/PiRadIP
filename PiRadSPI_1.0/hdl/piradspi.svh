@@ -1,4 +1,39 @@
 package piradspi;
+    localparam SPI_IP_MAGIC                 = 32'h91700591;
+	localparam SPI_IP_VER                   = 32'h00000100;
+
+	localparam regno_t REGISTER_DEVID       = 'h00;
+	localparam regno_t REGISTER_VER         = 'h01;
+    localparam regno_t REGISTER_CTRLSTAT    = 'h02;
+    
+    localparam int CTRLSTAT_ENABLE  = 0;
+    localparam int CTRLSTAT_ERROR   = 1;
+    localparam int CTRLSTAT_BUSY    = 2;
+    localparam int CTRLSTAT_AUTOINC = 3;
+    localparam int CTRLSTAT_INTR    = 4;
+    localparam int CTRLSTAT_INTREN  = 5;
+  
+    localparam regno_t REGISTER_DEVSELECT   = 'h03;
+    localparam regno_t REGISTER_PROFSELECT  = 'h04;
+    localparam regno_t REGISTER_CMD_ID      = 'h05;
+    
+    localparam regno_t REGISTER_MOSIFIFO    = 'h06;
+    localparam regno_t REGISTER_MISOFIFO    = 'h07;
+    localparam regno_t REGISTER_CMPLCNT     = 'h08;
+    localparam regno_t REGISTER_INTRACK     = 'h09;
+
+    localparam regno_t REGISTER_TRIGGER     = 'h0F;
+
+    localparam regno_t REGISTER_PROFBASE    = 'h10;
+    localparam regno_t REGISTER_POLPHA      = 'h0;
+    localparam regno_t REGISTER_SCLKDIV     = 'h1;
+    localparam regno_t REGISTER_STARTWAIT   = 'h2;
+    localparam regno_t REGISTER_CSNTOSCLK   = 'h3;
+    localparam regno_t REGISTER_SCLKTOCSN   = 'h4;
+    localparam regno_t REGISTER_XFERLEN     = 'h5;
+    
+    localparam regno_t REGISTER_PROFSIZE    = 'h8;   
+
     localparam integer WAIT_WIDTH      = 8;
     localparam integer CMD_ID_WIDTH    = 8;
     localparam integer XFER_LEN_WIDTH  = 16;

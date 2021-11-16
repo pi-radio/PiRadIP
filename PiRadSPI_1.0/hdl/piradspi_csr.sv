@@ -9,7 +9,8 @@
         Bit 1 - Error
         Bit 2 - Busy
         Bit 3 - Autoincrement ID enable
-        Bit 4 - 
+        Bit 4 - Interrupt Asserted
+        Bit 5 - Interrupt Enable
     Reg 01h: 
     
     --- Command Programming
@@ -41,47 +42,25 @@ module piradspi_csr #(
     axis_simple axis_mosi,
     axis_simple axis_miso,
             
-    output reg engine_enable,
-    input wire engine_error,
-    input wire engine_busy
+    output logic engine_enable,
+    input logic engine_error,
+    input logic engine_busy,
+    input logic command_completed,
+    output logic intr_out
 );
 	localparam integer DATA_WIDTH           = aximm.DATA_WIDTH;
     localparam integer ADDR_WIDTH	        = aximm.ADDR_WIDTH;
     localparam integer AXI_BYTE_WIDTH       = DATA_WIDTH/8;
     localparam integer ADDR_WORD_BITS       = $clog2(AXI_BYTE_WIDTH);
     localparam integer REGISTER_ADDR_BITS   = ADDR_WIDTH-ADDR_WORD_BITS;
-    localparam SPI_IP_MAGIC                 = 32'h91700591;
-	localparam SPI_IP_VER                   = 32'h00000100;
 	localparam PROFILE_SELECT_WIDTH         = $clog2(NUM_PROFILES);
 
     typedef logic [DATA_WIDTH-1:0] axi_data_t;
 	typedef logic [REGISTER_ADDR_BITS-1:0] regno_t;
     typedef logic [PROFILE_SELECT_WIDTH-1:0] profile_id_t;
 
-	
-	localparam regno_t REGISTER_DEVID       = 'h00;
-	localparam regno_t REGISTER_VER         = 'h01;
-    localparam regno_t REGISTER_CTRLSTAT    = 'h02;
-
-    localparam regno_t REGISTER_DEVSELECT   = 'h03;
-    localparam regno_t REGISTER_PROFSELECT  = 'h04;
-    localparam regno_t REGISTER_CMD_ID      = 'h05;
+    localparam write_profile_reg_mask = (REGISTER_PROFSIZE - 1);
     
-    localparam regno_t REGISTER_MOSIFIFO    = 'h06;
-    localparam regno_t REGISTER_MISOFIFO    = 'h07;
-
-    localparam regno_t REGISTER_TRIGGER     = 'h0F;
-
-    localparam regno_t REGISTER_PROFBASE    = 'h10;
-    localparam regno_t REGISTER_POLPHA      = 'h0;
-    localparam regno_t REGISTER_SCLKDIV     = 'h1;
-    localparam regno_t REGISTER_STARTWAIT   = 'h2;
-    localparam regno_t REGISTER_CSNTOSCLK   = 'h3;
-    localparam regno_t REGISTER_SCLKTOCSN   = 'h4;
-    localparam regno_t REGISTER_XFERLEN     = 'h5;
-    
-    localparam regno_t REGISTER_PROFSIZE    = 'h8;   
-
     piradip_register_if #(
             .DATA_WIDTH(aximm.DATA_WIDTH), 
             .REGISTER_ADDR_BITS(sub_imp.REGISTER_ADDR_BITS)
@@ -92,7 +71,24 @@ module piradspi_csr #(
 
     piradip_axi4mmlite_subordinate sub_imp(.reg_if(reg_if.SERVER), .aximm(aximm), .*);
 
+    axi_data_t ctrlstat_out;
+    logic [sub_imp.REGISTER_ADDR_BITS-1:0] write_profile_reg;
+    genvar i;
 
+    logic autoinc_id;
+    
+    // TODO -- fix the width
+    logic[15:0] cmd_id;
+    logic[15:0] device_sel;
+    typedef logic [7:0] wait_t;
+    typedef logic [15:0] xfer_len_t;
+    logic intr_en, intr_assert;
+
+    axi_data_t completion_count;
+
+    profile_id_t profile_sel;
+
+    always_comb ctrlstat_out = {  intr_en, intr_assert, autoinc_id, engine_busy, engine_error, engine_enable };
 
     logic do_cmd_issue, failed_cmd_issue;
     logic do_mosi_issue, failed_mosi_issue;
@@ -106,10 +102,10 @@ module piradspi_csr #(
         );
 
     register_to_stream #(.REGISTER_NO(REGISTER_MOSIFIFO)) mosi_reg_to_stream(
-            .do_issue(do_cmd_issue),
-            .failed_issue(failed_cmd_issue),
-            .read_data(cmd_read_data),
-            .stream(axis_miso),
+            .do_issue(do_mosi_issue),
+            .failed_issue(failed_mosi_issue),
+            .read_data(mosi_read_data),
+            .stream(axis_mosi),
             .reg_if(reg_if)
         );
 
@@ -119,17 +115,6 @@ module piradspi_csr #(
     assign axis_cmd.tdata = cmd_out.data;
         
 
-    genvar i;
-
-    reg autoinc_id;
-    
-    // TODO -- fix the width
-    logic[15:0] cmd_id;
-    logic[15:0] device_sel;
-    typedef logic [7:0] wait_t;
-    typedef logic [15:0] xfer_len_t;
-
-    profile_id_t profile_sel;
     
     typedef struct packed {
         logic       cpol;
@@ -164,9 +149,38 @@ module piradspi_csr #(
             (rno < (REGISTER_PROFBASE + (i + 1) * REGISTER_PROFSIZE));   
     endfunction
     
-    localparam write_profile_reg_mask = (REGISTER_PROFSIZE - 1);
+    always @(posedge aximm.aclk)
+    begin
+        if (~aximm.aresetn) begin
+            completion_count = 0;
+        end else begin
+            completion_count = (reg_if.is_reg_write(REGISTER_CMPLCNT) ? 0 : completion_count) +
+                (command_completed ? 1 : 0);
+        end
+    end
     
-    logic [sub_imp.REGISTER_ADDR_BITS-1:0] write_profile_reg;
+    always_comb intr_out = intr_assert & intr_en;
+ 
+    always @(posedge aximm.aclk)
+    begin
+        if (~aximm.aresetn) begin
+            intr_en <= 0;
+        end else begin
+            intr_en <= reg_if.reg_update_bit(REGISTER_CTRLSTAT, CTRLSTAT_INTREN, intr_en);
+        end
+    end
+    
+    always @(posedge aximm.aclk)
+    begin
+        if (~aximm.aresetn) begin
+            intr_assert <= 0;
+        end else begin
+            intr_assert <= (reg_if.is_reg_bit_set(REGISTER_CTRLSTAT, CTRLSTAT_INTR) | 
+                    reg_if.is_reg_write(REGISTER_INTRACK)) ? 0 :
+                (command_completed ? 1 : intr_assert);
+        end
+    end
+    
     
     assign write_profile_reg = (reg_if.wreg_no - REGISTER_PROFBASE);
     
@@ -200,7 +214,7 @@ module piradspi_csr #(
         end
     endgenerate
 
-    assign error_clear = reg_if.is_reg_write(REGISTER_CTRLSTAT) & aximm.wdata[1];
+    assign error_clear = reg_if.is_reg_write(REGISTER_CTRLSTAT) & aximm.wdata[1] & aximm.wstrb[0];
 
     // Control Status
 	always @(posedge aximm.aclk)
@@ -226,7 +240,7 @@ module piradspi_csr #(
                 cmd_id = sub_imp.mask_write_bytes(cmd_id);
             end
             REGISTER_TRIGGER: begin
-                cmd_id <= cmd_id + 1;
+                if (autoinc_id) cmd_id <= cmd_id + 1;
             end
             endcase
         end
@@ -264,6 +278,7 @@ module piradspi_csr #(
         if (~aximm.aresetn) begin
             device_sel <= 0;
             profile_sel <= 0;
+            axis_mosi.tdata <= 0;
         end  else if (reg_if.wren) begin
             case (reg_if.wreg_no)
             REGISTER_DEVSELECT: begin
@@ -271,6 +286,9 @@ module piradspi_csr #(
             end
             REGISTER_PROFSELECT: begin
                 profile_sel = sub_imp.mask_write_bytes(profile_sel);
+            end
+            REGISTER_MOSIFIFO: begin
+                axis_mosi.tdata = sub_imp.mask_write_bytes(axis_mosi.tdata);
             end
             default : begin
             end
@@ -281,12 +299,16 @@ module piradspi_csr #(
     integer read_profile_no;
     integer read_profile_reg;
     profile_t read_profile;
+    logic read_miso;
     
     assign read_profile = profiles[read_profile_no];
     assign read_profile_no = (reg_if.rreg_no - REGISTER_PROFBASE) / REGISTER_PROFSIZE;
     assign read_profile_reg = (reg_if.rreg_no - REGISTER_PROFBASE) & (REGISTER_PROFSIZE - 1);
-        
-    always @(*) begin
+    assign read_miso =  reg_if.rden && reg_if.rreg_no == REGISTER_MISOFIFO;
+    assign axis_miso.tready = (~axis_miso.aresetn) ? 1'b0 : read_miso;
+    
+    always @(*) 
+    begin
         if (reg_if.rreg_no >= REGISTER_PROFBASE) begin
             case (read_profile_reg)
             REGISTER_POLPHA:
@@ -302,12 +324,13 @@ module piradspi_csr #(
             case (reg_if.rreg_no)	      
             REGISTER_DEVID: reg_if.rreg_data <= SPI_IP_MAGIC;
             REGISTER_VER: reg_if.rreg_data <= SPI_IP_VER;
-            // REGISTER_CTRLSTAT
+            REGISTER_CTRLSTAT: reg_if.rreg_data <= ctrlstat_out;
             REGISTER_DEVSELECT: reg_if.rreg_data <= device_sel;
             REGISTER_PROFSELECT: reg_if.rreg_data <= profile_sel;
             REGISTER_CMD_ID: reg_if.rreg_data <= cmd_id; 
-            REGISTER_MOSIFIFO: reg_if.rreg_data <= axis_mosi.tready ? 0 : {{DATA_WIDTH}{1'b1}};
-            REGISTER_MISOFIFO: reg_if.rreg_data <= axis_miso.tdata;
+            REGISTER_TRIGGER: reg_if.rreg_data <= cmd_read_data;
+            REGISTER_MOSIFIFO: reg_if.rreg_data <= mosi_read_data;
+            REGISTER_MISOFIFO: reg_if.rreg_data <= axis_miso.tvalid ? axis_miso.tdata : {{DATA_WIDTH}{1'b1}};
             REGISTER_TRIGGER: reg_if.rreg_data <= { {{DATA_WIDTH-2}{1'b0}}, failed_cmd_issue, axis_cmd.tready};
             default: reg_if.rreg_data <= 0;
             endcase

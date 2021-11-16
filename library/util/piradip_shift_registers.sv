@@ -54,24 +54,24 @@ endmodule
 module piradip_bit_to_stream #(
     parameter WIDTH=32
 ) (
-    input wire clk,
-    input wire rstn,
+    input logic clk,
+    input logic rstn,
     
-    input wire align,
-    output wire full,
+    input logic align,
+    output logic full,
     
-    output wire bit_ready,
-    input wire bit_valid,
-    input wire bit_data,
+    output logic bit_ready,
+    input logic bit_valid,
+    input logic bit_data,
     
-    input wire word_ready,
-    output wire [WIDTH-1:0] word_data,
-    output reg word_valid            
+    input logic word_ready,
+    output logic [WIDTH-1:0] word_data,
+    output logic word_valid            
 );
     localparam BIT_COUNT_WIDTH = $clog2(WIDTH+1);
     
-    reg [WIDTH:0] shift_reg;
-    reg [BIT_COUNT_WIDTH-1:0] bit_count;
+    logic [WIDTH:0] shift_reg;
+    logic [BIT_COUNT_WIDTH-1:0] bit_count;
 
     assign bit_ready = (bit_count != 0);
     assign full = bit_count == 0;
@@ -84,14 +84,8 @@ module piradip_bit_to_stream #(
             bit_count = WIDTH + 1;
         end else begin
             if (align) begin
-                if (bit_count < WIDTH+1) begin
-                    bit_count = 0;
-                end else begin
-                    bit_count = WIDTH+1;
-                end
-            end
-            
-            if (word_valid & word_ready) begin
+                bit_count = 1;
+            end else if (word_valid & word_ready) begin
                 bit_count = bit_count + WIDTH;
             end
             
@@ -102,15 +96,9 @@ module piradip_bit_to_stream #(
         end
     end
     
-    always @(posedge clk)
-    begin
-        if (~rstn) begin
-            word_valid <= 1'b0;
-        end else if (word_valid & word_ready) begin
-            word_valid <= 1'b0;
-        end else if (bit_count <= 1) begin
-            word_valid <= 1'b1;
-        end
-    end
+    always @(posedge clk) word_valid = ~rstn ? 0 :
+        (word_valid & word_ready) ? 0 :
+        (align) ? 1 :
+        word_valid;
 
 endmodule

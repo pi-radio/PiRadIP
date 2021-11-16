@@ -1,4 +1,4 @@
-`include "piradip_aximm.svh"
+`include "piradip_axi4.svh"
 
 import piradip_axi4::*;
 
@@ -6,11 +6,13 @@ interface axi4mm_lite #(
     parameter integer ADDR_WIDTH=8,
     parameter integer DATA_WIDTH=32
 )(
-    input logic aclk, 
-    input logic aresetn
+    input logic clk, 
+    input logic resetn
 );
     localparam STRB_WIDTH=(DATA_WIDTH/8);
     
+    logic aclk;
+    logic aresetn;
     logic [ADDR_WIDTH-1 : 0] awaddr;
     logic [2 : 0] awprot;
     logic awvalid;
@@ -31,14 +33,16 @@ interface axi4mm_lite #(
     logic rvalid;
     logic rready;
     
-    modport MANAGER(input aclk, aresetn, awready, wready, bresp, bvalid, arready, rdata, rresp, rvalid,
+    modport MANAGER(input awready, wready, bresp, bvalid, arready, rdata, rresp, rvalid,
                     output awaddr, awprot, awvalid, wdata, wstrb,
+                          wvalid, bready, araddr, arprot, arvalid, rready, aclk, aresetn);
+
+    modport SUBORDINATE(output awready, wready, bresp, bvalid, arready, rdata, rresp, rvalid, aclk, aresetn,
+                        input awaddr, awprot, awvalid, wdata, wstrb,
                           wvalid, bready, araddr, arprot, arvalid, rready);
 
-    modport SUBORDINATE(output awready, wready, bresp, bvalid, arready, rdata, rresp, rvalid,
-                        input aclk, aresetn, awaddr, awprot, awvalid, wdata, wstrb,
-                          wvalid, bready, araddr, arprot, arvalid, rready);
-
+    assign aclk = clk;
+    assign aresetn = resetn;
 endinterface
 
 interface piradip_register_if #(
@@ -54,20 +58,28 @@ interface piradip_register_if #(
     logic wren;
     regno_t wreg_no;
     logic [DATA_WIDTH-1:0] wreg_data;
+    logic [(DATA_WIDTH/8)-1:0] wstrb;
     logic rden;
     regno_t rreg_no;
     logic [DATA_WIDTH-1:0] rreg_data;       
 
-    modport CLIENT(output wren, wreg_no, wreg_data, rden, rreg_no, input rreg_data);
-    modport SERVER(input wren, wreg_no, wreg_data, rden, rreg_no, output rreg_data);
+    modport CLIENT(output wren, wreg_no, wreg_data, wstrb, rden, rreg_no, input rreg_data);
+    modport SERVER(input wren, wreg_no, wreg_data, wstrb, rden, rreg_no, output rreg_data);
     
     function automatic logic is_reg_read(input regno_t regno);
         return rden && rreg_no == regno;
     endfunction;
 
     function automatic logic is_reg_write(input regno_t regno);
-        if (wren) $display("WRITE EN: %x %x", wreg_no, regno);
         return wren && wreg_no == regno;
+    endfunction;
+
+    function automatic logic reg_update_bit(input regno_t regno, input integer bitno, input logic v);
+        return (wren && wreg_no == regno && (wstrb[bitno/8] == 1)) ? wreg_data[bitno] : v;
+    endfunction;
+
+    function automatic logic is_reg_bit_set(input regno_t regno, input integer bitno);
+        return wren && wreg_no == regno && (wreg_data & (1 << bitno)) & (wstrb[bitno/8] == 1);
     endfunction;
    
 endinterface
@@ -121,6 +133,7 @@ module piradip_axi4mmlite_subordinate #(
             aximm.wready <= 1'b1;
             awaddr_r <= aximm.awaddr;
             reg_if.wreg_data <= aximm.wdata;
+            reg_if.wstrb <= aximm.wstrb;
         end else begin
             aximm.wready <= 1'b0;
         end
@@ -186,13 +199,20 @@ module register_to_stream #(
     piradip_register_if reg_if,
     axis_simple stream
 );
-    assign do_issue =  reg_if.is_reg_write(REGISTER_NO) && ~(stream.tvalid & ~stream.tready);
+    logic is_reg, busy;
+    
+    assign busy = (stream.tvalid & ~stream.tready);
+    assign do_issue = is_reg & ~busy;
      
     assign read_data = { failed_issue, stream.tready };
 
+    always_comb is_reg = reg_if.is_reg_write(REGISTER_NO);
+
     always @(posedge aximm.aclk)
-    begin   
-        if (~reg_if.aresetn) begin
+    begin
+        stream.tlast <= 1'b0;
+           
+        if (~reg_if.aresetn | ~stream.aresetn) begin
             stream.tvalid <= 1'b0;
             failed_issue <= 1'b0;
         end else if (reg_if.is_reg_write(REGISTER_NO)) begin
@@ -202,10 +222,8 @@ module register_to_stream #(
                 failed_issue <= 1;
             end
         end else begin
-            if (reg_if.wren) $display("VALS: %x, %x, %x", REGISTER_NO, reg_if.wreg_no, reg_if.wren);
-            
             failed_issue <= reg_if.is_reg_read(REGISTER_NO) ? 0 : failed_issue;
-            axis_cmd.tvalid <= axis_cmd.tvalid & ~axis_cmd.tready;
+            stream.tvalid <= stream.tvalid & ~stream.tready;
         end
     end    
     

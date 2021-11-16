@@ -50,21 +50,27 @@ module piradspi_fifo_engine #(
         parameter integer CMD_FIFO_DEPTH  = 16,
         parameter integer DATA_FIFO_DEPTH = 64
     ) (
-        input clk,
-        input rstn,
+        input logic clk,
+        input logic rstn,
         
         axis_simple axis_cmd,
         axis_simple axis_mosi,
         axis_simple axis_miso,
         
-        output wire cmd_completed,
+        output logic cmd_completed,
+        output logic engine_error,
+        output logic engine_busy,
         
-        output wire sclk,
-        output wire mosi,
-        input wire miso,
-        output reg [SEL_WIDTH-1:0] csn,
-        output reg sel_active
+        output logic sclk,
+        output logic mosi,
+        input logic miso,
+        output logic [SEL_WIDTH-1:0] csn,
+        output logic sel_active
     );
+
+    axis_simple #(.WIDTH(CMD_FIFO_WIDTH)) f2e_cmd();
+    axis_simple #(.WIDTH(axis_mosi.WIDTH)) f2e_mosi();
+    axis_simple #(.WIDTH(axis_miso.WIDTH)) e2f_miso();
 
     piradspi_engine #(
 	    .SEL_MODE(SEL_MODE),
@@ -76,19 +82,14 @@ module piradspi_fifo_engine #(
         .mosi(mosi),
         .miso(miso),
         .sel_active(sel_active),
-        .csn(chip_selects),
+        .csn(csn),
         .cmd_completed(cmd_completed),
+        .engine_error(engine_error),
+        .engine_busy(engine_busy),
         .axis_cmd(f2e_cmd.SUBORDINATE),
         .axis_mosi(f2e_mosi.SUBORDINATE),
         .axis_miso(e2f_miso.MANAGER)
     );
-
-        
-
-    axis_simple #(.WIDTH(CMD_FIFO_WIDTH)) f2e_cmd();
-    axis_simple #(.WIDTH(axis_mosi.WIDTH)) f2e_mosi();
-    axis_simple #(.WIDTH(axis_miso.WIDTH)) e2f_miso();
-
 
     piradip_axis_fifo_sss #(
         .DEPTH(CMD_FIFO_DEPTH)
@@ -132,6 +133,8 @@ module piradspi_engine #(
         axis_simple axis_miso,
         
         output wire cmd_completed,
+        output logic engine_error,
+        output logic engine_busy,
         
         output wire sclk,
         output wire mosi,
@@ -139,9 +142,9 @@ module piradspi_engine #(
         output reg [SEL_WIDTH-1:0] csn,
         output reg sel_active
     );
-    localparam DATA_FIFO_WIDTH=axis_mosi.WIDTH;
+    localparam DATA_FIFO_WIDTH = axis_mosi.WIDTH;
     localparam BIT_COUNT_WIDTH = $clog2(DATA_FIFO_WIDTH+1);
-    localparam RESPONSE_PAD_WIDTH=DATA_FIFO_WIDTH-MAGIC_WIDTH-CMD_ID_WIDTH;
+    localparam RESPONSE_PAD_WIDTH = DATA_FIFO_WIDTH-MAGIC_WIDTH-CMD_ID_WIDTH;
     
     typedef logic [DATA_FIFO_WIDTH-1:0] data_word_t;
 
@@ -152,9 +155,6 @@ module piradspi_engine #(
         } r;
         logic [DATA_FIFO_WIDTH-1:0] data;
     } response_u_t;
-
-    
-    
 
     command_u_t pending_cmd;   
     command_t cur_cmd;
@@ -256,8 +256,8 @@ module piradspi_engine #(
 
     assign miso_words_ready = ~consume_cmd & axis_miso.tready;
     
-    assign axis_miso_data = consume_cmd ? cur_data_out.data : miso_words_data;
-    assign axis_miso_valid = consume_cmd ? 1'b1 : miso_words_valid;
+    assign axis_miso.tdata = consume_cmd ? cur_data_out.data : miso_words_data;
+    assign axis_miso.tvalid = consume_cmd ? 1'b1 : miso_words_valid;
     
     assign cur_data_out.r.resp.magic = RESPONSE_MAGIC;
     assign cur_data_out.r.resp.id = pending_cmd.c.cmd.id;
@@ -274,6 +274,9 @@ module piradspi_engine #(
 
     assign mosi_bit_ready = (~rstn) ? 1'b0 : 
         (mosi_bit_ready | ((state == LATCH) & ~(~miso_bit_ready & miso_bit_valid) & (sclk_cnt == 0))) & ~mosi_bit_complete;
+
+    always_comb engine_busy = (state != IDLE);
+    always_comb engine_error = 0;
 
     always @(posedge clk)
     begin
@@ -315,7 +318,6 @@ module piradspi_engine #(
                 end
                 
                 WAIT_BEGIN_CMD: begin                   
-                    axis_miso.tvalid <= 1'b0;
                     if (state_trigger) begin
                         csn <= gen_sel(SEL_MODE, cur_cmd.device);
                         sel_active <= 1'b1;
@@ -327,7 +329,6 @@ module piradspi_engine #(
                 end
                 
                 SELECT_DEVICE: begin
-                    axis_miso.tvalid <= 1'b0;
                     if (state_trigger) begin
                         if (cur_cmd.cpha == 1) begin
                             state <= SHIFT;

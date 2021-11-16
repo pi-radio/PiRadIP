@@ -33,7 +33,7 @@ module piradspi_tb_full(
 
     piradip_tb_clkgen #(.HALF_PERIOD(10)) clk_gen(.clk(clk));
     
-    axi4mm_lite axilite_bus(.aclk(clk), .aresetn(rstn));
+    axi4mm_lite axilite_bus(.clk(clk), .resetn(rstn));
     
     piradip_tb_spi_slave #(
         .WIDTH(64),
@@ -45,9 +45,11 @@ module piradspi_tb_full(
         .sclk(sclk),
         .mosi(mosi),
         .miso(miso),
-        .csn(~(sel_active && (chip_selects == 0))),
+        .csn(~(csn_active && (csn_mode_1 == 0))),
         .name("Slave 00")
     );
+    
+    logic interrupt_sel_mode_1;
     
     PiRadSPI_v1_0 #(
         .C_SPI_SEL_MODE(1),
@@ -59,6 +61,7 @@ module piradspi_tb_full(
         .sclk(sclk),
         .mosi(mosi),
         .miso(miso),
+        .interrupt(interrupt_sel_mode_1),
         .csn_active(csn_active),
         .csn(csn_mode_1),
         .csr_aclk(clk),
@@ -84,14 +87,14 @@ module piradspi_tb_full(
         .csr_rready(axilite_bus.rready)
     );
 
-    piradip_tb_axilite_master master(.name("AXI"), .aximm(axilite_bus));
+    piradip_tb_axilite_manager manager(.name("AXI"), .aximm(axilite_bus));
 
     initial 
     begin
         logic [31:0] data;
         
         $timeformat(-9, 2, " ns", 0);
-        rstn <= 0;
+        rstn <= 0;                                                                           
 
         clk_gen.sleep(5);
         
@@ -99,8 +102,41 @@ module piradspi_tb_full(
 
         clk_gen.sleep(5);
         
-        master.read(0, data);
+        manager.read(0, data);
+        manager.read('h4, data);
+        // Enable Interrupts and Engine
+        manager.write('h8, 'h00000021);
         
+        manager.write('h0, 'h0);
+        
+        manager.write('h18, 'h01020304);
+        manager.read('h18, data);
+        manager.write('h18, 'h05060708);
+        manager.read('h18, data);
+        
+        manager.read('h0, data);
+        manager.write('h40, 'b11);
+        manager.write('h44, 'd5);
+        manager.write('h48, 'd10);
+        manager.write('h4C, 'd15);
+        manager.write('h40, 'd20);
+        manager.write('h44, 'd64);
+
+        manager.write('h3C, 'd0);
+        
+        wait(interrupt_sel_mode_1 == 1);
+
+        manager.read('h1C, data);
+        manager.read('h1C, data);
+        manager.read('h1C, data);
+        manager.read('h1C, data);
+
+        // Acknowledge interrupt
+        manager.read('h8, data);
+        assert(data & 
+        manager.write('h24, 'h00000000);
+        manager.read('h8, data);
+               
         $finish;
     end
 endmodule

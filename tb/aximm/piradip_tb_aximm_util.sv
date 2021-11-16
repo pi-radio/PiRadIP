@@ -27,7 +27,7 @@ module piradip_tb_axilite_manager #(
         data_t data;
         logic addr_ack;
         logic data_ack;
-        resp_t resp;
+        axi_resp_t resp;
                 
         event e;
         
@@ -292,7 +292,7 @@ module piradip_tb_axilite_manager #(
         $display("%s: Read %x complete: %x", name, addr, data);
     endtask
 
-    task automatic read_resp(input addr_t addr, ref data_t data, ref resp_t resp);
+    task automatic read_resp(input addr_t addr, ref data_t data, ref axi_resp_t resp);
         aximm_op op = new(READ, 0, addr);
         
         op_mbx.put(op);
@@ -316,7 +316,7 @@ module piradip_tb_axilite_manager #(
         $display("%s: Write %x complete: %x", name, addr, data);
     endtask
  
-     task automatic write_resp(input addr_t addr, input data_t data, ref resp_t resp);
+     task automatic write_resp(input addr_t addr, input data_t data, ref axi_resp_t resp);
         aximm_op op = new(WRITE, 0, addr, data);
         
         op_mbx.put(op);
