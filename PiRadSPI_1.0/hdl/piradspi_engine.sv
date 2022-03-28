@@ -19,31 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 `include "piradspi.svh"
-
-import piradspi::*;
         
-interface piradspi_if_engine #(
-    parameter DATA_FIFO_WIDTH         = 32
-)();
-    
-
-    axis_simple #(.WIDTH(CMD_FIFO_WIDTH)) axis_cmd();
-    axis_simple #(.WIDTH(DATA_FIFO_WIDTH)) axis_mosi();
-    axis_simple #(.WIDTH(DATA_FIFO_WIDTH)) axis_miso();
-
-
-    command_u_t submit_cmd;
-
-    command_u_t pending_cmd;
-    command_t cur_cmd;
-    
-  
-    logic dummy;
-    
-    
-    modport CONFIG(input dummy);
-endinterface
-
 module piradspi_fifo_engine #(
 	    parameter integer SEL_MODE        = 1,
         parameter integer SEL_WIDTH       = 8,
@@ -67,6 +43,8 @@ module piradspi_fifo_engine #(
         output logic [SEL_WIDTH-1:0] csn,
         output logic sel_active
     );
+
+    import piradspi::*;
 
     axis_simple #(.WIDTH(CMD_FIFO_WIDTH)) f2e_cmd();
     axis_simple #(.WIDTH(axis_mosi.WIDTH)) f2e_mosi();
@@ -142,6 +120,8 @@ module piradspi_engine #(
         output reg [SEL_WIDTH-1:0] csn,
         output reg sel_active
     );
+    import piradspi::*;
+
     localparam DATA_FIFO_WIDTH = axis_mosi.WIDTH;
     localparam BIT_COUNT_WIDTH = $clog2(DATA_FIFO_WIDTH+1);
     localparam RESPONSE_PAD_WIDTH = DATA_FIFO_WIDTH-MAGIC_WIDTH-CMD_ID_WIDTH;
@@ -200,80 +180,66 @@ module piradspi_engine #(
         .cycles(state_cycles), 
         .trigger(state_trigger));
 
+    wire sclk_hold; // Stretch SCLK to deal with flow control axis_cmd2 axis_cmd
     wire consume_cmd;
     
+    wire mosi_bit_empty;
+    wire miso_bit_full;
+     
     assign consume_cmd = axis_cmd.tready & axis_cmd.tvalid;
+
+    piradip_bit_stream mosi_stream(.clk(clk), .resetn(rstn));
+    piradip_bit_stream miso_stream(.clk(clk), .resetn(rstn));
+
+    //axis_simple mosi_words(.clk(clk), .rstn(rstn));
+    //axis_simple miso_words(.clk(clk), .rstn(rstn));
     
-    wire mosi_align, mosi_bit_valid, mosi_bit_data, mosi_bit_empty;
-    wire mosi_bit_ready;
-    
-    reg mosi_bit_read;
-    
-    always @(posedge clk) mosi_bit_read = mosi_bit_ready & mosi_bit_valid;
-    
-    assign mosi = mosi_bit_data;
-    
-    assign mosi_align = state == END_CMD;
-        
     piradip_stream_to_bit #(
         .WIDTH(DATA_FIFO_WIDTH)
     ) mosi_shift_reg(
         .clk(clk), 
         .rstn(rstn),
-        .align(mosi_align),
+        .align(cmd_completed),
         .empty(mosi_bit_empty),
-        .bit_ready(mosi_bit_ready),
-        .bit_valid(mosi_bit_valid),
-        .bit_data(mosi_bit_data),
-        .word_ready(axis_mosi.tready),
-        .word_data(axis_mosi.tdata),
-        .word_valid(axis_mosi.tvalid)        
+        .bits_out(mosi_stream.MANAGER),
+        .words_in(axis_mosi)
     );
 
-    wire miso_align, miso_bit_full;
-    wire miso_bit_ready;
-    reg miso_bit_valid;
-    
-    assign miso_align = (state == END_CMD);
- 
-    wire miso_words_ready, miso_words_valid;
-    wire [DATA_FIFO_WIDTH-1:0] miso_words_data;
-    
     piradip_bit_to_stream #(
         .WIDTH(DATA_FIFO_WIDTH)
     ) miso_shift_reg(
         .clk(clk), 
         .rstn(rstn),
-        .align(miso_align),
+        .align(cmd_completed),
         .full(miso_bit_full),
-        .bit_ready(miso_bit_ready),
-        .bit_valid(miso_bit_valid),
-        .bit_data(miso),
-        .word_ready(miso_words_ready),
-        .word_data(miso_words_data),
-        .word_valid(miso_words_valid)        
+        .bits_in(miso_stream.SUBORDINATE),
+        .words_out(axis_miso)
     );
 
-    assign miso_words_ready = ~consume_cmd & axis_miso.tready;
-    
-    assign axis_miso.tdata = consume_cmd ? cur_data_out.data : miso_words_data;
-    assign axis_miso.tvalid = consume_cmd ? 1'b1 : miso_words_valid;
+    assign mosi = mosi_stream.tdata;
+    assign miso_stream.tdata = miso;
+    assign cmd_completed = (state == END_CMD);
     
     assign cur_data_out.r.resp.magic = RESPONSE_MAGIC;
     assign cur_data_out.r.resp.id = pending_cmd.c.cmd.id;
     assign cur_data_out.r.pad = 0;
-
-    assign cmd_completed = (state == END_CMD);
-
-    wire sclk_hold;
     
-    assign sclk_hold = (mosi_bit_ready & ~mosi_bit_valid) || (~miso_bit_ready & miso_bit_valid);
+    assign sclk_hold = (mosi_stream.tready & ~mosi_stream.tvalid) || (~miso_stream.tready & miso_stream.tvalid);
 
-    reg mosi_bit_complete;
-    always @(posedge clk) mosi_bit_complete <= mosi_bit_valid & mosi_bit_ready;
-
-    assign mosi_bit_ready = (~rstn) ? 1'b0 : 
-        (mosi_bit_ready | ((state == LATCH) & ~(~miso_bit_ready & miso_bit_valid) & (sclk_cnt == 0))) & ~mosi_bit_complete;
+    always @(posedge clk)
+    begin
+        if (~rstn) begin
+            mosi_stream.tready <= 1'b0;
+        end else if (mosi_stream.tready) begin
+            // If we're here, this means we're waiting on a bit, so if we got one, great!
+            if (mosi_stream.tvalid) begin
+                mosi_stream.tready <= 1'b0;
+            end
+            // If not, well, we keep waiting
+        end else if ((state == LATCH) && (sclk_cnt == 0)) begin
+            mosi_stream.tready <= 1'b1;
+        end
+    end
 
     always_comb engine_busy = (state != IDLE);
     always_comb engine_error = 0;
@@ -287,7 +253,7 @@ module piradspi_engine #(
             cur_cmd.cpol <= 1'b0;
             cur_cmd.cpha <= 1'b0;
             axis_cmd.tready <= 1'b0;
-            miso_bit_valid <= 1'b0;
+            miso_stream.tvalid <= 1'b0;
             xfer_bits <= 0;
         end else begin
             last_state <= state;
@@ -333,7 +299,7 @@ module piradspi_engine #(
                         if (cur_cmd.cpha == 1) begin
                             state <= SHIFT;
                         end else begin
-                            miso_bit_valid <= 1'b1;
+                            miso_stream.tvalid <= 1'b1;
                             state <= LATCH;
                         end
                         
@@ -344,8 +310,8 @@ module piradspi_engine #(
                 end
                 
                 LATCH: begin
-                    if (miso_bit_valid & miso_bit_ready) begin
-                        miso_bit_valid <= 1'b0;
+                    if (miso_stream.tvalid & miso_stream.tready) begin
+                        miso_stream.tvalid <= 1'b0;
                     end
                     
                     if (sclk_cnt != 0) begin
@@ -371,7 +337,7 @@ module piradspi_engine #(
                             state <= DESELECT_DEVICE;
                         end else begin
                             xfer_bits <= xfer_bits - 1;
-                            miso_bit_valid <= 1'b1;
+                            miso_stream.tvalid <= 1'b1;
                             sclk_cnt <= cur_cmd.sclk_cycles;
                             sclk_gen <= ~sclk_gen;
                             state <= LATCH;

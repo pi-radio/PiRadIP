@@ -1,0 +1,7 @@
+#!/usr/bin/env tcl
+
+set piradip_tcl_dir [file dirname [info script]]
+
+set piradip_dir [file dirname piradip_tcl_dir]
+
+puts "Testing ${piradip_dir}"

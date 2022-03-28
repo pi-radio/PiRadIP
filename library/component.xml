@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spirit:component xmlns:xilinx="http://www.xilinx.com" xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <spirit:vendor>pi-rad.io</spirit:vendor>
+  <spirit:library>ip</spirit:library>
+  <spirit:name>PiRadIPLIB</spirit:name>
+  <spirit:version>1.0</spirit:version>
+  <spirit:model>
+    <spirit:views>
+      <spirit:view>
+        <spirit:name>xilinx_anylanguagesynthesis</spirit:name>
+        <spirit:displayName>Synthesis</spirit:displayName>
+        <spirit:envIdentifier>:vivado.xilinx.com:synthesis</spirit:envIdentifier>
+        <spirit:language>SystemVerilog</spirit:language>
+        <spirit:fileSetRef>
+          <spirit:localName>xilinx_anylanguagesynthesis_view_fileset</spirit:localName>
+        </spirit:fileSetRef>
+        <spirit:parameters>
+          <spirit:parameter>
+            <spirit:name>viewChecksum</spirit:name>
+            <spirit:value>75ea625f</spirit:value>
+          </spirit:parameter>
+        </spirit:parameters>
+      </spirit:view>
+      <spirit:view>
+        <spirit:name>xilinx_anylanguagebehavioralsimulation</spirit:name>
+        <spirit:displayName>Simulation</spirit:displayName>
+        <spirit:envIdentifier>:vivado.xilinx.com:simulation</spirit:envIdentifier>
+        <spirit:language>SystemVerilog</spirit:language>
+        <spirit:fileSetRef>
+          <spirit:localName>xilinx_anylanguagebehavioralsimulation_view_fileset</spirit:localName>
+        </spirit:fileSetRef>
+        <spirit:parameters>
+          <spirit:parameter>
+            <spirit:name>viewChecksum</spirit:name>
+            <spirit:value>75ea625f</spirit:value>
+          </spirit:parameter>
+        </spirit:parameters>
+      </spirit:view>
+    </spirit:views>
+  </spirit:model>
+  <spirit:fileSets>
+    <spirit:fileSet>
+      <spirit:name>xilinx_anylanguagesynthesis_view_fileset</spirit:name>
+      <spirit:file>
+        <spirit:name>util/piradip_state_timer.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>axis/piradip_axis.svh</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:isIncludeFile>true</spirit:isIncludeFile>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>axi/piradip_axi4.svh</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:isIncludeFile>true</spirit:isIncludeFile>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>aximm/piradip_axi4mmlite.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+        <spirit:exportedName>axi4mm_lite</spirit:exportedName>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>aximm/piradip_aximm.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>axis/piradip_axis_fifo.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>axis/piradip_axis.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>util/piradip_shift_registers.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>CHECKSUM_5cd6d7f3</spirit:userFileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+      </spirit:file>
+    </spirit:fileSet>
+    <spirit:fileSet>
+      <spirit:name>xilinx_anylanguagebehavioralsimulation_view_fileset</spirit:name>
+      <spirit:file>
+        <spirit:name>util/piradip_state_timer.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>axis/piradip_axis.svh</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
+        <spirit:isIncludeFile>true</spirit:isIncludeFile>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>axi/piradip_axi4.svh</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
+        <spirit:isIncludeFile>true</spirit:isIncludeFile>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>aximm/piradip_axi4mmlite.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>aximm/piradip_aximm.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>axis/piradip_axis_fifo.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>axis/piradip_axis.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>util/piradip_shift_registers.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
+        <spirit:logicalName>xil_defaultlib</spirit:logicalName>
+      </spirit:file>
+    </spirit:fileSet>
+  </spirit:fileSets>
+  <spirit:description>pi-rad.io:ip:piradip_library:1.0</spirit:description>
+  <spirit:parameters>
+    <spirit:parameter>
+      <spirit:name>Component_Name</spirit:name>
+      <spirit:value spirit:resolve="user" spirit:id="PARAM_VALUE.Component_Name" spirit:order="1">PiRadIPLIB_v1_0</spirit:value>
+    </spirit:parameter>
+  </spirit:parameters>
+  <spirit:vendorExtensions>
+    <xilinx:coreExtensions>
+      <xilinx:taxonomies>
+        <xilinx:taxonomy>/Embedded_Processing/Utility</xilinx:taxonomy>
+      </xilinx:taxonomies>
+      <xilinx:displayName>piradip_library_v1_0</xilinx:displayName>
+      <xilinx:hideInCatalogGUI>true</xilinx:hideInCatalogGUI>
+      <xilinx:definitionSource>package_project</xilinx:definitionSource>
+      <xilinx:xpmLibraries>
+        <xilinx:xpmLibrary>XPM_FIFO</xilinx:xpmLibrary>
+      </xilinx:xpmLibraries>
+      <xilinx:vendorDisplayName>Pi Radio Inc</xilinx:vendorDisplayName>
+      <xilinx:vendorURL>https://pi-rad.io/</xilinx:vendorURL>
+      <xilinx:coreRevision>9</xilinx:coreRevision>
+      <xilinx:upgrades>
+        <xilinx:canUpgradeFrom>xilinx.com:ip:library:1.0</xilinx:canUpgradeFrom>
+      </xilinx:upgrades>
+      <xilinx:coreCreationDateTime>2021-11-18T21:28:17Z</xilinx:coreCreationDateTime>
+      <xilinx:tags>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7b8e5c63_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@484d2e46_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3880eb57_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@341842f3_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@13edb4fb_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@48be906a_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@14a1c872_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@433ea002_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@54ffe43b_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@41f4fbb9_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4b60d8ee_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@bcf780b_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4008ff90_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4bf9101d_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3fb7d94b_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@496822_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@be8d50e_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1c71b623_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1527c809_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4873195f_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4eaee56a_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3730c6c7_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@782dfc7_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@76e0ab95_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@137db96f_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@69843def_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@295fa8f2_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@61c3e10b_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6b00f02e_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7a24437e_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2e14041a_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@17725a5e_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4bdae8d6_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@465fd5d6_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@60e858f5_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@38a19c08_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@c92c9b2_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@52fc4024_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1ac38c3b_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@124812ed_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@75bfb9c5_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@528dd9e3_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@37a38c50_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@72999694_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@70586cd0_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@67125c03_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@575aeacc_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@41149d_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@4e434671_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@1f85380f_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@75ba8fd5_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@4e173a3_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@2f3656f0_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@7a3dbd5f_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@5ca74439_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@393fe657_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@4585eff7_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@48f0fc5a_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@187b3df3_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@abb53c6_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@31c5be98_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@3e4f570_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@72b99cd3_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@2c9d8e40_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@6978d90e_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@3f0762cf_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@3b34ad1f_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@1dd48a4b_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@497c212e_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@7c1c97bf_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@1b7e7884_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@52680ad_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@19317730_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@45b152c9_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@5702ae2e_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@35323da5_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@618ace00_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@331fa76d_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@1851d1fc_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@429b53d3_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@117705af_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@50ffa619_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@62d60775_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@795d5ad7_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@55081c7a_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@265cc775_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@335113b_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@3aafd415_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@97654ea_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@38ff21c3_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@55b70ef1_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@722a9b93_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@7fc9ecc9_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@2abfc331_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@20411da4_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@88ab217_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@57fde20_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@46955c1e_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@1c43d55c_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@1b26e198_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@13d3f242_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@72564ea_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@437ed398_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@5b95b341_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@530ab788_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@6022ec3b_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@6ecfa31c_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@556c4024_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@78313fb8_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@686227e8_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@77986d1f_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@59754a11_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@76ea7eab_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@60b63fcd_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@35138f44_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@7f32bfa3_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@62f6f35e_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@519b1885_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@569d827a_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@31e3052d_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@503c11f1_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@4d86673f_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@59ae0f25_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@5ff8cd45_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@43f1907d_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@4aa2d2fd_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@116d48f2_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@4c78b8fb_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@28e4db8e_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@224dbc13_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@71368f99_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@ae3895f_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@5658737_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@726bd9b0_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@5fce4169_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@11d0aa9e_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@2a5219e_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@732bfe46_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@1f4c1711_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@3918c536_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@23768cfd_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@4cb98ac8_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@7b3b9bf7_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@45cd428b_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@7761e123_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@458acf8e_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@48904761_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@2e8d4183_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@2e704c40_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@545baa2e_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@5ab33020_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@31c273f7_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@1973bc7c_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@5f5179c3_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@65174542_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@2dd22328_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@20a3f1e1_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@1441cc51_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@7f64fbcf_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@70c1440c_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@4691b840_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@54e6cbd8_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@100198ae_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@7835d0fb_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@38f42b64_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@57c3f70c_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@7395213b_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@4980cd36_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@3410a80f_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@48794b58_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@6449687_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/library</xilinx:tag>
+      </xilinx:tags>
+    </xilinx:coreExtensions>
+    <xilinx:packagingInfo>
+      <xilinx:xilinxVersion>2021.2</xilinx:xilinxVersion>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="fb082229"/>
+      <xilinx:checksum xilinx:scope="parameters" xilinx:value="f1be5280"/>
+    </xilinx:packagingInfo>
+  </spirit:vendorExtensions>
+</spirit:component>

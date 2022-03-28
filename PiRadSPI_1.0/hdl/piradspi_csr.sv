@@ -29,18 +29,17 @@
     Reg 4h: SCLK to CSN deassert cycles
     Reg 5h: Transfer Length    
 */
-`include "piradspi.svh"
-
-import piradspi::*;
-
 module piradspi_csr #(
-    parameter NUM_PROFILES = 8
+    parameter NUM_PROFILES = 8,
+    parameter DATA_WIDTH = 32,
+    parameter ADDR_WIDTH = 10,
+    parameter DEBUG=1
 ) (
-    axi4mm_lite aximm,
+    axi4mm_lite.SUBORDINATE aximm,
     
-    axis_simple axis_cmd,
-    axis_simple axis_mosi,
-    axis_simple axis_miso,
+    axis_simple.MANAGER axis_cmd,
+    axis_simple.MANAGER axis_mosi,
+    axis_simple.SUBORDINATE axis_miso,
             
     output logic engine_enable,
     input logic engine_error,
@@ -48,31 +47,34 @@ module piradspi_csr #(
     input logic command_completed,
     output logic intr_out
 );
-	localparam integer DATA_WIDTH           = aximm.DATA_WIDTH;
-    localparam integer ADDR_WIDTH	        = aximm.ADDR_WIDTH;
+    import piradspi::*;
+
     localparam integer AXI_BYTE_WIDTH       = DATA_WIDTH/8;
     localparam integer ADDR_WORD_BITS       = $clog2(AXI_BYTE_WIDTH);
-    localparam integer REGISTER_ADDR_BITS   = ADDR_WIDTH-ADDR_WORD_BITS;
+    localparam integer REGISTER_ADDR_BITS   = ADDR_WIDTH - ADDR_WORD_BITS; //aximm.ADDR_WIDTH-ADDR_WORD_BITS;
 	localparam PROFILE_SELECT_WIDTH         = $clog2(NUM_PROFILES);
+
+    //localparam integer REGISTER_ADDR_LSB = AXI4MM_REGISTER_ADDR_LSB(DATA_WIDTH, ADDR_WIDTH);
 
     typedef logic [DATA_WIDTH-1:0] axi_data_t;
 	typedef logic [REGISTER_ADDR_BITS-1:0] regno_t;
     typedef logic [PROFILE_SELECT_WIDTH-1:0] profile_id_t;
 
-    localparam write_profile_reg_mask = (REGISTER_PROFSIZE - 1);
+    localparam WRITE_PROFILE_REG_MASK = (REGISTER_PROFSIZE - 1);
     
     piradip_register_if #(
-            .DATA_WIDTH(aximm.DATA_WIDTH), 
-            .REGISTER_ADDR_BITS(sub_imp.REGISTER_ADDR_BITS)
+            .DATA_WIDTH(DATA_WIDTH), 
+            .REGISTER_ADDR_BITS(REGISTER_ADDR_BITS)
         ) reg_if (
             .aclk(aximm.aclk), 
             .aresetn(aximm.aresetn)
         );
 
-    piradip_axi4mmlite_subordinate sub_imp(.reg_if(reg_if.SERVER), .aximm(aximm), .*);
+    piradip_axi4mmlite_subordinate #(.DATA_WIDTH(DATA_WIDTH), .ADDR_WIDTH(ADDR_WIDTH)) 
+        sub_imp(.reg_if(reg_if.SERVER), .aximm(aximm), .*);
 
     axi_data_t ctrlstat_out;
-    logic [sub_imp.REGISTER_ADDR_BITS-1:0] write_profile_reg;
+    
     genvar i;
 
     logic autoinc_id;
@@ -88,7 +90,7 @@ module piradspi_csr #(
 
     profile_id_t profile_sel;
 
-    always_comb ctrlstat_out = {  intr_en, intr_assert, autoinc_id, engine_busy, engine_error, engine_enable };
+    always_comb ctrlstat_out = {  axis_miso.tvalid, axis_mosi.tready, intr_en, intr_assert, autoinc_id, engine_busy, engine_error, engine_enable };
 
     logic do_cmd_issue, failed_cmd_issue;
     logic do_mosi_issue, failed_mosi_issue;
@@ -135,20 +137,6 @@ module piradspi_csr #(
 	// ADDR_LSB = 2 for 32 bits (n downto 2)
 	// ADDR_LSB = 3 for 64 bits (n downto 3)
 
-/*
-	wire	 slv_reg_rden;
-	wire	 slv_reg_wren;
-    wire regno_t rreg_no;
-    wire regno_t wreg_no;
-
-	reg [DATA_WIDTH-1:0]	 rreg_data;
-*/
-    function logic is_profile_write(input integer i, 
-            input logic [sub_imp.REGISTER_ADDR_BITS-1:0] rno);
-        return reg_if.wren && (rno >= REGISTER_PROFBASE + i * REGISTER_PROFSIZE) &&
-            (rno < (REGISTER_PROFBASE + (i + 1) * REGISTER_PROFSIZE));   
-    endfunction
-    
     always @(posedge aximm.aclk)
     begin
         if (~aximm.aresetn) begin
@@ -181,11 +169,28 @@ module piradspi_csr #(
         end
     end
     
-    
-    assign write_profile_reg = (reg_if.wreg_no - REGISTER_PROFBASE);
-    
+    function automatic logic [DATA_WIDTH-1:0] mask_write_bytes(input logic [DATA_WIDTH-1:0] r);
+        integer	 i;
+        logic [aximm.DATA_WIDTH-1:0] retval;;
+        for ( i = 0; i < aximm.STRB_WIDTH; i = i+1 ) begin
+            retval[(i*8) +: 8] = aximm.wstrb[i] ? aximm.wdata[(i*8) +: 8] : r[(i*8) +: 8];
+        end
+        return retval;
+        //WHYYYYYYYY won't this reference work in synthesis
+        //return sub_imp.mask_write_bytes(r);     
+    endfunction
+
     generate
         for (i = 0; i < NUM_PROFILES; i++) begin
+            logic [REGISTER_ADDR_BITS-1:0] write_profile_reg;
+
+            function logic is_profile_write(input regno_t rno);
+                return reg_if.wren && (rno >= REGISTER_PROFBASE + i * REGISTER_PROFSIZE) &&
+                    (rno < (REGISTER_PROFBASE + (i + 1) * REGISTER_PROFSIZE));   
+            endfunction
+        
+            assign write_profile_reg = (reg_if.wreg_no - REGISTER_PROFBASE) & WRITE_PROFILE_REG_MASK;
+            
             always @( posedge aximm.aclk )
             begin
                 if (~aximm.aresetn) begin
@@ -196,17 +201,17 @@ module piradspi_csr #(
                     profiles[i].csn_to_sclk_cycles = 16'hFFFF;
                     profiles[i].sclk_to_csn_cycles = 16'hFFFF;        
                     profiles[i].xfer_len = 16'h8;
-                end else if (is_profile_write(i, reg_if.wreg_no)) begin
+                end else if (is_profile_write(reg_if.wreg_no)) begin
                     case(write_profile_reg)
                     REGISTER_POLPHA: 
                         if (aximm.wstrb[0]) begin
                             { profiles[i].cpol, profiles[i].cpha } <= aximm.wdata;
                         end
-                    REGISTER_SCLKDIV: profiles[i].sclk_cycles <= sub_imp.mask_write_bytes(profiles[i].sclk_cycles);
-                    REGISTER_STARTWAIT: profiles[i].wait_start <=  sub_imp.mask_write_bytes(profiles[i].wait_start);
-                    REGISTER_CSNTOSCLK: profiles[i].csn_to_sclk_cycles <= sub_imp.mask_write_bytes(profiles[i].csn_to_sclk_cycles);
-                    REGISTER_SCLKTOCSN: profiles[i].sclk_to_csn_cycles <= sub_imp.mask_write_bytes(profiles[i].sclk_to_csn_cycles);
-                    REGISTER_XFERLEN: profiles[i].xfer_len <= sub_imp.mask_write_bytes(profiles[i].xfer_len);
+                    REGISTER_SCLKDIV: profiles[i].sclk_cycles <= mask_write_bytes(profiles[i].sclk_cycles);
+                    REGISTER_STARTWAIT: profiles[i].wait_start <=  mask_write_bytes(profiles[i].wait_start);
+                    REGISTER_CSNTOSCLK: profiles[i].csn_to_sclk_cycles <= mask_write_bytes(profiles[i].csn_to_sclk_cycles);
+                    REGISTER_SCLKTOCSN: profiles[i].sclk_to_csn_cycles <= mask_write_bytes(profiles[i].sclk_to_csn_cycles);
+                    REGISTER_XFERLEN: profiles[i].xfer_len <= mask_write_bytes(profiles[i].xfer_len);
                     default: begin $display("Prof reg: %b", write_profile_reg); end                          
                     endcase
                 end
@@ -229,6 +234,7 @@ module piradspi_csr #(
             end
         end
     end
+
     
     always @(posedge aximm.aclk)
     begin
@@ -237,7 +243,7 @@ module piradspi_csr #(
         end else if(reg_if.wren) begin
             case (reg_if.wreg_no)
             REGISTER_CMD_ID: begin
-                cmd_id = sub_imp.mask_write_bytes(cmd_id);
+                cmd_id = mask_write_bytes(cmd_id);
             end
             REGISTER_TRIGGER: begin
                 if (autoinc_id) cmd_id <= cmd_id + 1;
@@ -282,13 +288,13 @@ module piradspi_csr #(
         end  else if (reg_if.wren) begin
             case (reg_if.wreg_no)
             REGISTER_DEVSELECT: begin
-                device_sel = sub_imp.mask_write_bytes(device_sel);
+                device_sel = mask_write_bytes(device_sel);
             end
             REGISTER_PROFSELECT: begin
-                profile_sel = sub_imp.mask_write_bytes(profile_sel);
+                profile_sel = mask_write_bytes(profile_sel);
             end
             REGISTER_MOSIFIFO: begin
-                axis_mosi.tdata = sub_imp.mask_write_bytes(axis_mosi.tdata);
+                axis_mosi.tdata = mask_write_bytes(axis_mosi.tdata);
             end
             default : begin
             end

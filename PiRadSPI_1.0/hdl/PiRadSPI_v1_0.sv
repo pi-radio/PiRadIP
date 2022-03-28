@@ -1,8 +1,5 @@
 `timescale 1 ns / 1 ps
 
-`include "piradspi.svh"
-`include "piradip_axi4.svh"
-
 module PiRadSPI_v1_0 #(
     parameter integer C_SPI_SEL_MODE    = 1,
     parameter integer C_CSR_DATA_WIDTH	= 32,
@@ -41,45 +38,11 @@ module PiRadSPI_v1_0 #(
     output wire  csr_rvalid,
     input wire  csr_rready
 );
-    import piradspi::*;
-    
-    localparam integer NSEL            = C_SPI_SEL_MODE ? (1 << C_SPI_SEL_WIDTH) : (C_SPI_SEL_WIDTH);
-    localparam DATA_FIFO_WIDTH         = C_CSR_DATA_WIDTH;
-
-    `PIRADIP_AXI4LITE_SUBORDINATE_ADAPTER(axilite, C_CSR_, csr_);
-
-    logic cmd_completed;
-
-    piradspi_csr # ( 
-        .NUM_PROFILES(C_NUM_PROFILES)
-    ) csr (
-        .aximm(axilite.SUBORDINATE),
-        .axis_cmd(cmd_stream.MANAGER),
-        .axis_mosi(mosi_stream.MANAGER),
-        .axis_miso(miso_stream.SUBORDINATE),
-        .command_completed(cmd_completed),
-        .intr_out(interrupt)
-    );
-    
-    axis_simple #(.WIDTH(CMD_FIFO_WIDTH)) cmd_stream(.clk(csr_aclk), .resetn(csr_aresetn));
-    axis_simple #(.WIDTH(DATA_FIFO_WIDTH)) mosi_stream(.clk(csr_aclk), .resetn(csr_aresetn));
-    axis_simple #(.WIDTH(DATA_FIFO_WIDTH)) miso_stream(.clk(csr_aclk), .resetn(csr_aresetn));    
-    
-    piradspi_fifo_engine #(
-        .SEL_MODE(C_SPI_SEL_MODE),
-        .SEL_WIDTH(C_SPI_SEL_WIDTH)
-    ) engine (
-        .clk(csr_aclk),
-        .rstn(csr_aresetn),
-        .sclk(sclk),
-        .mosi(mosi),
-        .miso(miso),
-        .sel_active(csn_active),
-        .csn(csn),
-        .axis_cmd(cmd_stream.SUBORDINATE),
-        .axis_mosi(mosi_stream.SUBORDINATE),
-        .axis_miso(miso_stream.MANAGER),
-        .cmd_completed(cmd_completed)
-    );
-    
+    piradspi_top #(
+        .C_SPI_SEL_MODE(C_SPI_SEL_MODE),
+        .C_CSR_DATA_WIDTH(C_CSR_DATA_WIDTH),
+        .C_CSR_ADDR_WIDTH(C_CSR_ADDR_WIDTH),
+        .C_SPI_SEL_WIDTH(C_SPI_SEL_WIDTH),
+        .C_NUM_PROFILES(C_NUM_PROFILES)
+    ) spi_top ( .* );
 endmodule

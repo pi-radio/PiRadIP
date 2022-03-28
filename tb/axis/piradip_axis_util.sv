@@ -2,25 +2,64 @@
 
 `include "piradip_axi4.svh"
 
-import piradip_axi4::*;
-
 module piradip_util_axis_subordinate #(
     parameter WIDTH=32
 ) (
     input string name,
     axis_simple sub_in
 );
-    always_comb sub_in.tready <= sub_in.aresetn;
+    logic tvalid, tlast, tready, aresetn;
+    logic [WIDTH-1:0] tdata;
 
-    always @(posedge sub_in.aclk) begin
-        if (sub_in.tvalid) begin
-            $display("%s: Recieved: %x%s", name, sub_in.tdata, sub_in.tlast ? " LAST" : "");
+    assign aresetn = sub_in.aresetn;
+    assign tvalid = sub_in.tvalid;
+    assign tlast = sub_in.tvalid;
+    assign tdata = sub_in.tdata;
+    assign sub_in.tready = tready;
+    
+    default clocking SUB_CB @(posedge sub_in.aclk);
+        input tvalid, tlast, tdata, aresetn;
+        output tready;
+    endclocking
+    
+    logic [WIDTH-1:0] recv_q[$]; 
+
+    always @SUB_CB begin
+        if (tready & SUB_CB.tvalid) begin
+            $display("%s: Recieved: %x%s", name, SUB_CB.tdata, SUB_CB.tlast ? " LAST" : "");
+            recv_q.push_back(SUB_CB.tdata);
         end
     end;
     
+    function automatic void ready();
+        SUB_CB.tready <= 1'b1;
+    endfunction
+    
+    function automatic void unready();
+        SUB_CB.tready <= 1'b0;
+    endfunction
+    
+    task automatic recv_one(output logic [WIDTH-1:0] result);
+        logic old_tready = tready;
+        
+        SUB_CB.tready <= 1;
+        
+        wait(recv_q.size() != 0);
+        
+        result = recv_q.pop_front();
+        
+        SUB_CB.tready <= old_tready;
+    endtask
+    
+    initial 
+    begin
+        SUB_CB.tready <= 1'b0;
+    end
 endmodule
 
-module piradip_util_axis_inc_manager (
+module piradip_util_axis_inc_manager#(
+    parameter WIDTH=32
+) (
     input string name,
     axis_simple manager_out
 );
@@ -41,11 +80,27 @@ module piradip_util_axis_inc_manager (
     
 endmodule
     
-module piradip_util_axis_manager (
+module piradip_util_axis_manager #(
+    parameter WIDTH=32
+)(
     input string name,
     axis_simple manager_out
 );
-    typedef logic [manager_out.WIDTH-1:0] data_word_t;
+    logic tvalid, tlast, tready, aresetn;
+    logic [WIDTH-1:0] tdata;
+
+    assign manager_out.tvalid = tvalid;
+    assign manager_out.tlast = tvalid;
+    assign manager_out.tdata = tdata;
+    assign tready = manager_out.tready;
+    assign aresetn = manager_out.aresetn;
+    
+    default clocking MAN_CB @(posedge manager_out.aclk);
+        output tvalid, tlast, tdata;
+        input tready, aresetn;
+    endclocking  
+    
+    typedef logic [WIDTH-1:0] data_word_t;
     
     typedef enum {
         WRITE,
@@ -65,7 +120,7 @@ module piradip_util_axis_manager (
            
     op_t op_q[$];
     
-    function automatic send_one(input data_word_t data);
+    function automatic void send_one(input data_word_t data);
         automatic op_t op = new(WRITE, data);
         
         op_q.push_back(op);   
@@ -83,31 +138,39 @@ module piradip_util_axis_manager (
     op_t cur_op;
     
     reg wait_flag;
-        
+             
     initial
     begin
-        manager_out.tdata = 0;
-        manager_out.tvalid = 0;
-        manager_out.tlast = 0;
+
+        
+        @MAN_CB;
         
         forever
         begin
-            wait(op_q.size() != 0);
-
-            cur_op = op_q.pop_front();
-            $display("%s: (%t) manager operation %d %x", name, $time, cur_op.code.name, cur_op.data);
+            MAN_CB.tdata <= 0;
+            MAN_CB.tvalid <= 0;
+            MAN_CB.tlast <= 0;
             
-            case (cur_op.code)
-                WRITE: begin
-                    manager_out.tdata = cur_op.data;
-                    manager_out.tvalid = 1;
-                    wait(manager_out.tvalid & manager_out.tready);
-                    @(posedge manager_out.clk) manager_out.tvalid = 0;
-                    $display("%s: (%t) manager write complete (%x)", name, $time, cur_op.data);   
-                end
-
-                SYNC: -> cur_op.e;
-            endcase
+            wait(op_q.size() != 0); 
+    
+            cur_op = op_q.pop_front();
+            
+            do begin
+                $display("%s: (%t) manager operation %d %x", name, $time, cur_op.code.name, cur_op.data);
+ 
+                case (cur_op.code)
+                    WRITE: begin
+                        MAN_CB.tdata <= cur_op.data;
+                        MAN_CB.tvalid <= 1;
+                        $display("%s: (%t) manager write data out (%x r: %d v: %d)", name, $time, cur_op.data, MAN_CB.tready, tvalid);
+                        @(MAN_CB iff tvalid == 1 && MAN_CB.tready == 1);
+                        $display("%s: (%t) manager write complete (%x r: %d v: %d)", name, $time, cur_op.data, MAN_CB.tready, tvalid);   
+                    end
+    
+                    SYNC: -> cur_op.e;
+              endcase
+              cur_op = op_q.pop_front();
+            end while(cur_op);
         end        
     end  
 endmodule

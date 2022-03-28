@@ -1,52 +1,63 @@
 `timescale 1ns / 1ps
 
+interface piradip_bit_stream #(
+    ) (
+        input clk,
+        input resetn
+    );
+    logic aclk, aresetn;
+    logic tready, tvalid, tlast;
+    logic tdata;
+    logic do_xfer;
+
+    assign aclk = clk;
+    assign aresetn = resetn;
+        
+    modport SUBORDINATE (input tvalid, tlast, tdata, output tready, aclk, aresetn, do_xfer);
+    modport MANAGER (output tvalid, tlast, tdata, aclk, aresetn, do_xfer, input tready);
+endinterface
+
 module piradip_stream_to_bit #(
     parameter WIDTH=32
 ) (
     input wire clk,
     input wire rstn,
-    
     input wire align,
-    
     output wire empty,
-    input wire bit_ready,
-    output wire bit_valid,
-    output wire bit_data,
-    
-    output wire word_ready,
-    input wire [WIDTH-1:0] word_data,
-    input wire word_valid            
+    piradip_bit_stream bits_out,
+    axis_simple words_in
 );
     localparam BIT_COUNT_WIDTH = $clog2(WIDTH+1);
     
-    reg [WIDTH-1:0] shift_reg;
+    reg [WIDTH:0] shift_reg;
     reg [BIT_COUNT_WIDTH-1:0] bit_count;
-    
-    assign bit_data = shift_reg[WIDTH-1];
-    
-    assign word_read = word_ready & word_valid;
-    assign bit_read = bit_ready & bit_valid;
-    
-    assign bit_valid = (bit_count != 0);
+       
+    assign bits_out.tvalid = (bit_count != 0);
+    assign bits_out.tdata = shift_reg[WIDTH];
+        
+
+      
     assign empty = (bit_count == 0);
     
-    assign word_ready = (bit_count == 1 && bit_read) || (bit_count == 0);
+    assign words_in.tready = (bit_count == 1 && (bits_out.tready & bits_out.tvalid)) || (bit_count == 0);
     
     always @(posedge clk)
     begin
         if (~rstn) begin
             bit_count <= 0;
             shift_reg <= 0;
+        end else if (align) begin
+            bit_count <= (bit_count < WIDTH) ? 0 : WIDTH;
         end else begin
-            bit_count = 
-                (align ? ((bit_count < WIDTH) ? 0 : WIDTH) : bit_count) +
-                (word_read ? WIDTH : 0) -
-                (bit_read ? 1 : 0);
-  
-            shift_reg = word_read ? (
-                    (bit_count == 0) ? { word_data, 1'b0 } : { shift_reg[WIDTH], word_data }) :
-                bit_read ? ( { shift_reg[WIDTH-1:0], 1'b0 } ) :
-                shift_reg;
+            if (bits_out.tvalid & bits_out.tready) begin
+                bit_count = bit_count - 1;
+                shift_reg = { shift_reg[WIDTH-1:0], 1'b0 };
+            end
+
+            if (words_in.tvalid & words_in.tready) begin
+                shift_reg = (bit_count == 0) ? { words_in.tdata, 1'b0 } : { shift_reg[WIDTH], words_in.tdata };
+                bit_count = WIDTH + bit_count;
+            end
         end
     end   
 endmodule
@@ -60,22 +71,20 @@ module piradip_bit_to_stream #(
     input logic align,
     output logic full,
     
-    output logic bit_ready,
-    input logic bit_valid,
-    input logic bit_data,
+    piradip_bit_stream bits_in,
     
-    input logic word_ready,
-    output logic [WIDTH-1:0] word_data,
-    output logic word_valid            
+    axis_simple words_out
 );
     localparam BIT_COUNT_WIDTH = $clog2(WIDTH+1);
     
     logic [WIDTH:0] shift_reg;
     logic [BIT_COUNT_WIDTH-1:0] bit_count;
 
-    assign bit_ready = (bit_count != 0);
+    assign bits_in.tready = (bit_count != 0);
     assign full = bit_count == 0;
-    assign word_data = (bit_count == 0) ? shift_reg[WIDTH:1] : shift_reg[WIDTH-1:0];
+    assign words_out.tdata = (bit_count == 0) ? shift_reg[WIDTH:1] : shift_reg[WIDTH-1:0];
+    assign words_out.tvalid = (bit_count <= 1);    
+
     
     always @(posedge clk)
     begin
@@ -85,20 +94,15 @@ module piradip_bit_to_stream #(
         end else begin
             if (align) begin
                 bit_count = 1;
-            end else if (word_valid & word_ready) begin
+            end else if (words_out.tvalid & words_out.tready) begin
+                shift_reg = (bit_count == 0) ? { {{WIDTH-1}{1'b0}}, shift_reg[0] } : 0;
                 bit_count = bit_count + WIDTH;
             end
             
-            if(bit_ready && bit_valid) begin
-                shift_reg = { shift_reg[WIDTH-1:0], bit_data };
+            if(bits_in.tready && bits_in.tvalid) begin
+                shift_reg = { shift_reg[WIDTH-1:0], bits_in.tdata };
                 bit_count = bit_count - 1;
             end
         end
     end
-    
-    always @(posedge clk) word_valid = ~rstn ? 0 :
-        (word_valid & word_ready) ? 0 :
-        (align) ? 1 :
-        word_valid;
-
 endmodule

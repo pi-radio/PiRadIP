@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 10/15/2021 01:58:55 PM
+// Create Date: 03/24/2022 10:43:11 AM
 // Design Name: 
-// Module Name: piradip_tb_clocks
+// Module Name: piradip_tb_shift_registers
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,20 +20,11 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module piradip_tb_clkgen #(
-    parameter integer HALF_PERIOD = 5  // Aligns with the default grid of Vivado
-) (
-    output reg clk       
-);
-    always #(HALF_PERIOD) clk <= ~clk;
-    
-    initial
-    begin
-        clk <= 0;
-    end
-    
-    task sleep(input int n);
-        repeat (n) @(posedge clk);
-    endtask;     
-endmodule    
+module piradip_tb_shift_registers(
 
+    );
+    
+    wire clk;
+    reg rstn;
+    
+endmodule

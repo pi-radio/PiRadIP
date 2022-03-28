@@ -29,6 +29,7 @@ interface axi4mm #(
     logic [3 : 0] awcache;
     logic [2 : 0] awprot;
     logic [3 : 0] awqos;
+    logic [3 : 0] awregion;
     logic [AWUSER_WIDTH-1 : 0] awuser;
     logic  awvalid;
     logic  awready;
@@ -52,6 +53,7 @@ interface axi4mm #(
     logic [3 : 0] arcache;
     logic [2 : 0] arprot;
     logic [3 : 0] arqos;
+    logic [3 : 0] arregion;
     logic [ARUSER_WIDTH-1 : 0] aruser;
     logic  arvalid;
     logic  arready;
@@ -65,5 +67,36 @@ interface axi4mm #(
     
     assign aclk = clk;
     assign aresetn = resetn;
+
+    modport MANAGER(
+        output aclk, aresetn, 
+            awid, awaddr, awlen, awsize, awburst, awlock, awcache, awprot, awqos, awregion, awuser, awvalid,
+            wdata, wstrb, wlast, wuser, wvalid,
+            bready,
+            arid, araddr, arlen, arsize, arburst, arlock, arcache, arprot, arqos, arregion, aruser, arvalid,
+            rready,
+        input 
+            awready, 
+            wready,
+            bid, bresp, buser, bvalid,
+            arready,
+            rid, rdata, rresp, rlast, ruser, rvalid
+    );
+
+    modport SUBORDINATE(
+        output aclk, aresetn,
+            awready, 
+            wready,
+            bid, bresp, buser, bvalid,
+            arready,
+            rid, rdata, rresp, rlast, ruser, rvalid,
+        input
+            awid, awaddr, awlen, awsize, awburst, awlock, awcache, awprot, awqos, awregion, awuser, awvalid,
+            wdata, wstrb, wlast, wuser, wvalid,
+            bready,
+            arid, araddr, arlen, arsize, arburst, arlock, arcache, arprot, arqos, arregion, aruser, arvalid,
+            rready
+    );
+
 
 endinterface

@@ -1,6 +1,71 @@
-`include "piradip_axi4.svh"
+package piradip_axi4;
+    localparam AXI_RESP_OKAY    = 2'b00;
+    localparam AXI_RESP_EXOKAY  = 2'b01;
+    localparam AXI_RESP_SLVERR  = 2'b10;
+    localparam AXI_RESP_DECERR  = 2'b11;
+    
+    localparam AXI_BURST_FIXED  = 2'b00;
+    localparam AXI_BURST_INCR   = 2'b01;
+    localparam AXI_BURST_WRAP   = 2'b10;
+    localparam AXI_BURST_RSRVD  = 2'b11;
+    
+    localparam AXI_SIZE_1       = 3'b000;
+    localparam AXI_SIZE_2       = 3'b001;
+    localparam AXI_SIZE_4       = 3'b010;
+    localparam AXI_SIZE_8       = 3'b011;
+    localparam AXI_SIZE_16      = 3'b100;
+    localparam AXI_SIZE_32      = 3'b101;
+    localparam AXI_SIZE_64      = 3'b110;
+    localparam AXI_SIZE_128     = 3'b111;
+    
+    localparam AXI_LOCK_NORMAL    = 1'b0;
+    localparam AXI_LOCK_EXCLUSIVE = 1'b1;
 
-import piradip_axi4::*;
+    localparam AXI_CACHE_DEVICE_NON_BUFFERABLE                = 4'b0000;
+    localparam AXI_CACHE_DEVICE_BUFFERABLE                    = 4'b0001;
+    localparam AXI_CACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE  = 4'b0010;
+    localparam AXI_CACHE_NORMAL_NON_CACHEABLE                 = 4'b0011;
+
+    localparam AXI_ARCACHE_WRITE_THROUGH_NO_ALLOCATE            = 4'b1010;
+    localparam AXI_ARCACHE_WRITE_THROUGH_READ_ALLOCATE          = 4'b1110;
+    localparam AXI3_ARCACHE_WRITE_THROUGH_READ_ALLOCATE         = 4'b0110;
+    localparam AXI_ARCACHE_WRITE_THROUGH_WRITE_ALLOCATE         = 4'b1010;
+    localparam AXI_ARCACHE_WRITE_THROUGH_BOTH_ALLOCATE          = 4'b1110;
+    localparam AXI_ARCACHE_WRITE_BACK_NO_ALLOCATE               = 4'b1011;
+    localparam AXI_ARCACHE_WRITE_BACK_READ_ALLOCATE             = 4'b1111;
+    localparam AXI3_ARCACHE_WRITE_BACK_READ_ALLOCATE            = 4'b0111;
+    localparam AXI_ARCACHE_WRITE_BACK_WRITE_ALLOCATE            = 4'b1011;
+    localparam AXI_ARCACHE_WRITE_BACK_BOTH_ALLOCATE             = 4'b1111;
+
+    localparam AXI_AWCACHE_WRITE_THROUGH_NO_ALLOCATE            = 4'b0110;
+    localparam AXI_AWCACHE_WRITE_THROUGH_READ_ALLOCATE          = 4'b0110;
+    localparam AXI_AWCACHE_WRITE_THROUGH_WRITE_ALLOCATE         = 4'b1110;
+    localparam AXI3_AWCACHE_WRITE_THROUGH_WRITE_ALLOCATE        = 4'b1010;
+    localparam AXI_AWCACHE_WRITE_THROUGH_BOTH_ALLOCATE          = 4'b1110;
+    localparam AXI_AWCACHE_WRITE_BACK_NO_ALLOCATE               = 4'b0111;
+    localparam AXI_AWCACHE_WRITE_BACK_READ_ALLOCATE             = 4'b0111;
+    localparam AXI_AWCACHE_WRITE_BACK_WRITE_ALLOCATE            = 4'b1111;
+    localparam AXI3_AWCACHE_WRITE_BACK_WRITE_ALLOCATE           = 4'b1011;
+    localparam AXI_AWCACHE_WRITE_BACK_BOTH_ALLOCATE             = 4'b1111;
+
+    localparam AXI_PROT_PRIVELEGED  = 3'b001;
+    localparam AXI_PROT_NONSECURE   = 3'b010;
+    localparam AXI_PROT_DATA        = 3'b000;
+    localparam AXI_PROT_INSTRUCTION = 3'b100;
+    
+    
+    localparam AXI_QOS_DEFAULT    = 4'b0000;
+
+    localparam AXI_REGION_DEFAULT = 4'b0000;
+    
+    typedef logic [1:0] axi_resp_t;
+    typedef logic [1:0] axi_burst_t;
+    typedef logic [2:0] axi_size_t;
+    typedef logic [7:0] axi_len_t;
+endpackage
+
+`define AXI4MM_REGISTER_ADDR_LSB(data_width) (((data_width)/32)+1)    
+`define AXI4MM_REGISTER_ADDR_BITS(data_width, addr_width) ((addr_width)-AXI4MM_REGISTER_ADDR_LSB(data_width))
 
 interface axi4mm_lite #(
     parameter integer ADDR_WIDTH=8,
@@ -85,23 +150,26 @@ interface piradip_register_if #(
 endinterface
 
 module piradip_axi4mmlite_subordinate #(
-        localparam integer DATA_WIDTH = aximm.DATA_WIDTH,
-        localparam integer ADDR_LSB = (aximm.DATA_WIDTH/32) + 1,
-        localparam integer REGISTER_ADDR_BITS = aximm.ADDR_WIDTH - ADDR_LSB
+        parameter integer DATA_WIDTH = 32,
+        parameter integer ADDR_WIDTH = 10
     )(
         axi4mm_lite aximm,
         piradip_register_if reg_if
     );
+    localparam integer ADDR_LSB = (DATA_WIDTH/32) + 1;
+    localparam integer REGISTER_ADDR_BITS = ADDR_WIDTH - ADDR_LSB;
+    
+    import piradip_axi4::*;
       
     logic aw_en;
-    logic [aximm.ADDR_WIDTH-1:0] awaddr_r;
-    logic [aximm.ADDR_WIDTH-1:0] araddr_r;
+    logic [ADDR_WIDTH-1:0] awaddr_r;
+    logic [ADDR_WIDTH-1:0] araddr_r;
     
     assign reg_if.rden = aximm.arready & aximm.arvalid & ~aximm.rvalid;
 
     typedef logic [REGISTER_ADDR_BITS-1:0] regno_t;
     
-    function automatic logic [aximm.DATA_WIDTH-1:0] mask_write_bytes(input logic [aximm.DATA_WIDTH-1:0] r);
+    function automatic logic [DATA_WIDTH-1:0] mask_write_bytes(input logic [DATA_WIDTH-1:0] r);
         integer	 i;
         logic [aximm.DATA_WIDTH-1:0] retval;;
         for ( i = 0; i < aximm.STRB_WIDTH; i = i+1 ) begin
@@ -208,7 +276,7 @@ module register_to_stream #(
 
     always_comb is_reg = reg_if.is_reg_write(REGISTER_NO);
 
-    always @(posedge aximm.aclk)
+    always @(posedge reg_if.aclk)
     begin
         stream.tlast <= 1'b0;
            

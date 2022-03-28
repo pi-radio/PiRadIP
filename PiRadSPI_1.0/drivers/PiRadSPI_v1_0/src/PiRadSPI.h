@@ -7,10 +7,10 @@
 #include "xil_types.h"
 #include "xstatus.h"
 
-#define PIRADSPI_CSR_SLV_REG0_OFFSET 0
-#define PIRADSPI_CSR_SLV_REG1_OFFSET 4
-#define PIRADSPI_CSR_SLV_REG2_OFFSET 8
-#define PIRADSPI_CSR_SLV_REG3_OFFSET 12
+#define PIRADSPI_S00_AXI_SLV_REG0_OFFSET 0
+#define PIRADSPI_S00_AXI_SLV_REG1_OFFSET 4
+#define PIRADSPI_S00_AXI_SLV_REG2_OFFSET 8
+#define PIRADSPI_S00_AXI_SLV_REG3_OFFSET 12
 
 
 /**************************** Type Definitions *****************************/

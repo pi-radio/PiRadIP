@@ -32,9 +32,11 @@ module piradip_tb_shift_registers(
     
     reg align;
     reg bit_ready;
+    
+    wire bit_valid, bit_data;
 
-    piradip_util_axis_master #(.WIDTH(WIDTH)) words_in(.clk(clk_gen.clk), .aresetn(rstn), .name("WORDSIN"));
-    piradip_util_axis_slave #(.WIDTH(WIDTH)) words_out(.clk(clk_gen.clk), .aresetn(rstn), .name("WORDSOUT"));
+    piradip_util_axis_manager #(.WIDTH(WIDTH)) words_in(.clk(clk_gen.clk), .aresetn(rstn), .name("WORDSIN"));
+    piradip_util_axis_subordinate #(.WIDTH(WIDTH)) words_out(.clk(clk_gen.clk), .aresetn(rstn), .name("WORDSOUT"));
 
     
     piradip_stream_to_bit #(.WIDTH(WIDTH)) stream_to_bit(
