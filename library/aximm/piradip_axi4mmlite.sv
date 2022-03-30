@@ -9,6 +9,7 @@ package piradip_axi4;
     localparam AXI_BURST_WRAP   = 2'b10;
     localparam AXI_BURST_RSRVD  = 2'b11;
     
+    /* Burst size in bytes */
     localparam AXI_SIZE_1       = 3'b000;
     localparam AXI_SIZE_2       = 3'b001;
     localparam AXI_SIZE_4       = 3'b010;
@@ -62,6 +63,11 @@ package piradip_axi4;
     typedef logic [1:0] axi_burst_t;
     typedef logic [2:0] axi_size_t;
     typedef logic [7:0] axi_len_t;
+    typedef logic [2:0] axi_prot_t;
+    typedef logic [3:0] axi_cache_t;
+    typedef logic [3:0] axi_qos_t;
+    typedef logic [3:0] axi_region_t;
+    typedef logic axi_lock_t;
 endpackage
 
 `define AXI4MM_REGISTER_ADDR_LSB(data_width) (((data_width)/32)+1)    
@@ -146,16 +152,23 @@ interface piradip_register_if #(
     function automatic logic is_reg_bit_set(input regno_t regno, input integer bitno);
         return wren && wreg_no == regno && (wreg_data & (1 << bitno)) & (wstrb[bitno/8] == 1);
     endfunction;
-   
+
+    function automatic logic [DATA_WIDTH-1:0] mask_write_bytes(input logic [DATA_WIDTH-1:0] r);
+        integer	 i;
+        logic [aximm.DATA_WIDTH-1:0] retval;;
+        for ( i = 0; i < aximm.STRB_WIDTH; i = i+1 ) begin
+            retval[(i*8) +: 8] = wstrb[i] ? wreg_data[(i*8) +: 8] : r[(i*8) +: 8];
+        end
+        return retval;
+    endfunction   
 endinterface
 
-module piradip_axi4mmlite_subordinate #(
-        parameter integer DATA_WIDTH = 32,
-        parameter integer ADDR_WIDTH = 10
-    )(
+module piradip_axi4mmlite_subordinate (
         axi4mm_lite aximm,
         piradip_register_if reg_if
     );
+    localparam integer DATA_WIDTH = $bits(aximm.wdata);
+    localparam integer ADDR_WIDTH = $bits(aximm.awaddr);
     localparam integer ADDR_LSB = (DATA_WIDTH/32) + 1;
     localparam integer REGISTER_ADDR_BITS = ADDR_WIDTH - ADDR_LSB;
     
@@ -168,15 +181,6 @@ module piradip_axi4mmlite_subordinate #(
     assign reg_if.rden = aximm.arready & aximm.arvalid & ~aximm.rvalid;
 
     typedef logic [REGISTER_ADDR_BITS-1:0] regno_t;
-    
-    function automatic logic [DATA_WIDTH-1:0] mask_write_bytes(input logic [DATA_WIDTH-1:0] r);
-        integer	 i;
-        logic [aximm.DATA_WIDTH-1:0] retval;;
-        for ( i = 0; i < aximm.STRB_WIDTH; i = i+1 ) begin
-            retval[(i*8) +: 8] = aximm.wstrb[i] ? aximm.wdata[(i*8) +: 8] : r[(i*8) +: 8];
-        end
-        return retval;     
-    endfunction
 
     always @(posedge aximm.aclk) begin 
         if (~aximm.aresetn) begin
@@ -200,8 +204,8 @@ module piradip_axi4mmlite_subordinate #(
         end else if (~aximm.wready && aximm.wvalid && aximm.awvalid && aw_en) begin
             aximm.wready <= 1'b1;
             awaddr_r <= aximm.awaddr;
-            reg_if.wreg_data <= aximm.wdata;
-            reg_if.wstrb <= aximm.wstrb;
+            //reg_if.wreg_data <= aximm.wdata;
+            //reg_if.wstrb <= aximm.wstrb;
         end else begin
             aximm.wready <= 1'b0;
         end
@@ -223,6 +227,8 @@ module piradip_axi4mmlite_subordinate #(
     assign reg_if.wreg_no = awaddr_r[ADDR_LSB+REGISTER_ADDR_BITS-1:ADDR_LSB];
 	
 	assign reg_if.wren = aximm.wready && aximm.wvalid && aximm.awready && aximm.awvalid;
+	assign reg_if.wstrb = aximm.wstrb;
+	assign reg_if.wreg_data = aximm.wdata;
 	
     always @(posedge aximm.aclk) begin
         if (~aximm.aresetn) begin
