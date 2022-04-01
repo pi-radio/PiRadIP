@@ -41,10 +41,7 @@ module piradip_axi4_ram_adapter #(
 	genvar j;
 	genvar mem_byte_index;
 
-	assign  aw_wrap_size = (DATA_WIDTH/8 * (write_len)); 
-	assign  ar_wrap_size = (DATA_WIDTH/8 * (read_len)); 
-	assign  aw_wrap_en = ((write_addr & aw_wrap_size) == aw_wrap_size)? 1'b1: 1'b0;
-	assign  ar_wrap_en = ((read_addr & ar_wrap_size) == ar_wrap_size)? 1'b1: 1'b0;
+
 
     assign mem.wdata = aximm.wdata;
     
@@ -78,14 +75,16 @@ module piradip_axi4_ram_adapter #(
 
     logic pending_write, pending_read;
     
-
+	assign aw_wrap_size = (DATA_WIDTH/8 * (write_len)); 
+	assign ar_wrap_size = (DATA_WIDTH/8 * (read_len)); 
+	assign aw_wrap_en = ((write_addr & aw_wrap_size) == aw_wrap_size)? 1'b1: 1'b0;
+	assign ar_wrap_en = ((read_addr & ar_wrap_size) == ar_wrap_size)? 1'b1: 1'b0;
+	
     assign mem.addr = (mem_if_state == READ) ? read_addr[ADDR_WIDTH - 1:ADDR_LSB] :
         (mem_if_state == WRITE) ? write_addr[ADDR_WIDTH - 1:ADDR_LSB] :
         0;
         
     assign mem.we = aximm.wready & aximm.wvalid;
-    
-
 
     /*** WRITE LOGIC ***/
     assign last_write_cycle = ((write_len_cntr + 1) == write_len);
@@ -175,12 +174,9 @@ module piradip_axi4_ram_adapter #(
     end
 
 
-    logic rd_fifo_almost_empty, rd_fifo_almost_full;
     logic rd_fifo_empty, rd_fifo_full;
     logic rd_fifo_prog_full;
     logic rd_fifo_rd_en, rd_fifo_wr_en;
-    logic rd_fifo_data_valid;
-    logic [DATA_WIDTH:0] rd_fifo_dout;
     logic rd_fifo_tlast;
     logic read_active;
     logic last_ram_read;
@@ -208,6 +204,26 @@ module piradip_axi4_ram_adapter #(
     localparam FIFO_DEPTH=16;
     localparam PROG_FULL_DEPTH=(READ_LATENCY >=3) ? FIFO_DEPTH-READ_LATENCY : FIFO_DEPTH-3;
 
+    piradip_sync_fifo #(
+        .WIDTH(DATA_WIDTH+1),
+        .PROG_FULL_THRESH(PROG_FULL_DEPTH),
+        .DEPTH(FIFO_DEPTH)
+    ) gearbox (
+        .clk(aximm.aclk),
+        .rst(~aximm.aresetn),
+        .re(rd_fifo_rd_en),
+        .we(rd_fifo_wr_en),
+        .rd_rst_busy(rd_fifo_rd_rst_busy),
+        .wr_rst_busy(rd_fifo_wr_rst_busy),
+        .sleep(rd_fifo_sleep),
+        .din({ rd_fifo_tlast, mem.rdata }),
+        .dout({ aximm.rlast, aximm.rdata }),
+        .empty(rd_fifo_empty),
+        .prog_full(rd_fifo_prog_full)
+    );
+        
+
+    /*
     xpm_fifo_sync #(
         .DOUT_RESET_VALUE("0"),
         .ECC_MODE("no_ecc"),
@@ -225,11 +241,9 @@ module piradip_axi4_ram_adapter #(
         .WAKEUP_TIME(0),
         .WRITE_DATA_WIDTH(DATA_WIDTH+1),
         .WR_DATA_COUNT_WIDTH(5)        
-    ) read_fifo (
+    ) gearbox (
         .wr_clk(aximm.aclk),
         .rst(~aximm.aresetn),
-        .almost_full(rd_fifo_almost_full),
-        .almost_empty(rd_fifo_almost_empty),
         .data_valid(rd_fifo_data_valid),
         .din({ rd_fifo_tlast, mem.rdata }),
         .dout(rd_fifo_dout),
@@ -242,7 +256,7 @@ module piradip_axi4_ram_adapter #(
         .wr_rst_busy(rd_fifo_wr_rst_busy),
         .sleep(rd_fifo_sleep)
     );
-
+    */
 
     always @(posedge aximm.aclk)
     begin
@@ -272,8 +286,6 @@ module piradip_axi4_ram_adapter #(
     
     assign rd_fifo_rd_en = (aximm.rready | ~aximm.rvalid) & ~rd_fifo_empty;
 
-    assign aximm.rlast = rd_fifo_dout[DATA_WIDTH];
-    assign aximm.rdata = rd_fifo_dout[DATA_WIDTH-1:0];
     assign aximm.rresp = AXI_RESP_OKAY;
     
     always @(posedge aximm.aclk)

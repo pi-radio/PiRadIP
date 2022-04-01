@@ -61,16 +61,12 @@ module piradspi_csr #(
 
     localparam WRITE_PROFILE_REG_MASK = (REGISTER_PROFSIZE - 1);
     
-    piradip_register_if #(
-            .DATA_WIDTH(DATA_WIDTH), 
-            .REGISTER_ADDR_BITS(REGISTER_ADDR_BITS)
-        ) reg_if (
+    piradip_register_if reg_if (
             .aclk(aximm.aclk), 
             .aresetn(aximm.aresetn)
         );
 
-    piradip_axi4mmlite_subordinate #(.DATA_WIDTH(DATA_WIDTH), .ADDR_WIDTH(ADDR_WIDTH)) 
-        sub_imp(.reg_if(reg_if.SERVER), .aximm(aximm), .*);
+    piradip_axi4mmlite_subordinate sub_imp(.reg_if(reg_if.SERVER), .aximm(aximm), .*);
 
     axi_data_t ctrlstat_out;
     
@@ -206,11 +202,11 @@ module piradspi_csr #(
                         if (aximm.wstrb[0]) begin
                             { profiles[i].cpol, profiles[i].cpha } <= aximm.wdata;
                         end
-                    REGISTER_SCLKDIV: profiles[i].sclk_cycles <= mask_write_bytes(profiles[i].sclk_cycles);
-                    REGISTER_STARTWAIT: profiles[i].wait_start <=  mask_write_bytes(profiles[i].wait_start);
-                    REGISTER_CSNTOSCLK: profiles[i].csn_to_sclk_cycles <= mask_write_bytes(profiles[i].csn_to_sclk_cycles);
-                    REGISTER_SCLKTOCSN: profiles[i].sclk_to_csn_cycles <= mask_write_bytes(profiles[i].sclk_to_csn_cycles);
-                    REGISTER_XFERLEN: profiles[i].xfer_len <= mask_write_bytes(profiles[i].xfer_len);
+                    REGISTER_SCLKDIV: profiles[i].sclk_cycles <= reg_if.mask_write_bytes(profiles[i].sclk_cycles);
+                    REGISTER_STARTWAIT: profiles[i].wait_start <=  reg_if.mask_write_bytes(profiles[i].wait_start);
+                    REGISTER_CSNTOSCLK: profiles[i].csn_to_sclk_cycles <= reg_if.mask_write_bytes(profiles[i].csn_to_sclk_cycles);
+                    REGISTER_SCLKTOCSN: profiles[i].sclk_to_csn_cycles <= reg_if.mask_write_bytes(profiles[i].sclk_to_csn_cycles);
+                    REGISTER_XFERLEN: profiles[i].xfer_len <= reg_if.mask_write_bytes(profiles[i].xfer_len);
                     default: begin $display("Prof reg: %b", write_profile_reg); end                          
                     endcase
                 end

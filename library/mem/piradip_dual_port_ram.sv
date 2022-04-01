@@ -64,7 +64,7 @@ module piradip_tdp_ram #(
         .READ_RESET_VALUE_A(READ_RESET_VALUE_A),
         .RST_MODE_A("SYNC"),
         .WRITE_DATA_WIDTH_A(A_DATA_WIDTH),
-        .WRITE_MODE_A("write_first"),
+        .WRITE_MODE_A("no_change"),
 
         .ADDR_WIDTH_B(B_ADDR_WIDTH),
         .BYTE_WRITE_WIDTH_B(B_DATA_WIDTH),
@@ -73,7 +73,7 @@ module piradip_tdp_ram #(
         .READ_RESET_VALUE_B(READ_RESET_VALUE_B),
         .RST_MODE_B("SYNC"),
         .WRITE_DATA_WIDTH_B(B_DATA_WIDTH),
-        .WRITE_MODE_B("write_first"),
+        .WRITE_MODE_B("no_change"),
 
         .CASCADE_HEIGHT(0),
         .CLOCKING_MODE("independent_clock"),

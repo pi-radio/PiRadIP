@@ -102,7 +102,6 @@ module piradip_tb_axilite_manager #(
                 op = wdata_queue[0];
                 
                 if (aximm.awready & aximm.awvalid) begin
-                    assert(op.addr_ack == 1'b1);
                     wdata_queue.pop_front();
                     op.data_ack = 1'b1;
                     op = wdata_queue[0];

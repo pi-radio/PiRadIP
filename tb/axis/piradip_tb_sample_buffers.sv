@@ -47,12 +47,13 @@ module piradip_tb_sample_buffers(
             .aximm(memory.SUBORDINATE),
             .stream_out(stream.MANAGER) 
         );
-        
+                
     integer i;
     
     initial 
     begin
         rstn <= 0;
+        stream.tready <= 0; 
         
         mm_clk_gen.sleep(5);
         
@@ -64,10 +65,16 @@ module piradip_tb_sample_buffers(
             memory_manager.write_faf(4*i, { { i[5:0], 2'd3 },  { i[5:0], 2'd2 },  { i[5:0], 2'd1 },  { i[5:0], 2'd0 } });
         end
 
-        control_manager.write(0, 3);
-
         memory_manager.sync();
 
+        control_manager.write(0, 3);
+
+        stream.tready <= 1'b1;
+
+        mm_clk_gen.sleep(100);
+        
+        $display("HERE!  WE BUILD HERE!");
+        
         for (i = 0; i < 256; i++) begin
             logic [31:0] r;
             memory_manager.read(4*i, r);
