@@ -91,7 +91,6 @@ module piradip_axi4_ram_adapter #(
 
     assign aximm.awready = unit_ready & ~write_cmd_valid;
     assign aximm.wready = (mem_if_state == WRITE);
-    assign aximm.wlast = last_write_cycle;
 
 
     always @(posedge aximm.aclk)

@@ -14,10 +14,10 @@ module piradip_cdc_auto_word #(
     output [WIDTH-1:0] dst_data,
     output dst_update
 );
-    
-    logic reg_ready;
-    assign dst_data = reg_ready ? dst_data_cdc : RESET_VAL;
     logic [WIDTH-1:0] dst_data_cdc;
+    logic reg_ready;
+
+    assign dst_data = reg_ready ? dst_data_cdc : RESET_VAL;
     
     always @(posedge dst_clk)
     begin

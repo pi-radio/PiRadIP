@@ -264,7 +264,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>9ef15d36</spirit:value>
+            <spirit:value>7f675f8d</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -316,7 +316,7 @@
         <spirit:envIdentifier>:vivado.xilinx.com:synthesis</spirit:envIdentifier>
         <spirit:modelName>PiRadSPI_v1_0</spirit:modelName>
         <spirit:fileSetRef>
-          <spirit:localName>xilinx_anylanguagesynthesis_pi_rad_io_ip_PiRadIPLIB_1_0__ref_view_fileset</spirit:localName>
+          <spirit:localName>xilinx_anylanguagesynthesis_pi_rad_io_PiRadIP_PiRadIP_1_0__ref_view_fileset</spirit:localName>
         </spirit:fileSetRef>
         <spirit:fileSetRef>
           <spirit:localName>xilinx_anylanguagesynthesis_view_fileset</spirit:localName>
@@ -324,7 +324,22 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>9ef15d36</spirit:value>
+            <spirit:value>7f675f8d</spirit:value>
+          </spirit:parameter>
+        </spirit:parameters>
+      </spirit:view>
+      <spirit:view>
+        <spirit:name>xilinx_testbench</spirit:name>
+        <spirit:displayName>Test Bench</spirit:displayName>
+        <spirit:envIdentifier>:vivado.xilinx.com:simulation.testbench</spirit:envIdentifier>
+        <spirit:modelName>piradspi_tb_full</spirit:modelName>
+        <spirit:fileSetRef>
+          <spirit:localName>xilinx_testbench_view_fileset</spirit:localName>
+        </spirit:fileSetRef>
+        <spirit:parameters>
+          <spirit:parameter>
+            <spirit:name>viewChecksum</spirit:name>
+            <spirit:value>64276dbc</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -806,11 +821,11 @@
         <spirit:isIncludeFile>true</spirit:isIncludeFile>
       </spirit:file>
       <spirit:file>
-        <spirit:name>hdl/piradspi_pkg.sv</spirit:name>
+        <spirit:name>../library/axis/piradip_axis.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>hdl/piradspi_engine.sv</spirit:name>
+        <spirit:name>hdl/piradspi_pkg.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
@@ -818,7 +833,15 @@
         <spirit:fileType>systemVerilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
+        <spirit:name>hdl/piradspi_engine.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>hdl/piradspi_top.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../library/aximm/piradip_aximm.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
@@ -882,11 +905,11 @@
         <spirit:isIncludeFile>true</spirit:isIncludeFile>
       </spirit:file>
       <spirit:file>
-        <spirit:name>hdl/piradspi_pkg.sv</spirit:name>
+        <spirit:name>../library/axis/piradip_axis.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
-        <spirit:name>hdl/piradspi_engine.sv</spirit:name>
+        <spirit:name>hdl/piradspi_pkg.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
@@ -894,7 +917,15 @@
         <spirit:fileType>systemVerilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
+        <spirit:name>hdl/piradspi_engine.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>hdl/piradspi_top.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../library/aximm/piradip_aximm.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
@@ -904,14 +935,127 @@
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
-      <spirit:name>xilinx_anylanguagesynthesis_pi_rad_io_ip_PiRadIPLIB_1_0__ref_view_fileset</spirit:name>
+      <spirit:name>xilinx_anylanguagesynthesis_pi_rad_io_PiRadIP_PiRadIP_1_0__ref_view_fileset</spirit:name>
       <spirit:vendorExtensions>
         <xilinx:subCoreRef>
-          <xilinx:componentRef xilinx:vendor="pi-rad.io" xilinx:library="ip" xilinx:name="PiRadIPLIB" xilinx:version="1.0">
+          <xilinx:componentRef xilinx:vendor="pi-rad.io" xilinx:library="PiRadIP" xilinx:name="PiRadIP" xilinx:version="1.0">
             <xilinx:mode xilinx:name="copy_mode"/>
           </xilinx:componentRef>
         </xilinx:subCoreRef>
       </spirit:vendorExtensions>
+    </spirit:fileSet>
+    <spirit:fileSet>
+      <spirit:name>xilinx_testbench_view_fileset</spirit:name>
+      <spirit:file>
+        <spirit:name>../library/aximm/piradip_axi4mmlite.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_implementation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../tb/util/piradip_tb_clocks.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_implementation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../tb/spi/piradip_tb_spi_slave.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_implementation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>hdl/piradspi_pkg.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_implementation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>hdl/piradspi_csr.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_implementation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>hdl/piradspi.svh</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+        <spirit:isIncludeFile>true</spirit:isIncludeFile>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>hdl/piradspi_engine.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_implementation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>hdl/piradspi_top.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_implementation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>hdl/PiRadSPI_v1_0.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_implementation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../tb/aximm/piradip_tb_aximm_util.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>hdl/piradspi_tb_full.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_implementation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../library/axis/piradip_axis_fifo.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_implementation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../library/axis/piradip_axis.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_implementation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../library/util/piradip_shift_registers.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_implementation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../library/util/piradip_shifters.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_implementation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>../library/util/piradip_state_timer.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>USED_IN_implementation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_simulation</spirit:userFileType>
+        <spirit:userFileType>USED_IN_synthesis</spirit:userFileType>
+      </spirit:file>
     </spirit:fileSet>
   </spirit:fileSets>
   <spirit:description>Pi Radio SPI Controller</spirit:description>
@@ -955,8 +1099,8 @@
         <xilinx:taxonomy>AXI_Peripheral</xilinx:taxonomy>
       </xilinx:taxonomies>
       <xilinx:displayName>PiRadSPI_v1.0</xilinx:displayName>
-      <xilinx:coreRevision>26</xilinx:coreRevision>
-      <xilinx:coreCreationDateTime>2021-11-19T22:37:21Z</xilinx:coreCreationDateTime>
+      <xilinx:coreRevision>29</xilinx:coreRevision>
+      <xilinx:coreCreationDateTime>2022-04-02T00:50:41Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@755a6f13_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@170258ce_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
@@ -1378,13 +1522,51 @@
         <xilinx:tag xilinx:name="ui.data.coregen.df@2f35e109_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.df@7cc23769_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.df@3b08b0ef_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@12be6173_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@4c043d2c_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@335b1312_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@722c8148_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@46558caa_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@5a957e7f_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@6b427c7f_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@1b4209a7_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@6c7db5bd_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@5c9d023a_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@28f451a0_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@5fec7f42_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@222828fb_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@38329fbc_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@59713aa9_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@1fe7c5a6_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@464035aa_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@6a8680b4_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@7602a0d5_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@781c4925_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@db834cf_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@5052ca4d_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@61f15846_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@242b4fd9_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@248c80a3_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@5770f78b_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@34bf16dc_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@6317142c_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@2286c3cb_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@27f0d663_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@580a9025_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@b0cdc2d_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@207c773c_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@8d62ed7_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@44bd8b58_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@78b9b270_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@37278d8c_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.df@73848118_ARCHIVE_LOCATION">c:/Users/zapma/Documents/PiRadIP/PiRadSPI_1.0</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2021.2</xilinx:xilinxVersion>
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="21058fc1"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="be7467d0"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="4d4f88d6"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="d307aa86"/>
       <xilinx:checksum xilinx:scope="ports" xilinx:value="87c3de36"/>
       <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="3bf97dd7"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="fdc2dd67"/>

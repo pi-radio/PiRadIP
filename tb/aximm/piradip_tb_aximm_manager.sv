@@ -43,7 +43,7 @@ module piradip_tb_aximm_manager #(
             this.complete = 1'b0;
         endfunction
         
-        function set_complete(input axi_resp_t resp);
+        function void set_complete(input axi_resp_t resp);
             this.complete = 1'b1;
             this.resp = resp;
             ->this.e;

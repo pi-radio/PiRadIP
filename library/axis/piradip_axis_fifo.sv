@@ -20,15 +20,15 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module piradip_axis_gearbox #(
-        parameter DEPTH = 16,
-        parameter PROG_FULL_THRESH = 0
+        parameter integer DEPTH = 16,
+        parameter integer PROG_FULL_THRESH = 0
     ) (
         axi4s.SUBORDINATE in,
         axi4s.MANAGER out
     );
     /* WARNING, not handling TLAST, TDEST, TUSER, etc */
 
-    parameter integer FIFO_WIDTH = $bits(in.tdata);
+    localparam integer FIFO_WIDTH = $bits(in.tdata);
 
     logic sleep;
     logic full, almost_full, prog_full;

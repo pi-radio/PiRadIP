@@ -1,10 +1,10 @@
 `timescale 1ns / 1ps
 
 interface axis_simple #(
-        parameter WIDTH=32
+        parameter integer WIDTH=32
     ) (
-        input clk,
-        input resetn
+        input logic clk,
+        input logic resetn
     );
     localparam BYTE_WIDTH = WIDTH/8;
     localparam BYTE_MASK = {{BYTE_WIDTH}{1'b1}};
@@ -21,16 +21,16 @@ interface axis_simple #(
 endinterface
 
 interface axi4s #(
-        parameter WIDTH=32,
-        parameter ID_WIDTH=0,
-        parameter DEST_WIDTH=0,
-        parameter USER_WIDTH=0
+        parameter integer WIDTH=32,
+        parameter integer ID_WIDTH=0,
+        parameter integer DEST_WIDTH=0,
+        parameter integer USER_WIDTH=0
     ) (
-        input clk,
-        input resetn
+        input logic clk,
+        input logic resetn
     );
     localparam BYTE_WIDTH = WIDTH/8;
-    localparam BYTE_MASK = {{BYTE_WIDTH}{1'b1}};
+    localparam BYTE_MASK = {BYTE_WIDTH{1'b1}};
         
     logic aclk, aresetn;
     logic tready, tvalid, tlast;

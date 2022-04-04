@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps
+
 package piradip_axi4;
     localparam AXI_RESP_OKAY    = 2'b00;
     localparam AXI_RESP_EXOKAY  = 2'b01;
@@ -164,8 +166,8 @@ interface piradip_register_if #(
 endinterface
 
 module piradip_axi4mmlite_subordinate (
-        axi4mm_lite aximm,
-        piradip_register_if reg_if
+        axi4mm_lite.SUBORDINATE aximm,
+        piradip_register_if.SERVER reg_if
     );
     localparam integer DATA_WIDTH = $bits(aximm.wdata);
     localparam integer ADDR_WIDTH = $bits(aximm.awaddr);

@@ -92,7 +92,7 @@ module piradip_axis_sample_buffer_csr #(
         .dst_data({ stream_end_offset, stream_start_offset})  
     );
     
-    function automatic update_flag(ref logic flag, logic newval);
+    function automatic update_flag(ref logic flag, input logic newval);
         if (flag != newval) begin
             flag = newval;
             mm_update = 1'b1;
@@ -137,9 +137,9 @@ endmodule
 
 
 module piradip_axis_sample_buffer_out ( 
-        axi4mm_lite axilite,
-        axi4mm aximm,
-        axi4s stream_out,
+        axi4mm_lite.SUBORDINATE axilite,
+        axi4mm.SUBORDINATE aximm,
+        axi4s.MANAGER stream_out,
         input trigger 
     );
 
@@ -209,6 +209,8 @@ module piradip_axis_sample_buffer_out (
         .IN_BAND_WIDTH(STREAM_DATA_WIDTH),
         .DATA_LATENCY(READ_LATENCY_B)
         ) stream_sync (
+            .clk(stream_out.aclk),
+            .resetn(stream_out.aresetn),
             .in_valid(enable_stream),
             .in_band(mem_stream.rdata),
             .out_valid(gearbox_in.tvalid),

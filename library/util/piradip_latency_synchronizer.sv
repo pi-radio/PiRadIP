@@ -5,6 +5,8 @@ module piradip_latency_synchronizer #(
         parameter integer IN_BAND_WIDTH = 32,
         parameter integer DATA_LATENCY = 1
     ) (
+        input clk,
+        input resetn,
         input in_valid,
         input [IN_BAND_WIDTH-1:0] in_band,
         input [OUT_OF_BAND_WIDTH-1:0] out_of_band,
@@ -30,14 +32,14 @@ module piradip_latency_synchronizer #(
             logic [OUT_OF_BAND_WIDTH:0] oob_fifo [0:DATA_LATENCY-1];
 
             for (i = 0; i < DATA_LATENCY-1; i = i + 1) begin
-                always @(posedge stream_out.clk) oob_fifo[i] <= (stream_out.aresetn) ? oob_fifo[i+1] : 0;
+                always @(posedge clk) oob_fifo[i] <= (resetn) ? oob_fifo[i+1] : 0;
             end            
              
-            always @(posedge stream_out.clk) oob_fifo[i+1] <= (stream_out.aresetn) ? oob_cat : 0;
+            always @(posedge clk) oob_fifo[i+1] <= (resetn) ? oob_cat : 0;
             
             assign oob_out = oob_fifo[0];
         end else begin
-            always @(posedge stream_out.aclk) oob_out <= (stream_out.aresetn) ? oob_cat : 0;
+            always @(posedge clk) oob_out <= (resetn) ? oob_cat : 0;
         end
     endgenerate 
     

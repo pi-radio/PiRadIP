@@ -1,0 +1,10 @@
+
+
+OPTION psf_version = 2.1;
+
+BEGIN DRIVER PiRadIP_StreamBufferOut
+	OPTION supported_peripherals = (PiRadIP_StreamBufferOut);
+	OPTION copyfiles = all;
+	OPTION VERSION = 1.0;
+	OPTION NAME = PiRadIP_StreamBufferOut;
+END DRIVER

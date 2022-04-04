@@ -1,8 +1,12 @@
-`define PIRADIP_PREFIX_ASSIGN(x, prefix)  .x(prefix``x)
-`define PIRADIP_PREFIX_ALWAYS_COMB_OUT(ifname, x, prefix)  always_comb prefix``x=ifname.x
-`define PIRADIP_PREFIX_ALWAYS_COMB_IN(ifname, x, prefix)  always_comb ifname.x=prefix``x
-`define PIRADIP_PREFIX_ASSIGN_OUT(ifname, x, prefix)  assign prefix``x=ifname.x
-`define PIRADIP_PREFIX_ASSIGN_IN(ifname, x, prefix)  assign ifname.x=prefix``x
+/*
+`define PIRADIP_PREFIX_ASSIGN(x, prefix)                    .x(prefix``x)
+`define PIRADIP_PREFIX_ASSIGN_DIFFERENT(x, prefix, y)       .x(prefix``y)
+`define PIRADIP_PREFIX_ALWAYS_COMB_OUT(ifname, x, prefix)   always_comb prefix``x=ifname.x
+`define PIRADIP_PREFIX_ALWAYS_COMB_IN(ifname, x, prefix)    always_comb ifname.x=prefix``x
+`define PIRADIP_PREFIX_ASSIGN_OUT(ifname, x, prefix)        assign prefix``x=ifname.x
+`define PIRADIP_PREFIX_ASSIGN_IN(ifname, x, prefix)         assign ifname.x=prefix``x
+*/
+/*
 
 `define PIRADIP_AXI4_MANAGER_ADAPTER(ifname, xil_prefix_const, xil_prefix) \
     axi4mm #( \
@@ -18,7 +22,6 @@
         `PIRADIP_PREFIX_ASSIGN(clk, xil_prefix``a), \
         `PIRADIP_PREFIX_ASSIGN(resetn, xil_prefix``a) \
     ); \
-    /* Write Address Bus */ \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, awid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, awaddr, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, awlen, xil_prefix); \
@@ -31,20 +34,17 @@
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, awuser, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, awvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, awready, xil_prefix); \
-    /* Write Data Bus */ \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, wdata, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, wstrb, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, wlast, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, wuser, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, wvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, wready, xil_prefix); \
-    /* Write Response Bus */ \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, bid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, bresp, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, buser, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, bvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, bready, xil_prefix); \
-    /* Read Address Bus */ \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, arid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, araddr, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, arlen, xil_prefix); \
@@ -57,7 +57,6 @@
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, aruser, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, arvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, arready, xil_prefix); \
-    /* Read Data Bus */ \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, rid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, rdata, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, rresp, xil_prefix); \
@@ -80,7 +79,6 @@
         `PIRADIP_PREFIX_ASSIGN(clk, xil_prefix``a), \
         `PIRADIP_PREFIX_ASSIGN(resetn, xil_prefix``a) \
     ); \
-    /* Write Address Bus */ \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, awid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, awaddr, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, awlen, xil_prefix); \
@@ -93,20 +91,17 @@
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, awuser, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, awvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, awready, xil_prefix); \
-    /* Write Data Bus */ \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, wdata, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, wstrb, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, wlast, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, wuser, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, wvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, wready, xil_prefix); \
-    /* Write Response Bus */ \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, bid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, bresp, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, buser, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, bvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, bready, xil_prefix); \
-    /* Read Address Bus */ \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, arid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, araddr, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, arlen, xil_prefix); \
@@ -119,7 +114,6 @@
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, aruser, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, arvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, arready, xil_prefix); \
-    /* Read Data Bus */ \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, rid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, rdata, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, rresp, xil_prefix); \
@@ -136,26 +130,21 @@
         `PIRADIP_PREFIX_ASSIGN(clk, xil_prefix``a), \
         `PIRADIP_PREFIX_ASSIGN(resetn, xil_prefix``a) \
     ); \
-    /* Write Address Bus */ \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, awaddr, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, awprot, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, awvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, awready, xil_prefix); \
-    /* Write Data Bus */ \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, wdata, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, wstrb, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, wvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, wready, xil_prefix); \
-    /* Write Response Bus */ \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, bresp, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, bvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, bready, xil_prefix); \
-    /* Read Address Bus */ \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, araddr, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, arprot, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, arvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, arready, xil_prefix); \
-    /* Read Data Bus */ \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, rdata, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, rresp, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, rvalid, xil_prefix); \
@@ -169,28 +158,51 @@
         `PIRADIP_PREFIX_ASSIGN(clk, xil_prefix``a), \
         `PIRADIP_PREFIX_ASSIGN(resetn, xil_prefix``a) \
     ); \
-    /* Write Address Bus */ \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, awaddr, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, awprot, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, awvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, awready, xil_prefix); \
-    /* Write Data Bus */ \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, wdata, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, wstrb, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, wvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, wready, xil_prefix); \
-    /* Write Response Bus */ \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, bresp, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, bvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, bready, xil_prefix); \
-    /* Read Address Bus */ \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, araddr, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, arprot, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, arvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, arready, xil_prefix); \
-    /* Read Data Bus */ \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, rdata, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, rresp, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_OUT(ifname, rvalid, xil_prefix); \
     `PIRADIP_PREFIX_ASSIGN_IN(ifname, rready, xil_prefix);        
-        
+*/
+/*
+`define PIRADIP_AXI4STREAM_MANAGER_ADAPTER(ifname, xil_prefix_const, xil_prefix) \
+    axi4s #( \
+        `PIRADIP_PREFIX_ASSIGN_DIFFERENT(WIDTH, xil_prefix_const, TDATA_WIDTH) \
+    ) ifname ( \
+        `PIRADIP_PREFIX_ASSIGN(clk, xil_prefix``a), \
+        `PIRADIP_PREFIX_ASSIGN(resetn, xil_prefix``a) \
+    ); \
+    `PIRADIP_PREFIX_ASSIGN_OUT(tvalid, xil_prefix); \
+    `PIRADIP_PREFIX_ASSIGN_OUT(tdata, xil_prefix); \
+    `PIRADIP_PREFIX_ASSIGN_OUT(tstrb, xil_prefix); \
+    `PIRADIP_PREFIX_ASSIGN_OUT(tlast, xil_prefix); \
+    `PIRADIP_PREFIX_ASSIGN_IN(tready, xil_prefix);
+    
+ `define PIRADIP_AXI4STREAM_SUBORDINATE_ADAPTER(ifname, xil_prefix_const, xil_prefix) \
+    axi4s #( \
+        `PIRADIP_PREFIX_ASSIGN_DIFFERENT(WIDTH, xil_prefix_const, TDATA_WIDTH) \
+    ) ifname ( \
+        `PIRADIP_PREFIX_ASSIGN(clk, xil_prefix``a), \
+        `PIRADIP_PREFIX_ASSIGN(resetn, xil_prefix``a) \
+    ); \
+    `PIRADIP_PREFIX_ASSIGN_IN(tvalid, xil_prefix); \
+    `PIRADIP_PREFIX_ASSIGN_IN(tdata, xil_prefix); \
+    `PIRADIP_PREFIX_ASSIGN_IN(tstrb, xil_prefix); \
+    `PIRADIP_PREFIX_ASSIGN_IN(tlast, xil_prefix); \
+    `PIRADIP_PREFIX_ASSIGN_OUT(tready, xil_prefix); 
+    
+*/
