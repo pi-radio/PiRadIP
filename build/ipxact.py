@@ -30,8 +30,13 @@ class IPXACTLibrary():
 
         input_times.append(os.path.getmtime("buildlib.py"))
 
-        output_time = os.path.getmtime(self.xml_path)
-
+        output_time = 0
+        
+        try:
+            output_time = os.path.getmtime(self.xml_path)
+        except FileNotFoundError:
+            pass
+            
         if all(output_time > i for i in input_times):
             INFO(f"Not rebuilding {self.xml_path} -- up to date")
         
