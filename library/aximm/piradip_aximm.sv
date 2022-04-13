@@ -19,8 +19,6 @@ interface axi4mm #(
     );
     import piradip_axi4::*;
     
-    localparam STRB_WIDTH=(DATA_WIDTH/8);
-
     typedef logic [ID_WIDTH-1:0] id_t;
     typedef logic [DATA_WIDTH-1:0] data_t;
     typedef logic [DATA_WIDTH/8-1:0] strb_t;

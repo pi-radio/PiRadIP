@@ -82,7 +82,6 @@ interface axi4mm_lite #(
     input logic clk, 
     input logic resetn
 );
-    localparam STRB_WIDTH=(DATA_WIDTH/8);
     
     logic aclk;
     logic aresetn;
@@ -91,7 +90,7 @@ interface axi4mm_lite #(
     logic awvalid;
     logic awready;
     logic [DATA_WIDTH-1 : 0] wdata;
-    logic [STRB_WIDTH-1 : 0] wstrb;
+    logic [DATA_WIDTH/8-1 : 0] wstrb;
     logic wvalid;
     logic wready;
     logic [1 : 0] bresp;

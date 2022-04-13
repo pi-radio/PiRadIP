@@ -11,13 +11,13 @@ class Parameter:
                 if param_node.tag in [ ',' ]:
                     continue
                 if param_node.tag != 'kParamDeclaration':
-                    print(f"WARNING: Not processing tag {param_note.tag}")
+                    WARN(f"Not processing tag {param_note.tag}")
                     continue
 
                 pl.append(Parameter.parse(param_node, parent))
             
         except anytree.resolver.ResolverError:
-                print(f"Parameters: no parameters detected")
+                WARN(f"Parameters: no parameters detected")
 
         return pl
         
@@ -27,12 +27,12 @@ class Parameter:
         try:
             p.typename = r.get(n, "kParamType/kTypeInfo").text
         except anytree.resolver.ResolverError:
-            print(f"Parameter {p.name}: no type detected")
+            WARN(f"Parameter {p.name}: no type detected")
         
         try:
             p.default = r.get(n, "kTrailingAssign/kExpression").text
         except anytree.resolver.ResolverError:
-            print(f"Parameter {p.name}: no default detected")
+            WARN(f"Parameter {p.name}: no default detected")
 
         return p
 
@@ -43,11 +43,13 @@ class Parameter:
         self.typename = ""
         self.default = ""
 
-    def get_decl(self, prefix=""):
-        param_assign = ""
+
+    @property
+    def decl(self):
+        v = f"parameter {self.typename} {self.name}"
         if self.default != "":
-            param_assign = f" = {self.default}"
-        return f"parameter {self.typename} {prefix}{self.name}{param_assign}"
+            v += f" = {self.default}"
+        return v
     
     def get_propagate(self, prefix=""):
         return f".{self.name}({prefix}{self.name})"

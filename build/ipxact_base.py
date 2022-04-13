@@ -14,6 +14,9 @@ X = ElementMaker(namespace = NS_XILINX,
                  nsmap = { 'xilinx': NS_XILINX });
 
 
+def dump_xml(node):
+    print(etree.tostring(node).decode())
+
 class VLNV:
     def __init__(self, vendor="xilinx.com", library="signal", name="dookie", version="1.0"):
         self.vendor = vendor

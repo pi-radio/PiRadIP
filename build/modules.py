@@ -4,10 +4,81 @@ from .sv import parse, get_modules, dump_node
 from .ipxact import IPXACTModule
 
 from .parameter import Parameter
-from .port import Port
+from .port import Port, InterfacePort
 
 import io
+import os
+from pathlib import PurePath, Path
 
+class WrapperModule:
+    def __init__(self, module):
+        self.name = module.wrapper_name
+        self.module = module
+
+        self.params = {}
+        self.ports = {}
+
+        self.interfaces = {}
+        
+        for p in module.params.values():
+            self.params[p.name] = p
+
+        for p in module.ports.values():
+            if type(p) == InterfacePort:
+                for port in p.ports.values():
+                    self.ports[port.name] = port
+
+                self.interfaces[p.name] = p
+
+                for param in p.params.values():
+                    self.params[param.name] = param
+            else:
+                self.ports[p.name] = p
+                    
+
+    def generate_verilog(self, f):
+        print("`timescale 1ns/1ps", file=f)
+        print(f"module {self.name} #(", file=f)
+            
+        print("    "+",\n    ".join([p.decl for p in self.params.values()]), file=f)
+
+        print(") (", file = f)
+
+        print("    "+",\n    ".join([normalize_types(p.decl) for p in self.ports.values()]), file=f)
+
+        print(");", file=f)
+
+
+        for i in self.interfaces.values():
+            print("", file=f)
+
+            i.generate_verilog(f)
+
+            for p in filter(lambda p: not p.is_clk and not p.is_rst and p.direction == 'input', i.ports.values()):
+                print(f"    assign {i.name}.{p.port.name} = {p.name};", file=f)
+                
+            for p in filter(lambda p: not p.is_clk and not p.is_rst and p.direction == 'output', i.ports.values()):
+                print(f"    assign {p.name} = {i.name}.{p.port.name};", file=f)
+
+        omit_list = [ "aclk", "aresetn" ]
+
+        print("", file=f)
+        
+        print(f"    {self.module.name} #(", file=f)
+        print(f"    ) {self.module.name}_inst (", file=f)
+        
+        port_assignments = []
+        
+        for p in self.module.ports.values():
+            port_assignments += p.get_port_assignments()
+
+        print(8*" "+(",\n"+8*" ").join([ f".{p.name}({p.name})" for p in self.module.ports.values() ]), file=f)
+            
+        print(f"    );", file=f);
+            
+        print("endmodule", file=f)
+        
+                
 class Module:
     def parse(n):
         name = r.get(n, "kModuleHeader/SymbolIdentifier").text
@@ -29,8 +100,16 @@ class Module:
         return f"module {self.name} #({self.param_list}) ({self.ports})"
 
     @property
+    def wrapper(self):
+        return WrapperModule(self)
+    
+    @property
     def module_desc(self):
         return module_list[self.name]
+
+    @property
+    def wrapper_path(self):
+        return PurePath(self.module_desc['wrapper_name'])
     
     @property
     def wrapper_name(self):
@@ -45,8 +124,20 @@ class Module:
         return self.module_desc.get('display_name', self.name)
     
     @property
-    def wrapper_file_name(self):
-        return self.module_desc.get('wrapper_file_name', f"{self.wrapper_name}_{self.version}.v")
+    def wrapper_verilog(self):
+        return self.wrapper_path.joinpath('hdl').joinpath(self.module_desc.get('wrapper_file_name', f"{self.wrapper_name}_{self.version}.sv"))
+
+    @property
+    def wrapper_xml(self):
+        return self.wrapper_path.joinpath(self.module_desc.get('xml_name', f"component.xml"))
+
+    @property
+    def bd_tcl(self):
+        return self.wrapper_path.joinpath('bd/bd.tcl')
+
+    @property
+    def xgui_tcl(self):
+        return self.wrapper_path.joinpath('xgui/xgui.tcl')
     
     @property
     def ipxact_name(self):
@@ -55,51 +146,9 @@ class Module:
     @property
     def version(self):
         return self.module_desc['version']
-    
-    def generate_wrapper(self, f):
-        print("`timescale 1ns/1ps", file=f)
-        print(f"module {self.wrapper_name} #(", file=f)
 
-        param_list = []
-
-        for p in self.ports.values():
-            param_list += p.get_wrapper_params()
-
-        for p in self.params.values():
-            param_list += p.get_decl()
-            
-        print("    "+",\n    ".join(param_list), file=f)
-        
-
-        print(") (", file = f)
-
-        port_list = []
-
-        for p in self.ports.values():
-            port_list += p.get_wrapper_ports()
-
-        port_list = [ normalize_types(p) for p in port_list ]
-            
-        print("    "+",\n    ".join(port_list), file=f)
-        
-        print(");", file=f)
-
-        for p in self.ports.values():
-            p.generate_body(f)
-
-        print(f"    {self.name} #(", file=f)
-        print(f"    ) {self.name}_inst (", file=f);
-
-        port_assignments = []
-        
-        for p in self.ports.values():
-            port_assignments += p.get_port_assignments()
-
-        print("    "+",\n    ".join(port_assignments), file=f)
-            
-        print(f"    );", file=f);
-            
-        print("endmodule", file=f)
+    def resolve(self):
+        pass
 
 
     def generate_ipxact(self, f):
@@ -136,18 +185,21 @@ def build_modules():
 
 def wrap_modules():
     for m in modules.values():
-        print(f"Generating wrapper for {m.name}...")
-        f = io.StringIO()
-
-        m.generate_wrapper(f)
         
-        print(f.getvalue())
+        
+        os.makedirs(m.wrapper_verilog.parent, exist_ok=True)
+        
+        INFO(f"Generating wrapper for {m.name} at {m.wrapper_verilog}")
+        
+        f = open(m.wrapper_verilog, "w")
+
+        m.wrapper.generate_verilog(f)
 
 
-    for _, m in modules.items():
-        print(f"Generating IP-XACT for {m.name}...")
-        f = io.StringIO()
+    for m in modules.values():
+        INFO(f"Generating IP-XACT for {m.name} at {m.wrapper_xml}...")
+        os.makedirs(m.wrapper_xml.parent, exist_ok=True)
+
+        f = open(m.wrapper_xml, "w")
 
         m.generate_ipxact(f)
-
-        print(f.getvalue())

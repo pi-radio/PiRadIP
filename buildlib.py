@@ -18,9 +18,44 @@ add_library_file("library/aximm/piradip_aximm.sv")
 add_library_file("library/fifo/piradip_sync_fifo.sv")
 add_library_file("library/cdc/piradip_cdc.sv")
 
-add_interface("axi4mm", "library/aximm/piradip_aximm.sv")
-add_interface("axi4mm_lite", "library/aximm/piradip_axi4mmlite.sv")
-add_interface("axi4s", "library/axis/piradip_axis.sv")
+
+add_interface("axi4mm",
+              { 'file': "library/aximm/piradip_aximm.sv",
+                'parameters': {
+                    'ADDR_WIDTH': {
+                        'description': "Width of the address bus"
+                    },
+                    'STRB_WIDTH': {
+                        'description': "Width of the strobe field"
+                    }
+                }
+              })
+
+"""
+        parameter integer DATA_WIDTH    = 32,
+		parameter integer ID_WIDTH  	= 1,
+        parameter integer AWUSER_WIDTH	= 0,
+		parameter integer ARUSER_WIDTH	= 0,
+		parameter integer WUSER_WIDTH	= 0,
+		parameter integer RUSER_WIDTH	= 0,
+		parameter integer BUSER_WIDTH	= 0,
+                   parameter integer STRB_WIDTH = (DATA_WIDTH/8)
+"""
+                
+add_interface("axi4mm_lite",
+              {
+                  'file': "library/aximm/piradip_axi4mmlite.sv",
+                  'parameters': {
+                      'ADDR_WIDTH': {
+                          'description': "Width of the address bus"
+                      },
+                      'STRB_WIDTH': {
+                          'description': "Width of the strobe field"
+                      }
+                  }
+              })
+
+add_interface("axi4s", { 'file': "library/axis/piradip_axis.sv" })
 
 add_module("piradip_axis_sample_buffer_out",
            "library/axis/piradip_axis_sample_buffer_out.sv",

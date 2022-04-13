@@ -1,6 +1,7 @@
 from .piradip_build_base import *
-from .structure import interface_list
+from .structure import interface_map
 from .sv import dump_node, parse, get_interfaces
+from .type import svtype
 from .parameter import Parameter
 from .port import Port, ModportPort
 
@@ -34,7 +35,7 @@ class Interface:
                         if p.tag == ',':
                             continue
                         if p.tag != 'kModportSimplePort':
-                            print(f"WARNING: Not handling {p.tag}");
+                            WARNING(f"WARNING: Not handling {p.tag}");
                             dump_node(p)
                             continue
                         port_name = r.get(p, 'SymbolIdentifier').text
@@ -69,10 +70,10 @@ class Interface:
 
         
 
-    def parse(n):
+    def parse(n, idesc):
         name = r.get(n, "kModuleHeader/SymbolIdentifier").text
 
-        iface = Interface(name)
+        iface = Interface(name, idesc)
 
         Parameter.parse_set(n, iface)
         Port.parse_set(n, iface)
@@ -89,29 +90,33 @@ class Interface:
                 pass
             elif n.tag == 'kParamDeclaration':
                 if n.children[0].tag != 'localparam':
-                    print("Non-local parameter")
+                    WARNING("Non-local parameter")
             elif n.tag == 'kTypeDeclaration':
-                iface.types[r.get(n, 'SymbolIdentifier').text] = r.get(n, 'kDataType').text
+                iface.types[r.get(n, 'SymbolIdentifier').text] = svtype.parse(r.get(n, 'kDataType'))
             elif n.tag == 'kDataDeclaration':
-                data_type = r.get(n, 'kInstantiationBase/kInstantiationType').text
+                data_type = svtype.parse(r.get(n, 'kInstantiationBase/kInstantiationType/kDataType'))
                 data_names = r.glob(n, 'kInstantiationBase/kGateInstanceRegisterVariableList/*/SymbolIdentifier')
                 for name in data_names:
-                    iface.datas[name.text] = data_type
+                    iface.types[name.text] = data_type
             elif n.tag == 'kModportDeclaration':
                 Interface.Modport.parse(iface, n)
             else:
-                print(n.tag)
                 dump_node(n)
+                ERROR(f"Unhandled tag {n.tag}")
                 
-    def __init__(self, name):
+    def __init__(self, name, desc):
         self.name = name
+        self.desc = desc
         interfaces[name] = self
         self.params = {}
         self.ports = {}
         self.types = {}
-        self.datas = {}
         self.modports = {}
 
+    @property
+    def pdescs(self):
+        return self.desc.get('parameters', {})
+        
     def resolve_type(self, name):
         return resolve_type(self.types.get(name, name))
 
@@ -121,11 +126,11 @@ r = anytree.Resolver("tag")
 
 
 def build_interfaces():
-    interface_files = set([v['file'] for v in interface_list])
-    interface_names = set([v['name'] for v in interface_list])
+    interface_files = set([v['file'] for v in interface_map.values()])
+    interface_names = interface_map.keys()
     
     for v in interface_files:
-        print(f"Reading file {v}...")
+        INFO(f"Reading file {v}...")
         root = parse(v)
 
         ifaces = get_interfaces(root)
@@ -133,15 +138,14 @@ def build_interfaces():
         for n in ifaces:
             name = r.get(n, "kModuleHeader/SymbolIdentifier").text
 
-            print(f"Found interface {name}...")
+            INFO(f"Found interface {name}...")
             if name in interface_names:
-                print(f"Parsing {name}...")
-                Interface.parse(n)
+                INFO(f"Parsing {name}...")
+                Interface.parse(n, interface_map[name])
 
     existing_interfaces = set(interfaces.keys())
                 
     if existing_interfaces != interface_names:
-        print(existing_interfaces.difference(interface_names))
-        raise Exception("Could not find all interfaces")
+        ERROR(f"Could not find all interfaces: Missing: {existing_interfaces.difference(interface_names)}")
             
             
