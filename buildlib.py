@@ -19,6 +19,25 @@ add_library_file("library/fifo/piradip_sync_fifo.sv")
 add_library_file("library/cdc/piradip_cdc.sv")
 
 
+def upper_map(l):
+    return dict([ (i, i.upper()) for i in l ])
+
+axi4mm_lite_ports = [ 'awaddr', 'awprot', 'awvalid', 'awready', 'wdata', 'wstrb', 'wvalid', 'wready',
+                      'bresp', 'bvalid', 'bready', 'araddr', 'arprot', 'arvalid', 'arready',
+                      'rdata', 'rresp', 'rvalid', 'rready' ]
+
+axi4mm_ports = [ 'awid', 'awaddr', 'awlen', 'awsize', 'awburst',
+                 'awlock', 'awcache', 'awprot', 'awregion', 'awqos', 'awuser',
+                 'awvalid', 'awready', 'wdata', 'wstrb', 'wlast', 'wuser', 'wvalid',
+                 'wready', 'bid', 'bresp', 'buser', 'bvalid', 'bready',
+                 'arid', 'araddr', 'arlen', 'arsize', 'arburst', 'arlock',
+                 'arcache', 'arprot', 'arregion', 'arqos', 'aruser',
+                 'arvalid', 'arready', 'rid', 'rdata', 'rresp', 'rlast',
+                 'ruser', 'rvalid', 'rready' ]
+
+axi4s_ports = [ 'tdata', 'tstrb', 'tlast', 'tvalid', 'tready' ]
+
+
 add_interface("axi4mm",
               { 'file': "library/aximm/piradip_aximm.sv",
                 'parameters': {
@@ -28,6 +47,15 @@ add_interface("axi4mm",
                     'STRB_WIDTH': {
                         'description': "Width of the strobe field"
                     }
+                },
+                'ipxdesc': {
+                    "memoryMapped": True,
+                    "busType": { 'vendor': "xilinx.com", 'library': "interface", 'name': "aximm", 'version': "1.0" },
+                    "abstractionType":  { 'vendor': "xilinx.com", 'library': "interface", 'name': "aximm_rtl", 'version': "1.0" },
+                    "ports":  axi4mm_ports,
+                    "port_map": upper_map(axi4mm_ports),
+                    "clock": { 'name': "clk" },
+                    "reset": { 'name': "resetn", 'polarity': 'low' }
                 }
               })
 
@@ -52,15 +80,45 @@ add_interface("axi4mm_lite",
                       'STRB_WIDTH': {
                           'description': "Width of the strobe field"
                       }
+                  },
+                  'ipxdesc': {
+                      "memoryMapped": True,
+                      "busType": { 'vendor': "xilinx.com", 'library': "interface", 'name': "aximm", 'version': "1.0" },
+                      "abstractionType":  { 'vendor': "xilinx.com", 'library': "interface", 'name': "aximm_rtl", 'version': "1.0" },
+                      "ports":  axi4mm_lite_ports,
+                      "port_map": upper_map(axi4mm_lite_ports),
+                      "clock": { 'name': "clk" },
+                      "reset": { 'name': "resetn", 'polarity': 'low' }
                   }
-              })
+              }
+)
 
-add_interface("axi4s", { 'file': "library/axis/piradip_axis.sv" })
+add_interface("axi4s",
+              {
+                  'file': "library/axis/piradip_axis.sv",
+                  'ipxdesc': {
+                      "memoryMapped": False,
+                      "busType": { 'vendor': "xilinx.com", 'library': "interface", 'name': "axis", 'version': "1.0" },
+                      "abstractionType":  { 'vendor': "xilinx.com", 'library': "interface", 'name': "axis_rtl", 'version': "1.0" },
+                      "ports":  axi4s_ports,
+                      "port_map": upper_map(axi4s_ports),
+                      "clock": { 'name': "clk" },
+                      "reset": { 'name': "resetn", 'polarity': 'low' }
+                  }
+              }
+)
 
 add_module("piradip_axis_sample_buffer_out",
            "library/axis/piradip_axis_sample_buffer_out.sv",
            wrapper_name="AXIS_SampleBufferOut",
            description="A memory mapped sample buffer to stream out over an AXI stream interface",
            display_name="AXI Sample Buffer Out")
+
+add_module("piradspi",
+           "library/spi/piradspi.sv",
+           wrapper_name="piradspi_ip",
+           description="A memory mapped sample buffer to stream out over an AXI stream interface",
+           display_name="PiRadSPI")
+
 
 build_all()

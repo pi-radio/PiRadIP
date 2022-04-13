@@ -3,55 +3,6 @@ from .piradip_build_base import *
 from .type import svtype
 from .sv import dump_node
 
-def upper_map(l):
-    return dict([ (i, i.upper()) for i in l ])
-
-axi4mm_lite_ports = [ 'awaddr', 'awprot', 'awvalid', 'awready', 'wdata', 'wstrb', 'wvalid', 'wready',
-                      'bresp', 'bvalid', 'bready', 'araddr', 'arprot', 'arvalid', 'arready',
-                      'rdata', 'rresp', 'rvalid', 'rready' ]
-
-axi4mm_ports = [ 'awid', 'awaddr', 'awlen', 'awsize', 'awburst',
-                 'awlock', 'awcache', 'awprot', 'awregion', 'awqos', 'awuser',
-                 'awvalid', 'awready', 'wdata', 'wstrb', 'wlast', 'wuser', 'wvalid',
-                 'wready', 'bid', 'bresp', 'buser', 'bvalid', 'bready',
-                 'arid', 'araddr', 'arlen', 'arsize', 'arburst', 'arlock',
-                 'arcache', 'arprot', 'arregion', 'arqos', 'aruser',
-                 'arvalid', 'arready', 'rid', 'rdata', 'rresp', 'rlast',
-                 'ruser', 'rvalid', 'rready' ]
-
-axi4s_ports = [ 'tdata', 'tstrb', 'tlast', 'tvalid', 'tready' ]
-
-
-ipxact_map = {
-    "axi4mm_lite": {
-        "memoryMapped": True,
-        "busType": { 'vendor': "xilinx.com", 'library': "interface", 'name': "aximm", 'version': "1.0" },
-        "abstractionType":  { 'vendor': "xilinx.com", 'library': "interface", 'name': "aximm_rtl", 'version': "1.0" },
-        "ports":  axi4mm_lite_ports,
-        "port_map": upper_map(axi4mm_lite_ports),
-        "clock": { 'name': "clk" },
-        "reset": { 'name': "resetn", 'polarity': 'low' }
-        },
-    "axi4mm": {
-        "memoryMapped": True,
-        "busType": { 'vendor': "xilinx.com", 'library': "interface", 'name': "aximm", 'version': "1.0" },
-        "abstractionType":  { 'vendor': "xilinx.com", 'library': "interface", 'name': "aximm_rtl", 'version': "1.0" },
-        "ports":  axi4mm_ports,
-        "port_map": upper_map(axi4mm_ports),
-        "clock": { 'name': "clk" },
-        "reset": { 'name': "resetn", 'polarity': 'low' }
-        },    
-    "axi4s": {
-        "memoryMapped": False,
-        "busType": { 'vendor': "xilinx.com", 'library': "interface", 'name': "axis", 'version': "1.0" },
-        "abstractionType":  { 'vendor': "xilinx.com", 'library': "interface", 'name': "axis_rtl", 'version': "1.0" },
-        "ports":  axi4s_ports,
-        "port_map": upper_map(axi4s_ports),
-        "clock": { 'name': "clk" },
-        "reset": { 'name': "resetn", 'polarity': 'low' }
-        }
-    }
-
 clock_busif_desc = {
     "memoryMapped": False,
     "busType": { 'vendor': "xilinx.com", 'library': "signal", 'name': "clock", 'version': "1.0" },
@@ -294,6 +245,10 @@ class InterfacePort(Port):
         return self.modport.iface
 
     @property
+    def ipxdesc(self):
+        return self.interface.ipxdesc
+    
+    @property
     def param_decls(self):
         return [ p.decl for p in self.params.values() ]
 
@@ -327,8 +282,6 @@ class InterfacePort(Port):
         
 
     def generate_ipxact(self, ipx):
-        ipxdesc = ipxact_map.get(self.interface.name, None)
-
         for num, p in enumerate(self.exposed_params):
             assert p.hidden == False
             ipx.model.model_parameters.add(p.name, "integer", p.name, p.name, p.default)
@@ -347,13 +300,13 @@ class InterfacePort(Port):
 
             ipx.model.ports.add(p.name, direction, svtype = p.svtype, views = [ "xilinx_anylanguagesynthesis", "xilinx_verilogbehavioralsimulation" ])
 
-        if ipxdesc:
-            INFO(f"Mapping {self.parent.name} port {self.name} (interface {self.interface.name}) to IP-XACT interface {ipxdesc['busType']['name']}")
+        if self.ipxdesc is not None:
+            INFO(f"Mapping {self.parent.name} port {self.name} (interface {self.interface.name}) to IP-XACT interface {self.ipxdesc['busType']['name']}")
             busname = self.name.upper()
             rst_busname = None
-            bi = ipx.bus_interfaces.add(0, busname, ipxdesc)
+            bi = ipx.bus_interfaces.add(0, busname, self.ipxdesc)
 
-            if ipxdesc.get('memoryMapped', False):
+            if self.ipxdesc.get('memoryMapped', False):
                 if self.modport.name != 'SUBORDINATE':
                     ERROR(f"DON'T KNOW HOW TO HANDLE MASTERS YET: {self.interface.name}.{self.modport.name}")
 
@@ -367,11 +320,11 @@ class InterfacePort(Port):
                 else:
                     bi.make_master()
                 
-            for n in ipxdesc["ports"]:
-                bi.map_port(ipxdesc["port_map"][n], self.ports[n].name)
+            for n in self.ipxdesc["ports"]:
+                bi.map_port(self.ipxdesc["port_map"][n], self.ports[n].name)
 
-            rst_port = ipxdesc.get('reset', None)
-            clk_port = ipxdesc.get('clock', None)
+            rst_port = self.ipxdesc.get('reset', None)
+            clk_port = self.ipxdesc.get('clock', None)
             rst_name = ""
 
             if rst_port:
