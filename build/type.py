@@ -28,7 +28,7 @@ class svtype:
 
         return svtype(basetype, packed_range)
         
-    def __init__(self, basetype=None, packed_range=None, default_range=None):
+    def __init__(self, basetype=None, packed_range=None, default_range=("0", "0")):
         assert (basetype == None or type(basetype) is type("")), f"{type(basetype)}"
         self.basetype = basetype if basetype != None else "logic"
         self.packed_range = packed_range

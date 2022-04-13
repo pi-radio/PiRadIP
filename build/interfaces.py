@@ -114,6 +114,10 @@ class Interface:
         self.modports = {}
 
     @property
+    def ipxdesc(self):
+        return self.desc.get('ipxdesc', None) 
+        
+    @property
     def pdescs(self):
         return self.desc.get('parameters', {})
         

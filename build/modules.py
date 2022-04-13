@@ -77,8 +77,46 @@ class WrapperModule:
         print(f"    );", file=f);
             
         print("endmodule", file=f)
+
+    def generate_ipxact(self, f):
+        ipx = IPXACTModule(self)
+
+        for p in self.module.params.values():
+            pass # p.generate_ipxact(ipx)
         
-                
+        for p in self.module.ports.values():
+            p.generate_ipxact(ipx)
+
+        ipx.export_ipxact(f)
+
+    @property
+    def ipxact_name(self):
+        return self.module.ipxact_name
+
+    @property
+    def version(self):
+        return self.module.version
+
+    @property
+    def wrapper_path(self):
+        return self.module.wrapper_path
+    
+    @property
+    def wrapper_verilog(self):
+        return self.module.wrapper_verilog
+
+    @property
+    def bd_tcl(self):
+        return self.module.bd_tcl
+
+    @property
+    def xgui_tcl(self):
+        return self.module.xgui_tcl
+ 
+    @property
+    def display_name(self):
+        return self.module.display_name
+        
 class Module:
     def parse(n):
         name = r.get(n, "kModuleHeader/SymbolIdentifier").text
@@ -149,18 +187,6 @@ class Module:
 
     def resolve(self):
         pass
-
-
-    def generate_ipxact(self, f):
-        ipx = IPXACTModule(self)
-
-        for p in self.params.values():
-            p.generate_ipxact(ipx)
-        
-        for p in self.ports.values():
-            p.generate_ipxact(ipx)
-
-        ipx.export_ipxact(f)
             
 
 logic_re = re.compile(r"([^0-9A-Za-z_])logic([^0-9A-Za-z_])")
@@ -195,11 +221,11 @@ def wrap_modules():
 
         m.wrapper.generate_verilog(f)
 
-
-    for m in modules.values():
         INFO(f"Generating IP-XACT for {m.name} at {m.wrapper_xml}...")
         os.makedirs(m.wrapper_xml.parent, exist_ok=True)
 
         f = open(m.wrapper_xml, "w")
 
-        m.generate_ipxact(f)
+        m.wrapper.generate_ipxact(f)
+
+
