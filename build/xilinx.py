@@ -133,9 +133,9 @@ class SubCoreRef:
         library: str = field(metadata={ 'type': "Attribute", 'namespace': NS_XILINX })
         name: str = field(metadata={ 'type': "Attribute", 'namespace': NS_XILINX })
         version: str = field(metadata={ 'type': "Attribute", 'namespace': NS_XILINX })
-        mode: Mode
+        mode: Mode = field(metadata={ 'namespace': NS_XILINX })
         
-    componentRef: ComponentRef
+    componentRef: ComponentRef = field(metadata={ 'namespace': NS_XILINX })
     
     
 def get_subcore_reference():
