@@ -179,7 +179,7 @@ class IPXACTComponent2():
     def export_ipxact(self, f):
         config = SerializerConfig(pretty_print=True)
         serializer = XmlSerializer(config=config)
-        print(serializer.render(self.component, ns_map=ns_map))
+        print(serializer.render(self.component, ns_map=ns_map), file=f)
 
         #print(lxml.etree.tostring(self.component, encoding='UTF-8', pretty_print=True, xml_declaration=True).decode(), file=f)
 

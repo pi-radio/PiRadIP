@@ -331,14 +331,15 @@ def build_libraries():
     except FileNotFoundError:
         pass
     
-    if all(output_time > i for i in input_times):
+    if False and all(output_time > i for i in input_times):
         INFO(f"Not rebuilding {xml_path} -- up to date")
         return
 
     l = IPXACTLibrary(piradlib_files)
 
     f = open(xml_path, "w")
-    
+
+    print(f"Writing library XML to {xml_path}...")
     l.export_ipxact(f)
     
 
