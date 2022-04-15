@@ -102,7 +102,7 @@ class IPXACTModule(IPXACTComponent2):
         self.component.vendor_extensions = ipxact2009.VendorExtensions(
             any_element=CoreExtensions(
                 taxonomies=CoreExtensions.Taxonomies( [
-                    "/AXI_Peripheral"
+                    "AXI_Peripheral"
                 ] ),
                 displayName=module.display_name,
                 supportedFamilies=CoreExtensions.SupportedFamilies(
@@ -113,6 +113,25 @@ class IPXACTModule(IPXACTComponent2):
                 coreRevision=int(time.time())
             )
         )
+
+        self.component.vendor_extensions = ipxact2009.VendorExtensions(
+            any_element=CoreExtensions(
+                taxonomies=CoreExtensions.Taxonomies( [
+                    "/BaseIP",
+                    "/Embedded_Processing/AXI_Infrastructure",
+                    "/Memories_&_Storage_Elements"
+                ] ),
+                displayName="Pi Radio IP Library v1.0",
+                hideInCatalogGUI=True,
+                xpmLibraries=CoreExtensions.XPMLibraries(
+                    [ CoreExtensions.XPMLibraries.XPMLibrary(i) for i in ["XPM_CDC", "XPM_FIFO", "XPM_MEMORY"]]
+                ),
+                vendorURL="https://pi-rad.io/",
+                vendorDisplayName="Pi Radio Inc.",
+                coreRevision=library_rev
+            )
+        )
+        
 
         self.component.model.ports = ipxact2009.ModelType.Ports()
         self.component.parameters = ipxact2009.Parameters()

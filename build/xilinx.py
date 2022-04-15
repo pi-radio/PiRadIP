@@ -87,7 +87,7 @@ class CoreExtensions:
             lifeCycle: str = xilinx_attr()
             value: str
 
-        familiy: List[Family] = xilinx_list()
+        family: List[Family] = xilinx_list()
         
     taxonomies: Taxonomies
     displayName: Optional[str]
