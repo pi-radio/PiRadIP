@@ -18,7 +18,7 @@ import os
 import time
 
     
-library_rev=str(time.time())
+library_rev=str(int(time.time()))
 
 class IPXACTLibrary(IPXACTComponent2):
     def __init__(self, library_files):
