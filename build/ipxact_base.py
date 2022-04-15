@@ -44,7 +44,7 @@ class VLNV:
 def ipxact_file(fn):
     f = ipxact2009.File();
 
-    f.name = fn
+    f.name = str(fn)
 
     ext = PurePath(fn).suffix
 
