@@ -283,8 +283,6 @@ class WrapperModule(ModuleBase):
 
 def wrap_modules():
     for m in modules.values():
-        
-        
         os.makedirs(m.wrapper_verilog.parent, exist_ok=True)
         
         INFO(f"Generating wrapper for {m.name} at {m.wrapper_verilog}")
@@ -305,8 +303,6 @@ def wrap_modules():
         ipx.generate()
 
         ipx.export_ipxact(f)
-        
-        sys.exit(0)
         
 
 
