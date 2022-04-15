@@ -672,7 +672,7 @@
       <spirit:name>xilinx_anylanguagesynthesis_pi_rad_io_piradip_piradip_1_0__ref_view_fileset</spirit:name>
       <spirit:vendorExtensions>
         <xilinx:subCoreRef>
-          <xilinx:componentRef xilinx:vendor="pi-rad.io" xilinx:library="piradip" xilinx:name="piradip" xilinx:version="1.0">
+          <xilinx:componentRef xilinx:vendor="pi-rad.io" xilinx:library="piradip" xilinx:name="piradip" xilinx:version="1.0" xilinx:coreRevision="1649987669.7208886">
             <xilinx:mode xilinx:name="copy_mode"/>
           </xilinx:componentRef>
         </xilinx:subCoreRef>
@@ -737,7 +737,7 @@
       </xilinx:supportedFamilies>
       <xilinx:vendorDisplayName>Pi Radio Inc.</xilinx:vendorDisplayName>
       <xilinx:vendorURL>https://pi-rad.io/</xilinx:vendorURL>
-      <xilinx:coreRevision>1649987436</xilinx:coreRevision>
+      <xilinx:coreRevision>1649987670</xilinx:coreRevision>
     </xilinx:coreExtensions>
   </spirit:vendorExtensions>
 </spirit:component>

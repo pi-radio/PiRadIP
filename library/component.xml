@@ -177,7 +177,7 @@
       </xilinx:xpmLibraries>
       <xilinx:vendorDisplayName>Pi Radio Inc.</xilinx:vendorDisplayName>
       <xilinx:vendorURL>https://pi-rad.io/</xilinx:vendorURL>
-      <xilinx:coreRevision>1649987436</xilinx:coreRevision>
+      <xilinx:coreRevision>1649987669.7208886</xilinx:coreRevision>
     </xilinx:coreExtensions>
   </spirit:vendorExtensions>
 </spirit:component>

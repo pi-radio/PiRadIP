@@ -18,7 +18,7 @@ import os
 import time
 
     
-
+library_rev=str(time.time())
 
 class IPXACTLibrary(IPXACTComponent2):
     def __init__(self, library_files):
@@ -58,7 +58,7 @@ class IPXACTLibrary(IPXACTComponent2):
                 ),
                 vendorURL="https://pi-rad.io/",
                 vendorDisplayName="Pi Radio Inc.",
-                coreRevision=int(time.time())
+                coreRevision=library_rev
             )
         )
         
@@ -77,7 +77,7 @@ class IPXACTModule(IPXACTComponent2):
         self.simulation_fs.file = [ ipxact_file(self.module.rel_wrapper_verilog) ]
                 
         
-        self.component.file_sets.file_set.append(get_subcore_reference())
+        self.component.file_sets.file_set.append(get_subcore_reference(library_rev))
         
         self.component.file_sets.file_set.append(ipxact2009.FileSet(name="bd_tcl_view_fileset", file=[ ipxact_file("bd/bd.tcl") ]))
         self.component.file_sets.file_set.append(ipxact2009.FileSet(name="xilinx_xpgui_view_fileset", file=[ ipxact_file("xgui/xgui.tcl") ]))

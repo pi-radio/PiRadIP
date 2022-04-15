@@ -133,18 +133,20 @@ class SubCoreRef:
         library: str = field(metadata={ 'type': "Attribute", 'namespace': NS_XILINX })
         name: str = field(metadata={ 'type': "Attribute", 'namespace': NS_XILINX })
         version: str = field(metadata={ 'type': "Attribute", 'namespace': NS_XILINX })
+        coreRevision: str = field(metadata={ 'type': "Attribute", 'namespace': NS_XILINX })
         mode: Mode = field(metadata={ 'namespace': NS_XILINX })
         
     componentRef: ComponentRef = field(metadata={ 'namespace': NS_XILINX })
     
     
-def get_subcore_reference():
+def get_subcore_reference(core_rev):
     return ipxact2009.FileSet(
         name="xilinx_anylanguagesynthesis_pi_rad_io_piradip_piradip_1_0__ref_view_fileset",
         vendor_extensions=ipxact2009.VendorExtensions(
             SubCoreRef(
                 SubCoreRef.ComponentRef(
                     vendor="pi-rad.io", library="piradip", name="piradip", version="1.0",
+                    coreRevision=core_rev,
                     mode=SubCoreRef.ComponentRef.Mode(name="copy_mode")
                 )
             )
