@@ -1,7 +1,9 @@
+"""
 from .ipxact_base import *
 from .ipxact_node import *
 from .ipxact_collection import *
 from .ipxact_parameter import IPXACTParameters
+
 
 class IPXACTAddressBlock(IPXACTNode):
     def __init__(self, parent, name, aperture_size, address_width, usage):
@@ -102,6 +104,6 @@ class IPXACTBusInterface(IPXACTNode):
         self.node.append(S.master())
         
 
-
+"""
 
 

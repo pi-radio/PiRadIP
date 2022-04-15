@@ -3,218 +3,343 @@ from .piradip_build_base import *
 from .structure import piradlib_files
 
 from .ipxact_base import *
+"""
 from .ipxact_node import *
 from .ipxact_bus import *
 from .ipxact_collection import *
+"""
 from .ipxact_component import *
+from .xilinx import *
+from .sv import *
 
-import lxml.etree
 import io
 import datetime
 import os
-import os.path
+import time
+
+    
 
 
-class IPXACTLibrary():
+class IPXACTLibrary(IPXACTComponent2):
     def __init__(self, library_files):
-        library_name = "PiRadIP"
-        library_version = "1.0"
-        library_description = "Pi Radio IP Library"
-
         self.library_path = os.path.join(os.getcwd(), "library")
         self.library_files = library_files
+
+        super(IPXACTLibrary, self).__init__(VLNV("pi-rad.io", "library", "PiRadIP", "1.0"), "Pi Radio IP Library")
         
-        relpaths = [ os.path.relpath(self.library_path, i) for i in self.library_files ]
+        relpaths = [ os.path.relpath(i, self.library_path) for i in self.library_files ]
 
-        input_times = [ os.path.getmtime(i) for i in self.library_files ]
-
-        input_times.append(os.path.getmtime("buildlib.py"))
-
-        output_time = 0
+        self.synthesis_fs.file = [ ipxact_file(fn) for fn in relpaths ]
         
-        try:
-            output_time = os.path.getmtime(self.xml_path)
-        except FileNotFoundError:
-            pass
-            
-        if all(output_time > i for i in input_times):
-            INFO(f"Not rebuilding {self.xml_path} -- up to date")
-        
-        synthesis_fileset_name = "xilinx_anylanguagesynthesis_view_fileset"
-        simulation_fileset_name = "xilinx_anylanguagebehavioralsimulation_view_fileset"
-        
-        self.synthesis_view = S.view(
-            S.name("xilinx_anylanguagesynthesis"),
-            S.displayName("Synthesis"),
-            S.envIdentifier(":vivado.xilinx.com:synthesis"),
-            S.language("SystemVerilog"),
-            S.fileSetRef(synthesis_fileset_name)
-        )
+        self.simulation_fs.file = [ ipxact_file(fn) for fn in relpaths ]
+                
+        self.component.parameters = ipxact2009.Parameters()
+        self.component.parameters.parameter = [
+            ipxact2009.Parameter(name="Component_Name",
+                                 value=ipxact2009.NameValuePairType.Value(
+                                     value = "PiRadIP_v1_0",
+                                     resolve="user",
+                                     id="PARAM_VALUE.Component_Name",
+                                     order=1
+                                 )
+            ) ]
 
-        self.simulation_view = S.view(
-            S.name("xilinx_anylanguagebehavioralsimulation"),
-            S.displayName("Simulation"),
-            S.envIdentifier(":vivado.xilinx.com:simulation"),
-            S.language("SystemVerilog"),
-            S.fileSetRef(simulation_fileset_name)
-        )
-        
-        self.model = S.model(self.synthesis_view,
-                             self.simulation_view)
-
-        self.synthesis_fileset = S.fileSet(
-            S.name(synthesis_fileset_name)
-            )
-
-        self.simulation_fileset = S.fileSet(
-            S.name(simulation_fileset_name)
-            )        
-        
-        self.file_sets = S.fileSets(self.synthesis_fileset,
-                                    self.simulation_fileset)
-
-        for filename in library_files:
-            relative_filename = os.path.relpath(filename, self.library_path)
-            
-            self.synthesis_fileset.append(
-                S.file(
-                    S.name(relative_filename),
-                    S.fileType("systemVerilogSource"),
-                    S.logicalName("library")
-                )
-            )
-            
-            self.simulation_fileset.append(
-                S.file(
-                    S.name(relative_filename),
-                    S.fileType("systemVerilogSource"),
-                    S.logicalName("library")
-                )
-            )
-
-        
-        self.parameters = S.parameters()
-
-        self.xilinx_core_ext = X.coreExtensions(
-            X.taxonomies(
-                X.taxonomy("/BaseIP"),
-                X.taxonomy("/Embedded_Processing/AXI_Infrastructure"),
-                X.taxonomy("/Memories_&_Storage_Elements"),
-            ),
-            X.displayName("PiRadIP_v1_0"),
-            X.hideInCatalogGUI("true"),
-            X.definitionSource("package_project"),
-            X.xpmLibraries(
-                X.xpmLibrary("XPM_CDC"),
-                X.xpmLibrary("XPM_FIFO"),
-                X.xmpLibrary("XPM_MEMORY")
+        self.component.vendor_extensions = ipxact2009.VendorExtensions(
+            any_element=CoreExtensions(
+                taxonomies=CoreExtensions.Taxonomies( [
+                    "/BaseIP",
+                    "/Embedded_Processing/AXI_Infrastructure",
+                    "/Memories_&_Storage_Elements"
+                ] ),
+                displayName="Pi Radio IP Library v1.0",
+                hideInCatalogGUI=True,
+                xpmLibraries=CoreExtensions.XPMLibraries(
+                    [ CoreExtensions.XPMLibraries.XPMLibrary(i) for i in ["XPM_CDC", "XPM_FIFO", "XPM_MEMORY"]]
                 ),
-            X.vendorDisplayName("Pi Radio Inc."),
-            X.vendorURL("https://pi-rad.io/"),
-            X.coreRevision("1"),
-            X.upgrades(X.canUpgradeFrom("pi-rad.io:ip:library:1.0")),
-            X.coreCreationDateTime(datetime.datetime.utcnow().strftime("%Y-%M-%jT%H:%M:%SZ"))
+                vendorURL="https://pi-rad.io/",
+                vendorDisplayName="Pi Radio Inc.",
+                coreRevision=int(time.time())
             )
+        )
         
-        self.component = S.component(
-            S.vendor("pi-rad.io"),
-            S.library("piradip"),
-            S.name(library_name),
-            S.version(library_version),
-            self.model,
-            self.file_sets,
-            S.description(library_description),
-            self.parameters,
-            S.vendorExtensions(self.xilinx_core_ext)
+class IPXACTModule(IPXACTComponent2):
+    def __init__(self, module):
+        self.module = module
+
+        self.param_ids = {}
+        self.model_param_ids = {}
+        self.model_param_refs = {}
+        
+        super(IPXACTModule, self).__init__(VLNV("pi-rad.io", "library", self.module.ipxact_name, self.module.version), self.module.description)
+
+
+        self.synthesis_fs.file = [ ipxact_file(self.module.rel_wrapper_verilog) ]
+        self.simulation_fs.file = [ ipxact_file(self.module.rel_wrapper_verilog) ]
+                
+        
+        self.component.file_sets.file_set.append(get_subcore_reference())
+        
+        self.component.file_sets.file_set.append(ipxact2009.FileSet(name="bd_tcl_view_fileset", file=[ ipxact_file("bd/bd.tcl") ]))
+        self.component.file_sets.file_set.append(ipxact2009.FileSet(name="xilinx_xpgui_view_fileset", file=[ ipxact_file("xgui/xgui.tcl") ]))
+
+        self.component.model.views.view.append(
+            ipxact2009.ViewType(name="bd_tcl",
+                                display_name="Block Diagram",
+                                env_identifier=":vivado.xilinx.com:block.diagram",
+                                file_set_ref=ipxact2009.FileSetRef(local_name="bd_tcl_view_fileset")
+            )
+        )
+
+        self.component.model.views.view.append(
+            ipxact2009.ViewType(name="xilinx_xpgui",
+                                display_name="UI Layout",
+                                env_identifier=":vivado.xilinx.com:xgui.ui",
+                                file_set_ref=ipxact2009.FileSetRef(local_name="xilinx_xpgui_view_fileset")
+            )
+        )
+
+        
+        self.component.vendor_extensions = ipxact2009.VendorExtensions(
+            any_element=CoreExtensions(
+                taxonomies=CoreExtensions.Taxonomies( [
+                    "/AXI_Peripheral"
+                ] ),
+                displayName=module.display_name,
+                supportedFamilies=CoreExtensions.SupportedFamilies(
+                    CoreExtensions.SupportedFamilies.Family(lifeCycle="Pre-Production", value="zynquplus")
+                    ),
+                vendorURL="https://pi-rad.io/",
+                vendorDisplayName="Pi Radio Inc.",
+                coreRevision=int(time.time())
+            )
+        )
+
+        self.component.model.ports = ipxact2009.ModelType.Ports()
+        self.component.parameters = ipxact2009.Parameters()
+        self.component.model.model_parameters = ipxact2009.ModelType.ModelParameters()
+        
+    def generate_parameter(self, p):
+        self.param_ids[p.name] = svsymbol(f"PARAM_VALUE.{p.name}")
+        self.model_param_ids[p.name] = svsymbol(f"MODELPARAM_VALUE.{p.name}")
+
+        self.model_param_refs[p.name] = svsymbol(f"spirit:decode(id('{self.model_param_ids[p.name]}'))")
+        
+        
+        self.component.parameters.parameter.append(
+            ipxact2009.Parameter(
+                name=p.name,
+                display_name=p.name,
+                #description=p.description,
+                value = ipxact2009.NameValuePairType.Value(
+                    format="long",
+                    resolve="user",
+                    id=self.param_ids[p.name],
+                    range_type=None,
+                    value = p.default
+                    )
+                )
             )
 
-    @property
-    def xml_path(self):
-        return os.path.join(self.library_path, "component.xml")
+        self.component.model.model_parameters.model_parameter.append(
+            ipxact2009.NameValueTypeType(
+                name=p.name,
+                display_name=p.name,
+                #description=p.description,
+                value = ipxact2009.NameValuePairType.Value(
+                    format="long",
+                    resolve="user",
+                    id=self.model_param_ids[p.name],
+                    range_type=None,
+                    value=p.default
+                    )
+                )
+            )
         
-    def export_ipxact(self, f):
-        print(lxml.etree.tostring(self.component, encoding='UTF-8', pretty_print=True, xml_declaration=True).decode(), file=f)
 
+    def generate_port(self, p):
+        direction_map = { 'input': 'in', 'output': 'out' }
+
+        print(f"Generating port {p.name} {p.datatype}")
+
+        ipxact_wire = ipxact2009.PortWireType(
+            direction=direction_map.get(p.direction, "DOOKIE"),
+            all_logical_directions_allowed=None,
+            wire_type_defs=ipxact2009.WireTypeDefs([ ipxact2009.WireTypeDef(
+                type_name="wire",
+                view_name_ref = [ "xilinx_anylanguagesynthesis", "xilinx_anylanguagebehavioralsimulation" ])
+            ])
+        )
+            
+        ipxact_port = ipxact2009.Port(
+                name=p.name,
+                wire=ipxact_wire
+        )
+        
+        if p.datatype.vector:
+            left = ipxact2009.Vector.Left(
+                format="long",
+                resolve=None,
+                range_type=None
+            )
+
+            right = ipxact2009.Vector.Right(
+                format="long",
+                resolve=None,
+                range_type=None
+            )            
+            
+            if p.datatype.packed_range.left.const:
+                left.value = p.datatype.packed_range.left
+            else:
+                left.resolve="dependent"
+                left.dependency = f"({p.datatype.packed_range.left.subst(self.model_param_refs)})"
+                left.value="0"
+                print(f"transform: {p.datatype.packed_range.left} => {str(left.dependency)}")
+                
+
+            if p.datatype.packed_range.right.const:
+                right.value = p.datatype.packed_range.right
+            else:
+                right.resolve="dependent"
+                right.dependency = f"({p.datatype.packed_range.left.subst(self.model_param_refs)})"
+                right.value="0"
+                print(f"transform: {p.datatype.packed_range.right} => {str(right.dependency)}")
+            
+            ipxact_wire.vector = ipxact2009.Vector(
+                left=left, right=right
+            )
+
+        self.component.model.ports.port.append(ipxact_port)
+        
+
+    def generate_interface(self, i):
+        print(f"Generating interface {i.busname}")
+
+        memory_map = None
+        
+        if i.ipxdesc.get('memoryMapped', False):
+            if self.component.memory_maps is None:
+                self.component.memory_maps = ipxact2009.MemoryMaps()
+            
+            memory_map = ipxact2009.MemoryMapType(
+                name = i.busname,
+                address_block = ipxact2009.AddressBlock(
+                    name = i.busname + "_" + i.ipxdesc['mmtype'],
+                    base_address = ipxact2009.BaseAddress(
+                        format="long",
+                        resolve="user",
+                        range_type=None,
+                        prompt=None,
+                        value=0
+                        ),
+                    range = ipxact2009.AddressBlockType.Range(
+                        format="long",
+                        value="4096"
+                        ),
+                    width = ipxact2009.AddressBlockType.Width(
+                        format="long",
+                        value="32"
+                    ),
+                    usage = ipxact2009.UsageType("memory" if i.ipxdesc['mmtype'] == 'mem' else 'register'),
+                    parameters = ipxact2009.Parameters()
+                )
+            )
+
+            memory_map.address_block.parameters.parameter.append(
+                ipxact2009.Parameter(
+                    name="OFFSET_BASE_PARAM",
+                    value=ipxact2009.NameValuePairType.Value(
+                        id=f"ADDRBLOCKPARAM_VALUE.{i.busname}.{i.busname}_{i.ipxdesc['mmtype'].upper()}.OFFSET_BASE_PARAM",
+                        value="C_{i.busname}_BASEADDR"
+                        )
+                    )
+                )
+
+            memory_map.address_block.parameters.parameter.append(
+                ipxact2009.Parameter(
+                    name="OFFSET_BASE_PARAM",
+                    value=ipxact2009.NameValuePairType.Value(
+                        id=f"ADDRBLOCKPARAM_VALUE.{i.busname}.{i.busname}_{i.ipxdesc['mmtype'].upper()}.OFFSET_HIGH_PARAM",
+                        value="C_{i.busname}_HIGHADDR"
+                        )
+                    )
+                )
+
+            
+            self.component.memory_maps.memory_map.append(memory_map)
+
+
+        port_maps = ipxact2009.BusInterfaceType.PortMaps()
+
+        for p in i.data_map:
+            pm = port_maps.PortMap()
+            pm.logical_port = pm.LogicalPort(name=i.ipxdesc["port_map"][i.data_map[p].name])
+            pm.physical_port = pm.PhysicalPort(name=p)
+            port_maps.port_map.append(pm)
+            
+
+        bif = ipxact2009.BusInterface(
+            name = i.busname,
+            bus_type = i.ipxdesc['busType'].library_ref,
+            abstraction_type = i.ipxdesc['abstractionType'].library_ref,
+            port_maps = port_maps
+        )
+
+        if i.modport.name == "SUBORDINATE":
+            bif.slave = ipxact2009.BusInterfaceType.Slave()
+            
+            if memory_map:
+                bif.slave.memory_map_ref = ipxact2009.MemoryMapRef(memory_map_ref=memory_map.name)
+        elif i.modport.name == "MANAGER":
+            bif.master = ipxact2009.BusInterfaceType.Master()
+
+        
+        self.component.bus_interfaces.bus_interface.append(bif)
+
+        
+        
+
+    def generate(self):
+        for p in self.module.params.values():
+            self.generate_parameter(p)
+
+        for p in self.module.ports.values():
+            self.generate_port(p)
+
+        if self.module.has_interfaces:
+            self.component.bus_interfaces = ipxact2009.BusInterfaces()
+            
+            for i in self.module.interface_ports.values():
+                if i.ipxdesc is not None:
+                    self.generate_interface(i)
+
+        
         
 def build_libraries():
+    library_path = os.path.join(os.getcwd(), "library")
+
+    xml_path = os.path.join(library_path, "component.xml")
+    
+    input_times = [ os.path.getmtime(i) for i in piradlib_files ]
+    
+    input_times.append(os.path.getmtime("buildlib.py"))
+    
+    output_time = 0
+    
+    try:
+        output_time = os.path.getmtime(xml_path)
+    except FileNotFoundError:
+        pass
+    
+    if all(output_time > i for i in input_times):
+        INFO(f"Not rebuilding {xml_path} -- up to date")
+        return
+
     l = IPXACTLibrary(piradlib_files)
 
-    f = open(l.xml_path, "w")
+    f = open(xml_path, "w")
     
     l.export_ipxact(f)
     
 
-    
-
-class IPXACTModule(IPXACTComponent):
-    def __init__(self, module):
-        self.module = module
-
-        super(IPXACTModule, self).__init__(None, "pi-rad.io", "piradip",
-                                           self.module.ipxact_name, self.module.version)
-
-        #self.xilinx_packaging = X.packagingInfo()
-
-
-        #self.choices.append(interrupt_sensitivity_list.xml)
-        #self.choices.append(polarity_list.xml)        
-
-        self.file_sets.add_subclass(IPXACTSubCoreReference, "xilinx_anylanguagesynthesis_pi_rad_io_PiRadIP_PiRadIP_1_0__ref_view_fileset")
-        self.file_sets.add("xilinx_anylanguagesynthesis_view_fileset",
-                           files=[
-                               {
-                                   'file': self.module.wrapper_verilog.relative_to(self.module.wrapper_path),
-                                   'type': 'systemVerilogSource'
-                               }
-                           ]
-        )
-        
-
-        self.file_sets.add("bd_tcl_view_fileset",
-                           files =[
-                               {
-                                   'file': self.module.bd_tcl.relative_to(self.module.wrapper_path),
-                                   'type': 'tclSource'
-                               }
-                           ]
-        )
-
-        self.file_sets.add("xilinx_xpgui_view_fileset",
-                           files =[
-                               {
-                                   'file': self.module.xgui_tcl.relative_to(self.module.wrapper_path),
-                                   'type': 'tclSource',
-                                   'userFileTypes': [ 'XGUI_VERSION_2' ]
-                               }
-                           ]
-        )
-
-
-        
-
-        family = X.family('zynquplus')
-        family.attrib[f"{{{NS_XILINX}}}lifeCycle"] = "Pre-Production"
-
-        self.xilinx_core_ext = X.coreExtensions()
-        self.xilinx_core_ext.append(X.supportedFamilies(family))
-
-        self.xilinx_core_ext.append(X.taxonomies(X.taxonomy("AXI_Peripheral")))
-
-        self.xilinx_core_ext.append(X.displayName(self.module.display_name))
-
-        view = self.model.views.add("xilinx_anylanguagesynthesis", "Synthesis")
-
-        view = self.model.views.add("bd_tcl", "Block Diagram", envIdentifier=":vivado.xilinx.com:block_diagram")
-
-        
-
-    def attr(self, s):
-        return f"{{{NS_SPIRIT}}}{s}"
-        
-
-    def export_ipxact(self, f):
-        self.resolve()
-        print(lxml.etree.tostring(self.node,  encoding='UTF-8', pretty_print=True, xml_declaration=True).decode(), file=f)
-        
-        
 

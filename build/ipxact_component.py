@@ -2,6 +2,7 @@ from .ipxact_base import *
 from .ipxact_node import *
 from .ipxact_bus import *
 
+"""
 class IPXACTChoiceList:
     def __init__(self, name, values):
         self.name = name
@@ -118,27 +119,6 @@ class IPXACTFileSet(IPXACTNode):
 
             super(IPXACTFileSet, self).__init__(parent, n)
 
-class IPXACTSubCoreReference(IPXACTFileSet):
-    def __init__(self, parent, name):
-        
-        comp_mode = X.mode();
-        comp_mode.attrib[f"{{{NS_XILINX}}}name"] = "copy_mode"
-        comp_ref = X.componentRef(comp_mode)
-
-        comp_ref.attrib[f"{{{NS_XILINX}}}vendor"] = "pi-rad.io"
-        comp_ref.attrib[f"{{{NS_XILINX}}}library"] = "PiRadIP"
-        comp_ref.attrib[f"{{{NS_XILINX}}}name"] = "PiRadIP"
-        comp_ref.attrib[f"{{{NS_XILINX}}}version"] = PiRadIP_Version
-
-        
-        n = S.fileSet(
-            S.name(name),
-            S.vendorExtensions(
-                X.subCoreRef(comp_ref)
-                )
-        );
-
-        super(IPXACTSubCoreReference, self).__init__(parent, node=n)
         
         
 class IPXACTComponent(IPXACTNode):
@@ -161,3 +141,47 @@ class IPXACTComponent(IPXACTNode):
         self.file_sets = IPXACTCollection(self, "fileSets", IPXACTFileSet)
 
         IPXACTParameters(self)
+"""
+
+class IPXACTComponent2():
+    def __init__(self, vlnv, description):
+        self.synthesis_fs = ipxact2009.FileSet()
+        self.synthesis_fs.name = "xilinx_anylanguagesynthesis_view_fileset"
+
+        self.simulation_fs = ipxact2009.FileSet()
+        self.simulation_fs.name = "xilinx_anylanguagebehavioralsimulation_view_fileset"
+
+        synthesis_view = ipxact2009.ViewType(name="xilinx_anylanguagesynthesis",
+                                             display_name = "Synthesis",
+                                             env_identifier = ":vivado.xilinx.com:synthesis",
+                                             language = "SystemVerilog",
+                                             file_set_ref = ipxact2009.FileSetRef(local_name="xilinx_anylanguagesynthesis_view_fileset"))
+
+        simulation_view = ipxact2009.ViewType(name="xilinx_anylanguagesimulation",
+                                             display_name = "Simulation",
+                                             env_identifier = ":vivado.xilinx.com:simulation",
+                                             language = "SystemVerilog",
+                                             file_set_ref = ipxact2009.FileSetRef(local_name="xilinx_anylanguagebehavioralsimulation_view_fileset"))
+
+        
+        self.component = ipxact2009.Component(
+            vendor = vlnv.vendor,
+            library = vlnv.library,
+            name = vlnv.name,
+            version = vlnv.version,
+            description = description,
+            file_sets = ipxact2009.FileSets([ self.synthesis_fs, self.simulation_fs ]),
+            model = ipxact2009.Model(
+                views = ipxact2009.Model.Views([ synthesis_view, simulation_view ])
+            )
+        )
+
+    def export_ipxact(self, f):
+        config = SerializerConfig(pretty_print=True)
+        serializer = XmlSerializer(config=config)
+        print(serializer.render(self.component, ns_map=ns_map))
+
+        #print(lxml.etree.tostring(self.component, encoding='UTF-8', pretty_print=True, xml_declaration=True).decode(), file=f)
+
+        
+        

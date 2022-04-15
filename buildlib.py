@@ -2,6 +2,7 @@
 
 from build import *
 
+
 add_library_file("library/axis/piradip_axis_sample_buffer_out.sv")
 add_library_file("library/axis/piradip_axis.sv")
 add_library_file("library/axis/piradip_axis_fifo.sv")
@@ -35,7 +36,7 @@ axi4mm_ports = [ 'awid', 'awaddr', 'awlen', 'awsize', 'awburst',
                  'arvalid', 'arready', 'rid', 'rdata', 'rresp', 'rlast',
                  'ruser', 'rvalid', 'rready' ]
 
-axi4s_ports = [ 'tdata', 'tstrb', 'tlast', 'tvalid', 'tready' ]
+axi4s_ports = [ 'tdata', 'tstrb', 'tlast', 'tvalid', 'tready', 'tkeep', 'tid', 'tdest', 'tuser' ]
 
 
 add_interface("axi4mm",
@@ -50,8 +51,9 @@ add_interface("axi4mm",
                 },
                 'ipxdesc': {
                     "memoryMapped": True,
-                    "busType": { 'vendor': "xilinx.com", 'library': "interface", 'name': "aximm", 'version': "1.0" },
-                    "abstractionType":  { 'vendor': "xilinx.com", 'library': "interface", 'name': "aximm_rtl", 'version': "1.0" },
+                    "mmtype": "mem",
+                    "busType": VLNV("xilinx.com", "interface", "aximm", "1.0"),
+                    "abstractionType":  VLNV("xilinx.com", "interface", "aximm_rtl", "1.0"),
                     "ports":  axi4mm_ports,
                     "port_map": upper_map(axi4mm_ports),
                     "clock": { 'name': "clk" },
@@ -83,8 +85,9 @@ add_interface("axi4mm_lite",
                   },
                   'ipxdesc': {
                       "memoryMapped": True,
-                      "busType": { 'vendor': "xilinx.com", 'library': "interface", 'name': "aximm", 'version': "1.0" },
-                      "abstractionType":  { 'vendor': "xilinx.com", 'library': "interface", 'name': "aximm_rtl", 'version': "1.0" },
+                      "mmtype": "reg",
+                      "busType": VLNV("xilinx.com", "interface", "aximm", "1.0"),
+                      "abstractionType":  VLNV("xilinx.com", "interface", "aximm_rtl", "1.0"),
                       "ports":  axi4mm_lite_ports,
                       "port_map": upper_map(axi4mm_lite_ports),
                       "clock": { 'name': "clk" },
@@ -98,8 +101,8 @@ add_interface("axi4s",
                   'file': "library/axis/piradip_axis.sv",
                   'ipxdesc': {
                       "memoryMapped": False,
-                      "busType": { 'vendor': "xilinx.com", 'library': "interface", 'name': "axis", 'version': "1.0" },
-                      "abstractionType":  { 'vendor': "xilinx.com", 'library': "interface", 'name': "axis_rtl", 'version': "1.0" },
+                      "busType": VLNV("xilinx.com", "interface", "axis", "1.0"),
+                      "abstractionType":  VLNV("xilinx.com", "interface", "axis_rtl", "1.0" ),
                       "ports":  axi4s_ports,
                       "port_map": upper_map(axi4s_ports),
                       "clock": { 'name': "clk" },

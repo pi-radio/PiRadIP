@@ -1,56 +1,98 @@
 from .piradip_build_base import *
 
-class Parameter:
-    def parse_set(n, parent):
-        pl = []
+from .sv import *
 
-        try:
-            param_root = r.get(n,"kModuleHeader/kFormalParameterListDeclaration/kParenGroup/kFormalParameterList")
+
+
+class svparametertype:
+    def __init__(self, basetype,  packed_dimensions, name, unpacked_dimensions):
+        self.basetype = basetype
+        if self.basetype == None:
+            self.basetype = svinteger()
             
-            for param_node in param_root.children:
-                if param_node.tag in [ ',' ]:
-                    continue
-                if param_node.tag != 'kParamDeclaration':
-                    WARN(f"Not processing tag {param_note.tag}")
-                    continue
-
-                pl.append(Parameter.parse(param_node, parent))
-            
-        except anytree.resolver.ResolverError:
-                WARN(f"Parameters: no parameters detected")
-
-        return pl
-        
-    def parse(n, parent):        
-        p = Parameter(r.get(n, "kParamType/SymbolIdentifier").text, parent)
-
-        try:
-            p.typename = r.get(n, "kParamType/kTypeInfo").text
-        except anytree.resolver.ResolverError:
-            WARN(f"Parameter {p.name}: no type detected")
-        
-        try:
-            p.default = r.get(n, "kTrailingAssign/kExpression").text
-        except anytree.resolver.ResolverError:
-            WARN(f"Parameter {p.name}: no default detected")
-
-        return p
-
-    def __init__(self, name, parent):
         self.name = name
-        self.parent = parent
-        self.parent.params[self.name] = self
-        self.typename = ""
-        self.default = ""
+        self.packed_dimensions = packed_dimensions
+        self.unpacked_dimensions = unpacked_dimensions
 
+    
+class svparameter:
+    def __init__(self, paramtype, default, local):
+        self.basetype = paramtype.basetype
+        self.name = paramtype.name
+        self.packed_dimensions = paramtype.packed_dimensions
+        self.basetype = paramtype.basetype        
+        self.unpacked_dimensions = paramtype.unpacked_dimensions
+        self.default = default
+        self.local = local
+        assert self.unpacked_dimensions == None
+
+    
+    def subst(self, ns):
+        return svparameter(
+            svparametertype(
+                subst(self.basetype, ns),
+                subst(self.packed_dimensions, ns),
+                subst(self.name, ns),
+                subst(self.unpacked_dimensions, ns)
+            ),
+            subst(self.default, ns),
+            self.local
+        )
 
     @property
     def decl(self):
-        v = f"parameter {self.typename} {self.name}"
-        if self.default != "":
+        v = f"parameter {self.basetype}"
+        if self.packed_dimensions:
+            v += f" {self.packed_dimensions}"
+        v += f" {self.name}"
+        if self.unpacked_dimensions:
+            v += f" {self.unpacked_dimensions}"
+        if self.default:
             v += f" = {self.default}"
         return v
-    
-    def get_propagate(self, prefix=""):
-        return f".{self.name}({prefix}{self.name})"
-            
+
+@svex("kParamType")
+def parse_param_type(node):
+    assert_nchild(node, 4)
+
+    basetype = svexcreate(node.children[0])
+    packed_dimensions = svexcreate(node.children[1])
+    name = svexcreate(node.children[2])
+    unpacked_dumensions = svexcreate(node.children[3])
+
+    return svparametertype(*[ svexcreate(i) for i in node.children ])
+
+svlistnode("kFormalParameterList", [ "kParamDeclaration" ])
+
+
+@svex("kTrailingAssign")
+def parse_trailing_assign(node):
+    assert_nchild(node, 3)
+    assert node.children[0].tag == '='
+    assert svexcreate(node.children[2]) == None
+
+    return svexcreate(node.children[1])
+        
+@svex("kParamDeclaration")
+def parse_parameter(node):
+    nchildren = len(node.children)
+    assert nchildren in [3, 4], "Unexpected number of children {nchildren} {node.children}"
+    assert(node.children[0].tag in [ 'parameter', 'localparam' ])
+    if nchildren == 4:
+        assert node.children[3].tag == ';'
+        
+    return svparameter(svexcreate(node.children[1]), svexcreate(node.children[2]), node.children[0].tag == 'localparam')
+
+
+@svex("kFormalParameterListDeclaration")
+def parse_formal_parameter_list_decl(node):
+    assert_nchild(node, 2)
+    assert node.children[0].tag == '#'
+    return svexcreate(node.children[1])
+
+@svex("kTypeInfo")
+def parse_type_info(node):
+    assert_nchild(node, 3)
+    assert svexcreate(node.children[1]) == None
+    assert svexcreate(node.children[2]) == None
+    return svexcreate(node.children[0])

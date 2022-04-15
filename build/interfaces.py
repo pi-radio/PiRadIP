@@ -1,118 +1,136 @@
 from .piradip_build_base import *
 from .structure import interface_map
-from .sv import dump_node, parse, get_interfaces
-from .type import svtype
-from .parameter import Parameter
-from .port import Port, ModportPort
+from .sv import *
 
-#
-# TODO: Parse the package
-#
-global_type_punts = {
-    'axi_resp_t': 'logic [1:0]',
-    'axi_burst_t': 'logic [1:0]',
-    'axi_size_t': 'logic [2:0]',
-    'axi_len_t': "logic [7:0]",
-    'axi_prot_t': 'logic [2:0]',
-    'axi_cache_t': 'logic [3:0]',
-    'axi_qos_t': 'logic [3:0]',
-    'axi_region_t': 'logic [3:0]',
-    'axi_lock_t': 'logic'
-}
+
 
 def resolve_type(name):
     return global_type_punts.get(name, name)
 
-class Interface:
-    class Modport:
-        def parse(iface, n):
-            modport = Interface.Modport(iface, r.get(n, 'kModportItemList/kModportItem/SymbolIdentifier').text)
-    
-            for d in r.get(n, 'kModportItemList/kModportItem/kParenGroup/kModportPortList').children:
-                if (d.tag == 'kModportSimplePortsDeclaration'):
-                    direction = d.children[0].text
-                    for p in d.children[1:]:
-                        if p.tag == ',':
-                            continue
-                        if p.tag != 'kModportSimplePort':
-                            WARNING(f"WARNING: Not handling {p.tag}");
-                            dump_node(p)
-                            continue
-                        port_name = r.get(p, 'SymbolIdentifier').text
-                        ModportPort(port_name, modport, direction)
-                elif (d.tag == ','):
-                    pass
-                else:
-                    dump_node(d)
-                
-            return modport
-        
-        def __init__(self, iface, name):
-            self.iface = iface
-            self.name = name
-            self.iface.modports[self.name] = self
-            self.directions = {}
-            self.ports = {}
-
-        def __str__(self):
-            return f"modport {self.name} output: {self.outputs} input: {self.inputs}"
-
-        def __repr__(self):
-            return f"modport {self.name} output: {self.outputs} input: {self.inputs}"
-
-        @property
-        def types(self):
-            return self.iface.datas
-        
-        def resolve_type(self, typename):
-            return self.iface.resolve_type(typename)
-        
-
-        
-
-    def parse(n, idesc):
-        name = r.get(n, "kModuleHeader/SymbolIdentifier").text
-
-        iface = Interface(name, idesc)
-
-        Parameter.parse_set(n, iface)
-        Port.parse_set(n, iface)
-            
-        module_body = r.get(n,"kModuleItemList")
-
-
-        for n in module_body.children:
-            if n.tag == 'kPackageImportDeclaration':
-                pass
-            elif n.tag == 'kPackageImportItemList':
-                pass
-            elif n.tag == 'kContinuousAssignmentStatement':
-                pass
-            elif n.tag == 'kParamDeclaration':
-                if n.children[0].tag != 'localparam':
-                    WARNING("Non-local parameter")
-            elif n.tag == 'kTypeDeclaration':
-                iface.types[r.get(n, 'SymbolIdentifier').text] = svtype.parse(r.get(n, 'kDataType'))
-            elif n.tag == 'kDataDeclaration':
-                data_type = svtype.parse(r.get(n, 'kInstantiationBase/kInstantiationType/kDataType'))
-                data_names = r.glob(n, 'kInstantiationBase/kGateInstanceRegisterVariableList/*/SymbolIdentifier')
-                for name in data_names:
-                    iface.types[name.text] = data_type
-            elif n.tag == 'kModportDeclaration':
-                Interface.Modport.parse(iface, n)
-            else:
-                dump_node(n)
-                ERROR(f"Unhandled tag {n.tag}")
-                
-    def __init__(self, name, desc):
+class svmodportitem:
+    def __init__(self, name, ports):
         self.name = name
-        self.desc = desc
-        interfaces[name] = self
-        self.params = {}
-        self.ports = {}
-        self.types = {}
-        self.modports = {}
+        self.ports = ports
 
+class svmodportport:
+    def __init__(self, direction, name):
+        self.direction = direction
+        self.name = name
+
+    def __str__(self):
+        return f"{self.direction} {self.name}"
+
+    def __repr__(self):
+        return f"{self.direction} {self.name}"
+        
+class svmodport:
+    def __init__(self, name, ports):
+        ports = ports.flatten()
+        
+        self.name = name
+        self.ports = {}
+
+        direction = "UNKNOWN"
+        
+        for n in ports:
+            if n in [ "output", "input" ]:
+                direction = n
+            else:
+                self.ports[n] = svmodportport(direction, n)
+
+    def __str__(self):
+        return f"modport {self.name} (" + ", ".join([f"{port.direction} {port.name}" for port in self.ports.values()]) + ");"
+
+    def __repr__(self):
+        return f"modport {self.name} (" + ", ".join([f"{port.direction} {port.name}" for port in self.ports.values()]) + ");"
+
+    
+class svmoduleheader:
+    def __init__(self, mtype, name, parameters, ports):
+        self.mtype = mtype
+        self.name = name
+        self.parameters = {}
+        self.ports = {}
+
+        if parameters is not None:
+            for p in parameters:
+                self.parameters[p.name] = p
+
+        if ports is not None:
+            for p in ports:
+                self.ports[p.name] = p
+
+class svdata:
+    def __init__(self, datatype, name):
+        self.datatype = datatype
+        self.name = name
+
+    def __repr__(self):
+        return f"{self.datatype} {self.name}"
+
+    @property
+    def decl(self):
+        return f"{self.datatype} {self.name}"
+    
+    def subst(self, ns):
+        return svdata(subst(self.datatype, ns), subst(self.name, ns))
+                
+class svmodulebody(svflatlist):
+    @property
+    def modports(self):
+        return filter(lambda x: isinstance(x, svmodport), self.l)
+
+    @property
+    def instantiations(self):
+        return filter(lambda x: isinstance(x, svinstantiation), self.l)
+
+    @property
+    def types(self):
+        return filter(lambda x: isinstance(x, svtypedecl), self.l)
+    
+    @property
+    def datas(self):
+        r = []
+        
+        for i in self.instantiations:
+            for j in i.names:
+                r.append(svdata(i.type, j.name))
+
+        return r
+    
+class svinterface:
+    def __init__(self, header, body):
+        self.header = header
+        self.body = body
+
+        self.name = header.name
+        self.desc = interface_map.get(self.name, {})
+        interfaces[self.name] = self
+
+        self.params = header.parameters
+        self.ports = header.ports
+        self.types = {}
+        self.modports = { }
+        self.datas = {}
+
+        ## TODO -- Get extra parameters from body
+        
+        for i in body.types:
+            self.types[i.typename] = i
+        
+        for i in body.modports:
+            self.modports[i.name] = i
+
+        for i in body.datas:
+            self.datas[i.name] = i
+
+    def dump_subs(self):
+        for i in self.header:
+            print(f"{type(i)} {i}")
+            
+        for i in self.body:
+            print(f"{type(i)} {i}")
+        
     @property
     def ipxdesc(self):
         return self.desc.get('ipxdesc', None) 
@@ -124,8 +142,7 @@ class Interface:
     def resolve_type(self, name):
         return resolve_type(self.types.get(name, name))
 
-
-    
+            
 r = anytree.Resolver("tag")
 
 
@@ -145,11 +162,71 @@ def build_interfaces():
             INFO(f"Found interface {name}...")
             if name in interface_names:
                 INFO(f"Parsing {name}...")
-                Interface.parse(n, interface_map[name])
+                iface = svexcreate(n)
 
     existing_interfaces = set(interfaces.keys())
                 
     if existing_interfaces != interface_names:
         ERROR(f"Could not find all interfaces: Missing: {existing_interfaces.difference(interface_names)}")
             
-            
+        
+
+
+
+@svex("kModuleHeader")
+def parse_module_header(node):
+    assert_nchild(node, 8)
+    mtype = node.children[0].tag
+    assert svexcreate(node.children[1]) == None
+    name = svexcreate(node.children[2])
+    assert svexcreate(node.children[3]) == None
+    parameters = svexcreate(node.children[4])
+    ports = svexcreate(node.children[5])
+    assert svexcreate(node.children[6]) == None
+    assert node.children[7].tag == ';'
+
+    return svmoduleheader(mtype, name, parameters, ports)
+
+@svex("kModportSimplePort")
+def parse_simple_port(node):
+    assert_nchild(node, 2)
+    assert svexcreate(node.children[1]) == None
+    return svexcreate(node.children[0])
+
+svpassnode("kModportSimplePort")
+
+svlistnode('kModportSimplePortsDeclaration', [ 'output', 'input', 'kModportSimplePort' ])
+    
+svlistnode('kModportPortList', [ 'kModportSimplePortsDeclaration' ])
+
+@svex("kModportItem")
+def parse_modport_item(node):
+    assert_nchild(node, 2)
+    name = svexcreate(node.children[0])
+    ports = svexcreate(node.children[1])
+    return svmodport(name, ports)
+    
+svlistnode('kModportItemList', [ 'kModportItem' ])
+    
+@svex("kModportDeclaration")
+def parse_modport_decl(node):
+    assert_nchild(node, 3)
+    assert node.children[0].tag == 'modport'
+    assert node.children[2].tag == ';'
+    return svexcreate(node.children[1])
+    
+
+    
+svlistnode('kModuleItemList', module_item_list, svmodulebody)
+
+
+    
+    
+@svex("kInterfaceDeclaration")
+def parse_svinterfacedecl(node):
+    assert_nchild(node, 4)
+    assert node.children[2].tag == 'endinterface'
+    assert svexcreate(node.children[3]) == None  # Should just be instance
+
+    return svinterface(svexcreate(node.children[0]), svexcreate(node.children[1]))
+

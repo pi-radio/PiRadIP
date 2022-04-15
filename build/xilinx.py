@@ -1,4 +1,158 @@
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Dict, List, Optional
 
+from .ipxact_base import NS_XILINX
+
+import ipxact2009
+
+def xilinx_list():
+    return field(default_factory=list, metadata={ "namespace": NS_XILINX })
+
+def xilinx_attr():
+    return field(metadata = { 'type': "Attribute", 'namespace': NS_XILINX })
+
+def xilinx_optional():
+    return field(default=None)
+
+class XMeta:
+    namespace = NS_XILINX
+
+@dataclass
+class CoreExtensions:
+    """
+    Core extensions for component
+    """
+    class Meta(XMeta):
+        name = "coreExtensions"
+
+    @dataclass
+    class XPMLibraries:
+        """
+        XPM library list
+        """
+        class Meta(XMeta):
+            name = "xpmLibraries"
+
+        @dataclass
+        class XPMLibrary:
+            """
+            XPM Library Reference
+            """
+            class Meta(XMeta):
+                name = "xpmLibrary"
+
+            value: str
+            
+        xpmLibrary: List[XPMLibrary] = xilinx_list()
+
+        
+    @dataclass
+    class Taxonomies:
+        """
+        Taxonomy list
+        """
+        class Meta(XMeta):
+            name = "taxonomies"
+
+        @dataclass
+        class Taxonomy:
+            """
+            IP Taxonomy
+            """
+            class Meta:
+                name = "taxonomy"
+                namespace = NS_XILINX
+                
+            value: str
+        
+        taxonomy: List[Taxonomy] = xilinx_list()
+
+    @dataclass
+    class SupportedFamilies:
+        """
+        Supported Silicon Families
+        """
+        class Meta(XMeta):
+            name = "supportedFamilies"
+
+        @dataclass
+        class Family:
+            """
+            Silicon Family
+            """
+            class Meta(XMeta):
+                name = "family"
+
+            lifeCycle: str = xilinx_attr()
+            value: str
+
+        familiy: List[Family] = xilinx_list()
+        
+    taxonomies: Taxonomies
+    displayName: Optional[str]
+    supportedFamilies: Optional[SupportedFamilies] = field(default=None)
+    hideInCatalogGUI: Optional[bool] = field(default=None)
+    xpmLibraries: XPMLibraries = field(default=None)
+    vendorDisplayName: Optional[str] = field(default=None)
+    vendorURL: Optional[str] = field(default=None)
+    coreRevision: Optional[int] = field(default=None)
+    coreCreationDateTime: Optional[str] = field(default=None)
+
+@dataclass
+class SubCoreRef:
+    """
+    Reference to another core
+    """
+    class Meta:
+        name = "subCoreRef"
+        namespace = NS_XILINX
+
+    @dataclass
+    class ComponentRef:
+        """
+        Component Reference
+        """
+        class Meta:
+            name = "componentRef"
+            namespace = NS_XILINX
+
+        @dataclass
+        class Mode:
+            """
+            Reference Mode
+            """
+            class Meta:
+                name = "mode"
+                namespace = NS_XILINX
+
+            name: str = field(metadata={ 'type': "Attribute", 'namespace': NS_XILINX })
+
+            
+        vendor: str = field(metadata={ 'type': "Attribute", 'namespace': NS_XILINX })
+        library: str = field(metadata={ 'type': "Attribute", 'namespace': NS_XILINX })
+        name: str = field(metadata={ 'type': "Attribute", 'namespace': NS_XILINX })
+        version: str = field(metadata={ 'type': "Attribute", 'namespace': NS_XILINX })
+        mode: Mode
+        
+    componentRef: ComponentRef
+    
+    
+def get_subcore_reference():
+    return ipxact2009.FileSet(
+        name="xilinx_anylanguagesynthesis_pi_rad_io_PiRadIP_PiRadIP_1_0__ref_view_fileset",
+        vendor_extensions=ipxact2009.VendorExtensions(
+            SubCoreRef(
+                SubCoreRef.ComponentRef(
+                    vendor="pi-rad.io", library="piradip", name="piradip", version="1.0",
+                    mode=SubCoreRef.ComponentRef.Mode(name="copy_mode")
+                )
+            )
+        )
+    )
+    
+
+    
 template_xgui_tcl = """
 # Definitional proc to organize widgets for parameters.
 proc init_gui { IPINST } {
