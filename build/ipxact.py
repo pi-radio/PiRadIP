@@ -108,6 +108,7 @@ class IPXACTModule(IPXACTComponent2):
                 supportedFamilies=CoreExtensions.SupportedFamilies(
                     CoreExtensions.SupportedFamilies.Family(lifeCycle="Pre-Production", value="zynquplus")
                     ),
+                
                 vendorURL="https://pi-rad.io/",
                 vendorDisplayName="Pi Radio Inc.",
                 coreRevision=int(time.time())
@@ -155,7 +156,7 @@ class IPXACTModule(IPXACTComponent2):
                     resolve="user",
                     id=self.param_ids[p.name],
                     range_type=None,
-                    value = p.default
+                    value = str(p.default)
                     )
                 )
             )
@@ -170,7 +171,7 @@ class IPXACTModule(IPXACTComponent2):
                     resolve="user",
                     id=self.model_param_ids[p.name],
                     range_type=None,
-                    value=p.default
+                    value=str(p.default)
                     )
                 )
             )
