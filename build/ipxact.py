@@ -111,6 +111,9 @@ class IPXACTModule(IPXACTComponent2):
                 
                 vendorURL="https://pi-rad.io/",
                 #vendorDisplayName="Pi Radio Inc.",
+                xpmLibraries=CoreExtensions.XPMLibraries(
+                    [ CoreExtensions.XPMLibraries.XPMLibrary(i) for i in ["XPM_CDC", "XPM_FIFO", "XPM_MEMORY"]]
+                ),
                 coreRevision=library_rev,
                 coreCreationDateTime=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             )
