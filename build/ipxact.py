@@ -250,7 +250,7 @@ class IPXACTModule(IPXACTComponent2):
                     name="OFFSET_BASE_PARAM",
                     value=ipxact2009.NameValuePairType.Value(
                         id=f"ADDRBLOCKPARAM_VALUE.{i.busname}.{i.busname}_{i.ipxdesc['mmtype'].upper()}.OFFSET_BASE_PARAM",
-                        value="C_{i.busname}_BASEADDR"
+                        value=f"C_{i.busname}_BASEADDR"
                         )
                     )
                 )
@@ -260,7 +260,7 @@ class IPXACTModule(IPXACTComponent2):
                     name="OFFSET_BASE_PARAM",
                     value=ipxact2009.NameValuePairType.Value(
                         id=f"ADDRBLOCKPARAM_VALUE.{i.busname}.{i.busname}_{i.ipxdesc['mmtype'].upper()}.OFFSET_HIGH_PARAM",
-                        value="C_{i.busname}_HIGHADDR"
+                        value=f"C_{i.busname}_HIGHADDR"
                         )
                     )
                 )

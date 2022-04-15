@@ -140,7 +140,7 @@ class SubCoreRef:
     
 def get_subcore_reference():
     return ipxact2009.FileSet(
-        name="xilinx_anylanguagesynthesis_pi_rad_io_PiRadIP_PiRadIP_1_0__ref_view_fileset",
+        name="xilinx_anylanguagesynthesis_pi_rad_io_piradip_piradip_1_0__ref_view_fileset",
         vendor_extensions=ipxact2009.VendorExtensions(
             SubCoreRef(
                 SubCoreRef.ComponentRef(

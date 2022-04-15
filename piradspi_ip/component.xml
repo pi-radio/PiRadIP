@@ -180,11 +180,11 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>OFFSET_BASE_PARAM</spirit:name>
-            <spirit:value spirit:format="string" spirit:resolve="immediate" spirit:id="ADDRBLOCKPARAM_VALUE.CSR.CSR_REG.OFFSET_BASE_PARAM" spirit:rangeType="float">C_{i.busname}_BASEADDR</spirit:value>
+            <spirit:value spirit:format="string" spirit:resolve="immediate" spirit:id="ADDRBLOCKPARAM_VALUE.CSR.CSR_REG.OFFSET_BASE_PARAM" spirit:rangeType="float">C_CSR_BASEADDR</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>OFFSET_BASE_PARAM</spirit:name>
-            <spirit:value spirit:format="string" spirit:resolve="immediate" spirit:id="ADDRBLOCKPARAM_VALUE.CSR.CSR_REG.OFFSET_HIGH_PARAM" spirit:rangeType="float">C_{i.busname}_HIGHADDR</spirit:value>
+            <spirit:value spirit:format="string" spirit:resolve="immediate" spirit:id="ADDRBLOCKPARAM_VALUE.CSR.CSR_REG.OFFSET_HIGH_PARAM" spirit:rangeType="float">C_CSR_HIGHADDR</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:addressBlock>
@@ -669,11 +669,11 @@
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
-      <spirit:name>xilinx_anylanguagesynthesis_pi_rad_io_PiRadIP_PiRadIP_1_0__ref_view_fileset</spirit:name>
+      <spirit:name>xilinx_anylanguagesynthesis_pi_rad_io_piradip_piradip_1_0__ref_view_fileset</spirit:name>
       <spirit:vendorExtensions>
         <xilinx:subCoreRef>
           <xilinx:componentRef xilinx:vendor="pi-rad.io" xilinx:library="piradip" xilinx:name="piradip" xilinx:version="1.0">
-            <mode xilinx:name="copy_mode"/>
+            <xilinx:mode xilinx:name="copy_mode"/>
           </xilinx:componentRef>
         </xilinx:subCoreRef>
       </spirit:vendorExtensions>
@@ -737,7 +737,7 @@
       </xilinx:supportedFamilies>
       <xilinx:vendorDisplayName>Pi Radio Inc.</xilinx:vendorDisplayName>
       <xilinx:vendorURL>https://pi-rad.io/</xilinx:vendorURL>
-      <xilinx:coreRevision>1649986803</xilinx:coreRevision>
+      <xilinx:coreRevision>1649987436</xilinx:coreRevision>
     </xilinx:coreExtensions>
   </spirit:vendorExtensions>
 </spirit:component>
