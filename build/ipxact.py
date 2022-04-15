@@ -102,7 +102,7 @@ class IPXACTModule(IPXACTComponent2):
         self.component.vendor_extensions = ipxact2009.VendorExtensions(
             any_element=CoreExtensions(
                 taxonomies=CoreExtensions.Taxonomies( [
-                    "AXI_Peripheral"
+                    "/AXI_Peripheral"
                 ] ),
                 displayName=module.display_name,
                 supportedFamilies=CoreExtensions.SupportedFamilies(
@@ -110,7 +110,7 @@ class IPXACTModule(IPXACTComponent2):
                     ),
                 
                 vendorURL="https://pi-rad.io/",
-                vendorDisplayName="Pi Radio Inc.",
+                #vendorDisplayName="Pi Radio Inc.",
                 coreRevision=library_rev,
                 coreCreationDateTime=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             )

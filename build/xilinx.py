@@ -88,6 +88,28 @@ class CoreExtensions:
             value: str
 
         family: List[Family] = xilinx_list()
+
+    @dataclass
+    class Upgrades:
+        """
+        Supported Upgrade Paths
+        """
+        class Meta(XMeta):
+            name = "upgrades"
+
+        @dataclass
+        class CanUpgradeFrom:
+            """
+            VLNVs to upgrade from
+            """
+            class Meta(XMeta):
+                name = "canUpgradeFrom"
+
+            lifeCycle: str = xilinx_attr()
+            value: str
+
+        canUpgradeFrom: List[CanUpgradeFrom] = xilinx_list()
+
         
     taxonomies: Taxonomies
     displayName: Optional[str]
@@ -96,6 +118,7 @@ class CoreExtensions:
     xpmLibraries: XPMLibraries = field(default=None)
     vendorDisplayName: Optional[str] = field(default=None)
     vendorURL: Optional[str] = field(default=None)
+    upgrades: Optional[Upgrades] = field(default=None)
     coreRevision: Optional[int] = field(default=None)
     coreCreationDateTime: Optional[str] = field(default=None)
 
