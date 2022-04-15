@@ -120,7 +120,7 @@ add_module("piradip_axis_sample_buffer_out",
 add_module("piradspi",
            "library/spi/piradspi.sv",
            wrapper_name="piradspi_ip",
-           description="A memory mapped sample buffer to stream out over an AXI stream interface",
+           description="A very flexible SPI controller",
            display_name="PiRadSPI")
 
 

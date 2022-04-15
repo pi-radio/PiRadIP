@@ -672,7 +672,7 @@
       <spirit:name>xilinx_anylanguagesynthesis_pi_rad_io_piradip_piradip_1_0__ref_view_fileset</spirit:name>
       <spirit:vendorExtensions>
         <xilinx:subCoreRef>
-          <xilinx:componentRef xilinx:vendor="pi-rad.io" xilinx:library="piradip" xilinx:name="piradip" xilinx:version="1.0" xilinx:coreRevision="1649988267">
+          <xilinx:componentRef xilinx:vendor="pi-rad.io" xilinx:library="piradip" xilinx:name="piradip" xilinx:version="1.0" xilinx:coreRevision="1649989057">
             <xilinx:mode xilinx:name="copy_mode"/>
           </xilinx:componentRef>
         </xilinx:subCoreRef>
@@ -693,7 +693,7 @@
       </spirit:file>
     </spirit:fileSet>
   </spirit:fileSets>
-  <spirit:description>A memory mapped sample buffer to stream out over an AXI stream interface</spirit:description>
+  <spirit:description>A very flexible SPI controller</spirit:description>
   <spirit:parameters>
     <spirit:parameter>
       <spirit:name>CSR_ADDR_WIDTH</spirit:name>
@@ -729,20 +729,15 @@
   <spirit:vendorExtensions>
     <xilinx:coreExtensions>
       <xilinx:taxonomies>
-        <xilinx:taxonomy>/BaseIP</xilinx:taxonomy>
-        <xilinx:taxonomy>/Embedded_Processing/AXI_Infrastructure</xilinx:taxonomy>
-        <xilinx:taxonomy>/Memories_&amp;_Storage_Elements</xilinx:taxonomy>
+        <xilinx:taxonomy>AXI_Peripheral</xilinx:taxonomy>
       </xilinx:taxonomies>
-      <xilinx:displayName>Pi Radio IP Library v1.0</xilinx:displayName>
-      <xilinx:hideInCatalogGUI>true</xilinx:hideInCatalogGUI>
-      <xilinx:xpmLibraries>
-        <xilinx:xpmLibrary>XPM_CDC</xilinx:xpmLibrary>
-        <xilinx:xpmLibrary>XPM_FIFO</xilinx:xpmLibrary>
-        <xilinx:xpmLibrary>XPM_MEMORY</xilinx:xpmLibrary>
-      </xilinx:xpmLibraries>
+      <xilinx:displayName>PiRadSPI</xilinx:displayName>
+      <xilinx:supportedFamilies>
+        <xilinx:family xilinx:lifeCycle="Pre-Production">zynquplus</xilinx:family>
+      </xilinx:supportedFamilies>
       <xilinx:vendorDisplayName>Pi Radio Inc.</xilinx:vendorDisplayName>
       <xilinx:vendorURL>https://pi-rad.io/</xilinx:vendorURL>
-      <xilinx:coreRevision>1649988267</xilinx:coreRevision>
+      <xilinx:coreRevision>1649989057</xilinx:coreRevision>
     </xilinx:coreExtensions>
   </spirit:vendorExtensions>
 </spirit:component>

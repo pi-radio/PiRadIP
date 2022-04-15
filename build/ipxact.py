@@ -114,6 +114,7 @@ class IPXACTModule(IPXACTComponent2):
             )
         )
 
+        """
         self.component.vendor_extensions = ipxact2009.VendorExtensions(
             any_element=CoreExtensions(
                 taxonomies=CoreExtensions.Taxonomies( [
@@ -131,7 +132,7 @@ class IPXACTModule(IPXACTComponent2):
                 coreRevision=library_rev
             )
         )
-        
+        """
 
         self.component.model.ports = ipxact2009.ModelType.Ports()
         self.component.parameters = ipxact2009.Parameters()
