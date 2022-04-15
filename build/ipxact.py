@@ -210,7 +210,7 @@ class IPXACTModule(IPXACTComponent2):
             )            
             
             if p.datatype.packed_range.left.const:
-                left.value = p.datatype.packed_range.left
+                left.value = str(p.datatype.packed_range.left)
             else:
                 left.resolve="dependent"
                 left.dependency = f"({p.datatype.packed_range.left.subst(self.model_param_refs)})"
@@ -219,7 +219,7 @@ class IPXACTModule(IPXACTComponent2):
                 
 
             if p.datatype.packed_range.right.const:
-                right.value = p.datatype.packed_range.right
+                right.value = str(p.datatype.packed_range.right)
             else:
                 right.resolve="dependent"
                 right.dependency = f"({p.datatype.packed_range.left.subst(self.model_param_refs)})"
