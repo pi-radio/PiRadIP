@@ -166,7 +166,7 @@ class IPXACTModule(IPXACTComponent2):
             all_logical_directions_allowed=None,
             wire_type_defs=ipxact2009.WireTypeDefs([ ipxact2009.WireTypeDef(
                 type_name="wire",
-                view_name_ref = [ "xilinx_anylanguagesynthesis", "xilinx_anylanguagebehavioralsimulation" ])
+                view_name_ref = [ self.synthesis_view_name, self.simulation_view_name ])
             ])
         )
             

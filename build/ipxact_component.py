@@ -144,6 +144,9 @@ class IPXACTComponent(IPXACTNode):
 """
 
 class IPXACTComponent2():
+    synthesis_view_name="xilinx_anylanguagesynthesis"
+    simulation_view_name="xilinx_anylanguagebehavioralsimulation"
+    
     def __init__(self, vlnv, description):
         self.synthesis_fs = ipxact2009.FileSet()
         self.synthesis_fs.name = "xilinx_anylanguagesynthesis_view_fileset"
@@ -151,13 +154,13 @@ class IPXACTComponent2():
         self.simulation_fs = ipxact2009.FileSet()
         self.simulation_fs.name = "xilinx_anylanguagebehavioralsimulation_view_fileset"
 
-        synthesis_view = ipxact2009.ViewType(name="xilinx_anylanguagesynthesis",
+        synthesis_view = ipxact2009.ViewType(name=self.synthesis_view_name,
                                              display_name = "Synthesis",
                                              env_identifier = ":vivado.xilinx.com:synthesis",
                                              language = "SystemVerilog",
                                              file_set_ref = ipxact2009.FileSetRef(local_name="xilinx_anylanguagesynthesis_view_fileset"))
 
-        simulation_view = ipxact2009.ViewType(name="xilinx_anylanguagesimulation",
+        simulation_view = ipxact2009.ViewType(name=self.simulation_view_name,
                                              display_name = "Simulation",
                                              env_identifier = ":vivado.xilinx.com:simulation",
                                              language = "SystemVerilog",

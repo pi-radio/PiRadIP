@@ -664,7 +664,7 @@
         </spirit:fileSetRef>
       </spirit:view>
       <spirit:view>
-        <spirit:name>xilinx_anylanguagesimulation</spirit:name>
+        <spirit:name>xilinx_anylanguagebehavioralsimulation</spirit:name>
         <spirit:displayName>Simulation</spirit:displayName>
         <spirit:envIdentifier>:vivado.xilinx.com:simulation</spirit:envIdentifier>
         <spirit:language>SystemVerilog</spirit:language>
@@ -1975,7 +1975,7 @@
       </xilinx:supportedFamilies>
       <xilinx:vendorDisplayName>Pi Radio Inc.</xilinx:vendorDisplayName>
       <xilinx:vendorURL>https://pi-rad.io/</xilinx:vendorURL>
-      <xilinx:coreRevision>1649985531</xilinx:coreRevision>
+      <xilinx:coreRevision>1649986318</xilinx:coreRevision>
     </xilinx:coreExtensions>
   </spirit:vendorExtensions>
 </spirit:component>
