@@ -111,7 +111,8 @@ class IPXACTModule(IPXACTComponent2):
                 
                 vendorURL="https://pi-rad.io/",
                 vendorDisplayName="Pi Radio Inc.",
-                coreRevision=int(time.time())
+                coreRevision=library_rev,
+                coreCreationDateTime=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             )
         )
 
