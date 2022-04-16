@@ -2,6 +2,8 @@ import traceback
 
 from .verible_verilog_syntax import VeribleVerilogSyntax
 import anytree
+import functools
+import operator
 import sys
 
 v = VeribleVerilogSyntax()
@@ -75,6 +77,19 @@ class svlist:
             
     def __repr__(self):
         return f"<{self.tag}| " + ", ".join([str(i) for i in self.l]) + " |>"
+
+    @property
+    def const(self):
+        return all([ i.const for i in self.l ])
+    
+    @property
+    def unresolved(self):
+        if(len(self.l) > 1):
+            return functools.reduce(set.union, [ i.unresolved for i in self.l ], set())
+        elif(len(self.l) == 1):
+            return self.l[0].unresolved
+        
+        return set()
     
     def flatten(self):    
         return svlist(self._flatten(), self.tag)
@@ -82,6 +97,9 @@ class svlist:
     
     def prepend(self, n):
         return svlist([ n ] + self.l, self.tag)
+
+    def subst(self, ns):
+        return svlist([ subst(i, ns) for i in self.l ])
 
 class svflatlist(svlist):
     def __init__(self, l, tag):
@@ -100,6 +118,10 @@ class _svkeyword:
         if isinstance(other, svsymbol):
             return self.name == other.name
         return self.name == other
+
+    @property
+    def unresolved(self):
+        return set()
     
     def subst(self, ns):
         return self.name
@@ -138,7 +160,14 @@ def svex(tag):
         return nodewrapper
     
     return inner
-    
+
+def svex2(tag):
+    def inner(c):
+        svexpression_handlers[tag] = c.parse
+        return c
+        
+    return inner
+
 class svunk:
     def __init__(self, node):
         print(f"Not handling node with tag {node.tag} yet children: {len(node.children)} {node.children}")
@@ -236,6 +265,10 @@ class svsymbol(str):
     def subst(self, ns):
         return ns.get(self, self)
 
+    @property
+    def unresolved(self):
+        return set([ self ])
+    
     @property
     def const(self):
         return False

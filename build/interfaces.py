@@ -77,6 +77,10 @@ class svdata:
                 
 class svmodulebody(svflatlist):
     @property
+    def parameters(self):
+        return filter(lambda x: isinstance(x, svparameter), self.l)
+
+    @property
     def modports(self):
         return filter(lambda x: isinstance(x, svmodport), self.l)
 
@@ -105,7 +109,7 @@ class svinterface:
 
         self.name = header.name
         self.desc = interface_map.get(self.name, {})
-        interfaces[self.name] = self
+        registered_interfaces[self.name] = self
 
         self.params = header.parameters
         self.ports = header.ports
@@ -114,6 +118,8 @@ class svinterface:
         self.datas = {}
 
         ## TODO -- Get extra parameters from body
+        for i in body.parameters:
+            self.params[i.name] = i
         
         for i in body.types:
             self.types[i.typename] = i
@@ -123,55 +129,17 @@ class svinterface:
 
         for i in body.datas:
             self.datas[i.name] = i
-
-    def dump_subs(self):
-        for i in self.header:
-            print(f"{type(i)} {i}")
-            
-        for i in self.body:
-            print(f"{type(i)} {i}")
         
     @property
     def ipxdesc(self):
-        return self.desc.get('ipxdesc', None) 
+        return self.desc.ipxdesc
         
     @property
     def pdescs(self):
-        return self.desc.get('parameters', {})
+        return self.desc.parameters
         
     def resolve_type(self, name):
         return resolve_type(self.types.get(name, name))
-
-            
-r = anytree.Resolver("tag")
-
-
-def build_interfaces():
-    interface_files = set([v['file'] for v in interface_map.values()])
-    interface_names = interface_map.keys()
-    
-    for v in interface_files:
-        INFO(f"Reading file {v}...")
-        root = parse(v)
-
-        ifaces = get_interfaces(root)
-
-        for n in ifaces:
-            name = r.get(n, "kModuleHeader/SymbolIdentifier").text
-
-            INFO(f"Found interface {name}...")
-            if name in interface_names:
-                INFO(f"Parsing {name}...")
-                iface = svexcreate(n)
-
-    existing_interfaces = set(interfaces.keys())
-                
-    if existing_interfaces != interface_names:
-        ERROR(f"Could not find all interfaces: Missing: {existing_interfaces.difference(interface_names)}")
-            
-        
-
-
 
 @svex("kModuleHeader")
 def parse_module_header(node):

@@ -63,11 +63,18 @@ class svexliteral:
 
     def __str__(self):
         return str(self.n)
-        
+
+    def __repr__(self):
+        return str(self.n)
+    
     @property
     def const(self):
         return True
 
+    @property
+    def unresolved(self):
+        return set()
+    
     @property
     def cval(self):
         return self.n
@@ -103,7 +110,12 @@ def parse_number(node):
     return basedigits
                        
 
+@svex2("kBinaryExpression")
 class svbinaryexpression(svexbase):
+    def parse(node):
+        assert_nchild(node, 3)
+        return svbinaryexpression.create(svexcreate(node.children[0]), node.children[1].tag, svexcreate(node.children[2]))
+
     def create(t1, op, t2):
         if t1 == None:
             t1 = svexliteral(0)
@@ -115,7 +127,7 @@ class svbinaryexpression(svexbase):
             elif op == '*':
                 return svexliteral(t1.cval * t2.cval)
             elif op == '/':
-                return svexliteral(t1.cval / t2.cval)
+                return svexliteral(t1.cval // t2.cval)
         else:
             return svbinaryexpression(t1, op, t2)
             
@@ -126,6 +138,10 @@ class svbinaryexpression(svexbase):
 
     def __str__(self):
         return f"{self.t1}{self.op}{self.t2}"
+
+    @property
+    def unresolved(self):
+        return self.t1.unresolved | self.t2.unresolved
     
     @property
     def const(self):
@@ -134,35 +150,54 @@ class svbinaryexpression(svexbase):
     def subst(self, ns):
         return svbinaryexpression.create(self.t1.subst(ns), self.op, self.t2.subst(ns))
 
-@svex("kBinaryExpression")
-def parse_binaryexpression(node):
-    assert_nchild(node, 3)
-    return svbinaryexpression.create(svexcreate(node.children[0]), node.children[1].tag, svexcreate(node.children[2]))
         
-class svconcatexpression:
-    def __init__(self, e1, e2):
-        self.e1 = e1
-        self.e2 = e2
-
 svlistnode("kExpressionList", [ "kExpression" ])
 
+@svex2("kConcatenationExpression")
 class svconcatexpression:
+    def parse(node):
+        assert_nchild(node, 3)
+        assert node.children[0].tag == '{'
+        assert node.children[2].tag == '}'
+
+        return svconcatexpression(svexcreate(node.children[1]))
+
     def __init__(self, expr_list):
         self.expr_list = expr_list
 
+    def __repr__(self):
+        return f"concat({self.expr_list})"
+
+    @property
+    def const(self):
+        return self.expr_list.const
+    
+    @property
+    def unresolved(self):
+        return self.expr_list.unresolved
+    
+    def subst(self, ns):
+        return svconcatexpression(subst(self.expr_list, ns))
+
+        
 class svrepeatexpression:
     def __init__(self, count, expr):
         self.count = count
         self.expr = expr
-        
 
-@svex("kConcatenationExpression")
-def parse_concat_expression(node):
-    assert_nchild(node, 3)
-    assert node.children[0].tag == '{'
-    assert node.children[2].tag == '}'
+    def subst(self, ns):
+        return svrepeatexpression(subst(self.count, ns), subst(self.expr, ns))
 
-    return svconcatexpression(svexcreate(node.children[1]))
+    def __repr__(self):
+        return f"repeat({self.count}, {self.expr})"
+
+    @property
+    def unresolved(self):
+        return self.count.unresolved | self.expr.unresolved
+    
+    @property
+    def const(self):
+        return self.count.const and self.expr.const
     
 @svex("kExpression")
 def parse_expression(node):
@@ -176,7 +211,7 @@ def parse_expression(node):
     l1 = svexcreate(node.children[1])
     l2 = svexcreate(node.children[2])
 
-    return svrepeatexpression(svexcreate(node.children[1]), svexcreate(node.children[2]))
+    return svrepeatexpression(l1, l2)
     
 
 class svrange:
@@ -214,7 +249,7 @@ def parse_datatype_primitive(node):
 
 class svinterfaceportheader:
     def __init__(self, interface_name, modport_name):
-        self.interface = interfaces[interface_name]
+        self.interface = registered_interfaces[interface_name]
         self.modport = self.interface.modports[modport_name]
 
 

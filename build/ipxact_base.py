@@ -27,19 +27,6 @@ X = ElementMaker(namespace = NS_XILINX,
 def dump_xml(node):
     print(etree.tostring(node).decode())
 
-class VLNV:
-    def __init__(self, vendor="xilinx.com", library="signal", name="dookie", version="1.0"):
-        self.vendor = vendor
-        self.library = library
-        self.name = name
-        self.version = version
-
-    @property
-    def library_ref(self):
-        return ipxact2009.LibraryRefType(vendor = self.vendor,
-                                         library = self.library,
-                                         name = self.name,
-                                         version = self.version)
                 
 def ipxact_file(fn):
     f = ipxact2009.File();

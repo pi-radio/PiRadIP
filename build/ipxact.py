@@ -1,6 +1,6 @@
 from .piradip_build_base import *
 
-from .structure import piradlib_files
+from .structure import piradlib_files, VLNV
 
 from .ipxact_base import *
 """
@@ -17,6 +17,7 @@ import datetime
 import os
 import time
 
+from .ipx import *
     
 library_rev=str(int(time.time()))
 
@@ -301,7 +302,6 @@ class IPXACTModule(IPXACTComponent2):
             pm.logical_port = pm.LogicalPort(name=i.ipxdesc["port_map"][i.data_map[p].name])
             pm.physical_port = pm.PhysicalPort(name=p)
             port_maps.port_map.append(pm)
-            
 
         bif = ipxact2009.BusInterface(
             name = i.busname,
@@ -317,12 +317,8 @@ class IPXACTModule(IPXACTComponent2):
                 bif.slave.memory_map_ref = ipxact2009.MemoryMapRef(memory_map_ref=memory_map.name)
         elif i.modport.name == "MANAGER":
             bif.master = ipxact2009.BusInterfaceType.Master()
-
         
         self.component.bus_interfaces.bus_interface.append(bif)
-
-        
-        
 
     def generate(self):
         for p in self.module.params.values():
@@ -337,8 +333,6 @@ class IPXACTModule(IPXACTComponent2):
             for i in self.module.interface_ports.values():
                 if i.ipxdesc is not None:
                     self.generate_interface(i)
-
-        
         
 def build_libraries():
     library_path = os.path.join(os.getcwd(), "library")
@@ -358,7 +352,7 @@ def build_libraries():
     
     if False and all(output_time > i for i in input_times):
         INFO(f"Not rebuilding {xml_path} -- up to date")
-        return
+        return    
 
     l = IPXACTLibrary(piradlib_files)
 
@@ -366,6 +360,5 @@ def build_libraries():
 
     print(f"Writing library XML to {xml_path}...")
     l.export_ipxact(f)
-    
 
 

@@ -2,6 +2,9 @@
 
 from build import *
 
+import click
+
+
 
 add_library_file("library/axis/piradip_axis_sample_buffer_out.sv")
 add_library_file("library/axis/piradip_axis.sv")
@@ -39,89 +42,115 @@ axi4mm_ports = [ 'awid', 'awaddr', 'awlen', 'awsize', 'awburst',
 axi4s_ports = [ 'tdata', 'tstrb', 'tlast', 'tvalid', 'tready', 'tkeep', 'tid', 'tdest', 'tuser' ]
 
 
-add_interface("axi4mm",
-              { 'file': "library/aximm/piradip_aximm.sv",
-                'parameters': {
-                    'ADDR_WIDTH': {
-                        'description': "Width of the address bus"
-                    },
-                    'STRB_WIDTH': {
-                        'description': "Width of the strobe field"
-                    }
-                },
-                'ipxdesc': {
-                    "memoryMapped": True,
-                    "mmtype": "mem",
-                    "busType": VLNV("xilinx.com", "interface", "aximm", "1.0"),
-                    "abstractionType":  VLNV("xilinx.com", "interface", "aximm_rtl", "1.0"),
-                    "ports":  axi4mm_ports,
-                    "port_map": upper_map(axi4mm_ports),
-                    "clock": { 'name': "clk" },
-                    "reset": { 'name': "resetn", 'polarity': 'low' }
-                }
-              })
-
-"""
-        parameter integer DATA_WIDTH    = 32,
-		parameter integer ID_WIDTH  	= 1,
-        parameter integer AWUSER_WIDTH	= 0,
-		parameter integer ARUSER_WIDTH	= 0,
-		parameter integer WUSER_WIDTH	= 0,
-		parameter integer RUSER_WIDTH	= 0,
-		parameter integer BUSER_WIDTH	= 0,
-                   parameter integer STRB_WIDTH = (DATA_WIDTH/8)
-"""
-                
-add_interface("axi4mm_lite",
-              {
-                  'file': "library/aximm/piradip_axi4mmlite.sv",
-                  'parameters': {
-                      'ADDR_WIDTH': {
-                          'description': "Width of the address bus"
-                      },
-                      'STRB_WIDTH': {
-                          'description': "Width of the strobe field"
-                      }
-                  },
-                  'ipxdesc': {
-                      "memoryMapped": True,
-                      "mmtype": "reg",
-                      "busType": VLNV("xilinx.com", "interface", "aximm", "1.0"),
-                      "abstractionType":  VLNV("xilinx.com", "interface", "aximm_rtl", "1.0"),
-                      "ports":  axi4mm_lite_ports,
-                      "port_map": upper_map(axi4mm_lite_ports),
-                      "clock": { 'name': "clk" },
-                      "reset": { 'name': "resetn", 'polarity': 'low' }
-                  }
-              }
+InterfaceDesc(
+    name="axi4mm",
+    file="library/aximm/piradip_aximm.sv",
+    parameters = [
+        ParameterDesc('ADDR_WIDTH', "Width of the address busses"),
+        ParameterDesc('DATA_WIDTH', "Width of the data buses", allowed_values=[ 32, 64 ]),
+        ParameterDesc('ID_WIDTH', "Width of the id busses"),
+        ParameterDesc('AWUSER_WIDTH', "Width of the write address user bus"),
+        ParameterDesc('ARUSER_WIDTH', "Width of the read address user bus"),
+        ParameterDesc('WUSER_WIDTH', "Width of the write user bus"),
+        ParameterDesc('RUSER_WIDTH', "Width of the read user bus"),
+        ParameterDesc('BUSER_WIDTH', "Width of the write response user bus")
+    ],
+    ipxdesc = IPXDesc(
+        busType = VLNV("xilinx.com", "interface", "aximm", "1.0"),
+        abstractionType = VLNV("xilinx.com", "interface", "aximm_rtl", "1.0"),
+        ports = axi4mm_ports,
+        port_map = upper_map(axi4mm_ports),
+        clock = IPXClock("clk"),
+        reset = IPXReset("resetn", "low"),
+        memoryMapped = True,
+        mmtype = "mem"
+    )
 )
 
-add_interface("axi4s",
-              {
-                  'file': "library/axis/piradip_axis.sv",
-                  'ipxdesc': {
-                      "memoryMapped": False,
-                      "busType": VLNV("xilinx.com", "interface", "axis", "1.0"),
-                      "abstractionType":  VLNV("xilinx.com", "interface", "axis_rtl", "1.0" ),
-                      "ports":  axi4s_ports,
-                      "port_map": upper_map(axi4s_ports),
-                      "clock": { 'name': "clk" },
-                      "reset": { 'name': "resetn", 'polarity': 'low' }
-                  }
-              }
+InterfaceDesc(
+    name="axi4mm_lite",
+    file="library/aximm/piradip_axi4mmlite.sv",
+    parameters = [
+        ParameterDesc('ADDR_WIDTH', "Width of the address busses"),
+        ParameterDesc('DATA_WIDTH', "Width of the data buses", allowed_values=[32]),
+        ParameterDesc('ID_WIDTH', "Width of the id busses"),
+        ParameterDesc('AWUSER_WIDTH', "Width of the write address user bus"),
+        ParameterDesc('ARUSER_WIDTH', "Width of the read address user bus"),
+        ParameterDesc('WUSER_WIDTH', "Width of the write user bus"),
+        ParameterDesc('RUSER_WIDTH', "Width of the read user bus"),
+        ParameterDesc('BUSER_WIDTH', "Width of the write response user bus")
+    ],
+    ipxdesc = IPXDesc(
+        busType = VLNV("xilinx.com", "interface", "aximm", "1.0"),
+        abstractionType = VLNV("xilinx.com", "interface", "aximm_rtl", "1.0"),
+        ports = axi4mm_lite_ports,
+        port_map = upper_map(axi4mm_lite_ports),
+        clock = IPXClock("clk"),
+        reset = IPXReset("resetn", "low"),
+        memoryMapped = True,
+        mmtype = "reg"
+    )
 )
 
-add_module("piradip_axis_sample_buffer_out",
-           "library/axis/piradip_axis_sample_buffer_out.sv",
+InterfaceDesc(
+    name="axi4s",
+    file="library/axis/piradip_axis.sv",
+    parameters = [],
+    ipxdesc = IPXDesc(
+        busType = VLNV("xilinx.com", "interface", "axis", "1.0"),
+        abstractionType = VLNV("xilinx.com", "interface", "axis_rtl", "1.0" ),
+        ports = axi4s_ports,
+        port_map = upper_map(axi4s_ports),
+        clock = IPXClock("clk"),
+        reset = IPXReset("resetn", "low"),
+        )
+)
+
+ModuleDesc(name="piradip_axis_sample_buffer_out",
+           version="1.0",
+           file="library/axis/piradip_axis_sample_buffer_out.sv",
            wrapper_name="AXIS_SampleBufferOut",
            description="A memory mapped sample buffer to stream out over an AXI stream interface",
-           display_name="AXI Sample Buffer Out")
+           display_name="AXI Sample Buffer Out",
+           ipxact_name="axis_sample_buffer_out"
+)
 
-add_module("piradspi",
-           "library/spi/piradspi.sv",
+#ModuleDesc(name="piradip_axis_sample_buffer_in",
+#           version="1.0",
+#           file="library/axis/piradip_axis_sample_buffer_out.sv",
+#           wrapper_name="AXIS_SampleBufferOut",
+#           description="A memory mapped sample buffer to stream out over an AXI stream interface",
+#           display_name="AXI Sample Buffer Out",
+#           ipxact_name="axis_sample_buffer_out"
+#)
+
+
+ModuleDesc(name="piradspi",
+           version="1.0",
+           file="library/spi/piradspi.sv",
            wrapper_name="piradspi_ip",
            description="A very flexible SPI controller",
-           display_name="PiRadSPI")
+           display_name="PiRadSPI",
+           ipxact_name="piradspi_ip"
+)
 
 
-build_all()
+@click.group(chain=True)
+@click.option('--debug/--no-debug', default=False)
+def cli(debug):
+    print("CLI")
+
+@cli.command('build')
+def build():
+    build_all()
+
+@cli.command('deploy')
+@click.argument('destination')
+def deploy(destination):
+    do_deploy(destination)
+    
+
+
+if __name__ == '__main__':
+    cli()
+    

@@ -1,5 +1,5 @@
 from .piradip_build_base import *
-from .structure import module_list
+from .structure import module_map
 from .sv import parse, get_modules, dump_node
 from .svbase import *
 from .ipxact import IPXACTModule
@@ -8,6 +8,9 @@ from .port import svport
 import io
 import os
 from pathlib import PurePath, Path
+
+from .ipx import IPXScript
+from .parameter import svparameter, svparametertype
 
 #
 # TODO: Parse the package
@@ -24,74 +27,14 @@ global_type_punts = {
     'axi_lock_t': 'logic'
 }
 
-
-        
-class ModuleBase:
-    def __init__(self):
-        pass
-        
-    @property
-    def wrapper_path(self):
-        return PurePath(self.desc['wrapper_name'])
-    
-    @property
-    def wrapper_name(self):
-        return self.desc['wrapper_name']
-
-    @property
-    def description(self):
-        return self.desc['description']
-
-    @property
-    def display_name(self):
-        return self.desc.get('display_name', self.name)
-    
-    @property
-    def wrapper_verilog(self):
-        return self.wrapper_path.joinpath('hdl').joinpath(self.desc.get('wrapper_file_name', f"{self.wrapper_name}_{self.version}.sv"))
-
-    @property
-    def rel_wrapper_verilog(self):
-        return self.wrapper_path.joinpath('hdl').joinpath(self.desc.get('wrapper_file_name', f"{self.wrapper_name}_{self.version}.sv"))
-
-    
-    @property
-    def wrapper_xml(self):
-        return self.wrapper_path.joinpath(self.desc.get('xml_name', f"component.xml"))
-
-    @property
-    def rel_wrapper_xml(self):
-        return self.desc.get('xml_name', f"component.xml")
-
-    
-    @property
-    def bd_tcl(self):
-        return self.wrapper_path.joinpath('bd/bd.tcl')
-
-    @property
-    def xgui_tcl(self):
-        return self.wrapper_path.joinpath('xgui/xgui.tcl')
-    
-    @property
-    def ipxact_name(self):
-        return self.desc['wrapper_name']
-
-    @property
-    def version(self):
-        return self.desc['version']
-
-    
-
-class svmodule(ModuleBase):
+class svmodule:
     def __init__(self, header, body):
-        pass
-
         self.header = header
         self.body = body
 
         self.name = header.name
-        modules[self.name] = self
-
+        registered_modules[self.name] = self
+        
         self.params = header.parameters
         self.ports = header.ports
         self.types = {}
@@ -105,13 +48,9 @@ class svmodule(ModuleBase):
     @property
     def wrapper(self):
         return WrapperModule(self)
-
+    
     def __repr__(self):
         return f"module {self.name} #({self.param_list}) ({self.ports})"
-        
-    @property
-    def desc(self):
-        return module_list[self.name]
 
 @svex("kModuleDeclaration")
 def parse_svinterfacedecl(node):
@@ -122,23 +61,37 @@ def parse_svinterfacedecl(node):
     return svmodule(svexcreate(node.children[0]), svexcreate(node.children[1]))
 
     
-def build_modules():
-    module_files = set([ v['file'] for _, v in module_list.items() ])
-    module_names = set([ v for v in module_list ])
+
+
+class WrappedParameter(svparameter):
+    def __init__(self, parent, param):
+        super(WrappedParameter, self).__init__(
+            svparametertype(
+                param.basetype,
+                param.packed_dimensions,
+                param.name,
+                param.unpacked_dimensions
+            ),
+            param.default,
+            param.local
+        )
+
+        self.parent = parent
+
+    def subst(self, ns):
+        return WrappedParameter(self.parent, super(WrappedParameter, self).subst(ns))
+        
+    @property
+    def desc(self):
+        return self.parent.desc.param_map.get(self.name, None)
+
+    @property
+    def allowed_values(self):
+        if self.desc == None:
+            return None
+        
+        return self.desc.allowed_values        
     
-    for filename in module_files:
-        root = parse(filename)
-
-        module_nodes = get_modules(root)
-
-        for n in module_nodes:
-            name = r.get(n, "kModuleHeader/SymbolIdentifier").text
-
-            if name in module_names:
-                svexcreate(n)
-
-
-
     
 class WrapperIfacePort:
     def __init__(self, module, port):
@@ -146,10 +99,15 @@ class WrapperIfacePort:
         self.interface_port = port
         self.interface = port.interface
         self.modport = port.modport
+        self.desc = self.interface.desc
 
+        
         self.param_map = {}
         self.data_map = {}
         self.port_map = {}
+
+        self.clock = None
+        self.reset = None
         
         param_prefix = f"{port.name.upper()}_"
         port_prefix = f"{port.name}_"
@@ -159,12 +117,20 @@ class WrapperIfacePort:
         for p in self.interface.params.values():
             pname = param_prefix + p.name
 
-            self.param_map[pname] = p
-            self.module.params[pname] = p.subst(ns)
+            wp = WrappedParameter(self, p)
+            
+            self.param_map[pname] = wp
+            self.module.params[pname] = wp.subst(ns)
 
         for p in self.interface.ports.values():
             pname = port_prefix + p.name
 
+            if p.name == self.desc.ipxdesc.reset.name:
+                self.reset = pname
+
+            if p.name == self.desc.ipxdesc.clock.name:
+                self.clock = pname
+            
             self.port_map[pname] = p
             self.module.ports[pname] = p.subst(ns)
 
@@ -180,15 +146,9 @@ class WrapperIfacePort:
 
             d = data.subst(ns)
 
-            print(f"{p} {d}")
-
             self.module.ports[pname] = svport(p.direction, d.datatype, pname)
-            
-        print(self.param_map)
-        print(self.port_map)
-        print(self.data_map)
-        print(ns)
 
+        
     @property
     def ipxdesc(self):
         return self.interface.ipxdesc
@@ -216,12 +176,11 @@ class WrapperIfacePort:
         for p in filter(lambda p: self.data_map[p].direction == 'output', self.data_map):
             print(f"    assign {p} = {self.name}.{self.data_map[p].name};", file=f)
 
-
-
     
-class WrapperModule(ModuleBase):
+class WrapperModule:
     def __init__(self, module):
-        self.name = module.wrapper_name
+        self.desc = module_map[module.name]
+        self.name = self.desc.wrapper_name
         self.module = module
 
         self.params = {}
@@ -230,20 +189,29 @@ class WrapperModule(ModuleBase):
         self.interface_ports = { p.name: WrapperIfacePort(self, p) for p in filter(lambda x: x.is_interface_port, self.module.ports.values()) }
         
         for p in module.params.values():
-            self.params[p.name] = p
+            self.params[p.name] = WrappedParameter(self, p)
 
         for p in module.ports.values():
             if not p.is_interface_port:
                 self.ports[p.name] = p
 
+        if dump_definitions:
+            print("Wrapper module definitions")
+            print("================================")
+            print("  Parameters:")
+            
+            for p in self.params:
+                print(f"    {p}")
+                
+            print("  Ports:")
+
+            for p in self.ports:
+                print(f"    {p}")
+
     @property
     def has_interfaces(self):
         return len(self.interface_ports) > 0
                 
-    @property
-    def desc(self):
-        return self.module.desc
-
     def generate_verilog(self, f):
         print("`timescale 1ns/1ps", file=f)
         print(f"module {self.name} #(", file=f)
@@ -268,7 +236,7 @@ class WrapperModule(ModuleBase):
         
         print(f"    {self.module.name} #(", file=f)
 
-        print(8*" "+(",\n"+8*" ").join([f".{n}({n})" for n in self.params ]))
+        print(8*" "+(",\n"+8*" ").join([f".{n}({n})" for n in self.params ]), file=f)
 
         print(f"    ) {self.module.name}_inst (", file=f)
         
@@ -281,28 +249,6 @@ class WrapperModule(ModuleBase):
         
 
 
-def wrap_modules():
-    for m in modules.values():
-        os.makedirs(m.wrapper_verilog.parent, exist_ok=True)
-        
-        INFO(f"Generating wrapper for {m.name} at {m.wrapper_verilog}")
-
-        w = WrapperModule(m)
-        
-        f = open(m.wrapper_verilog, "w")
-
-        w.generate_verilog(f)
-
-        INFO(f"Generating IP-XACT for {m.name} at {m.wrapper_xml}...")
-        os.makedirs(m.wrapper_xml.parent, exist_ok=True)
-
-        f = open(m.wrapper_xml, "w")
-
-        ipx = IPXACTModule(w)
-
-        ipx.generate()
-
-        ipx.export_ipxact(f)
         
 
 
