@@ -1,6 +1,7 @@
 import traceback
 
 from .verible_verilog_syntax import VeribleVerilogSyntax
+from .piradip_build_base import *
 import anytree
 import functools
 import operator
@@ -81,6 +82,10 @@ class svlist:
     @property
     def const(self):
         return all([ i.const for i in self.l ])
+
+    @property
+    def resolved(self):
+        return all([ i.resolved for i in self.l ])
     
     @property
     def unresolved(self):
@@ -120,6 +125,10 @@ class _svkeyword:
         return self.name == other
 
     @property
+    def resolved(self):
+        return True
+    
+    @property
     def unresolved(self):
         return set()
     
@@ -134,9 +143,17 @@ def svkeyword(tag):
         def __init__(self):
             pass
 
+        @property
+        def vector(self):
+            return False
+        
+        def subst(self, ns):
+            return token()
+
     def tokenwrapper(node):
         return token()
 
+    
     svexpression_handlers[tag] = tokenwrapper
     return token
 
@@ -145,7 +162,6 @@ svkeywords = [ "integer", "logic", "output", "input", "wire", "reg" ]
 for k in svkeywords:
     globals()[f"sv{k}"] = svkeyword(k)
 
-    
     
 
 
@@ -179,6 +195,8 @@ class svnull:
 
 def subst(n, ns):
     if n != None:
+        if isinstance(n, str):
+            return ns.get(n,n)
         return n.subst(ns)
     return None
 
@@ -197,6 +215,11 @@ def svexcreate(node):
 
 def assert_nchild(node, n):
     assert len(node.children) == n, f"SVEXPR: expected {n} argument for node tag {node.tag} {len(node.children)} {node.children}"
+
+def assert_nonechild(node, n):
+    assert svexcreate(node.children[n]) == None, f"SVEXPR: expected child {n} to be none for node tag {node.tag} {len(node.children)} {node.children}"
+    
+
     
 def _svexpassopt(node):
     if len(node.children) == 0:
@@ -253,7 +276,7 @@ def svenclosedlistnode(tag, childTypes, enclosing, listclass=svlist):
     
 def svignorenode(tag, okay=False):
     def _svignorenode(node):
-        if not okay: print(f"WARNING: Ignoring {node.tag} {node.text}")
+        if not okay: WARN(f"Ignoring {node.tag} {node.text}")
         return None
     svexpression_handlers[tag] = _svignorenode
 
@@ -263,8 +286,18 @@ class svsymbol(str):
         return super().__new__(cls, content)
     
     def subst(self, ns):
+        if show_substitutions:
+            print(f"SUBST: {self}=>{ns.get(self,self)}")
         return ns.get(self, self)
 
+    @property
+    def resolved(self):
+        return False
+
+    @property
+    def vector(self):
+        return False
+    
     @property
     def unresolved(self):
         return set([ self ])

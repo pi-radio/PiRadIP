@@ -2,7 +2,8 @@ from .piradip_build_base import *
 from .svbase import *
 
 import inspect
-
+import bitarray
+import bitarray.util
 
 @svex("kParenGroup")
 def parse_paren_group(node):
@@ -42,7 +43,7 @@ class svunqualifiedid:
         return False
 
     def subst(self, ns):
-        return svunqualifiedid(self.symbol.subst(ns), self.other)
+        return svunqualifiedid(subst(self.symbol, ns), self.other)
     
 @svex("kUnqualifiedId")
 def parse_id(node):
@@ -58,19 +59,28 @@ svpassnode("kReference")
 svpassnode("kReferenceCallBase")
 
 class svexliteral:
-    def __init__(self, n):
-        self.n = n
+    def __init__(self, n, width=32):
+        self.n = n if not isinstance(n, svexliteral) else n.n
+        self.width = width if not isinstance(n, svexliteral) else width.n
 
     def __str__(self):
         return str(self.n)
 
     def __repr__(self):
         return str(self.n)
-    
+
+    @property
+    def bits(self):
+        return bitarray.util.int2ba(self.n, self.width)
+        
     @property
     def const(self):
         return True
-
+    
+    @property
+    def resolved(self):
+        return True
+    
     @property
     def unresolved(self):
         return set()
@@ -96,6 +106,8 @@ def tkdecnumber(node):
 @svex("kBaseDigits")
 def parse_base_digits(node):
     assert_nchild(node, 2)
+    assert_nonechild(node, 0)
+    
     return svexcreate(node.children[1])
 
 @svex("kNumber")
@@ -106,8 +118,8 @@ def parse_number(node):
     assert_nchild(node, 2)
     width = svexcreate(node.children[0])
     basedigits = svexcreate(node.children[1])
-    WARN(f"IGNORING WIDTH {width}")
-    return basedigits
+    
+    return svexliteral(basedigits, width)
                        
 
 @svex2("kBinaryExpression")
@@ -139,6 +151,13 @@ class svbinaryexpression(svexbase):
     def __str__(self):
         return f"{self.t1}{self.op}{self.t2}"
 
+    def __repr__(self):
+        return f"({self.t1}){self.op}({self.t2})"
+
+    @property
+    def resolved(self):
+        return self.t1.resolved and self.t2.resolved
+    
     @property
     def unresolved(self):
         return self.t1.unresolved | self.t2.unresolved
@@ -171,13 +190,27 @@ class svconcatexpression:
     @property
     def const(self):
         return self.expr_list.const
+
+    @property
+    def resolved(self):
+        return self.expr_list.resolved
     
     @property
     def unresolved(self):
         return self.expr_list.unresolved
     
     def subst(self, ns):
-        return svconcatexpression(subst(self.expr_list, ns))
+        s = subst(self.expr_list, ns)
+
+        if s.const:
+            b = bitarray.bitarray()
+
+            for e in self.expr_list:
+                b += e.bits
+                
+            return svexliteral(bitarray.util.ba2int(b))
+            
+        return svconcatexpression(s)
 
         
 class svrepeatexpression:
@@ -186,11 +219,21 @@ class svrepeatexpression:
         self.expr = expr
 
     def subst(self, ns):
+        count = subst(self.count, ns)
+        expr = subst(self.expr, ns)
+
+        if count.const and expr.const:
+            return svexliteral(bitarray.util.ba2int(count.n * expr.bits))
+        
         return svrepeatexpression(subst(self.count, ns), subst(self.expr, ns))
 
     def __repr__(self):
         return f"repeat({self.count}, {self.expr})"
 
+    @property
+    def resolved(self):
+        return self.count.resolved and self.expr.resolved
+    
     @property
     def unresolved(self):
         return self.count.unresolved | self.expr.unresolved
@@ -219,6 +262,14 @@ class svrange:
         self.left = left
         self.right = right
 
+    @property
+    def const(self):
+        return self.left.const or self.right.const
+
+    @property
+    def unresolved(self):
+        return self.left.unresolved | self.right.unresolved
+        
     def subst(self, ns):
         return svrange(subst(self.left, ns), subst(self.right, ns))
 
@@ -247,13 +298,40 @@ def parse_datatype_primitive(node):
         r = svlogic()
     return r
 
+
+@svex2("kInterfacePortHeader")
 class svinterfaceportheader:
-    def __init__(self, interface_name, modport_name):
-        self.interface = registered_interfaces[interface_name]
-        self.modport = self.interface.modports[modport_name]
+    def parse(node):
+        assert_nchild(node, 3)
+        assert node.children[1].tag == '.'
+        interface = registered_interfaces[svexcreate(node.children[0])]
+        modport = interface.modports[svexcreate(node.children[2])]
+        
+        return svinterfaceportheader(interface, modport)
 
+    def __init__(self, interface, modport):
+        self.interface = interface
+        self.modport = modport
 
+    def subst(self, ns):
+        return svinterfaceportheader(self.interface, self.modport)
+
+@svex2("kDataType")
 class svtype:
+    def parse(node):
+        assert_nchild(node, 4)
+        assert svexcreate(node.children[0]) == None
+        assert svexcreate(node.children[2]) == None
+
+        basetype = svexcreate(node.children[1])
+        
+        dimensions = svexcreate(node.children[3])
+
+        if basetype == None:
+            basetype = svlogic()
+        
+        return svtype(basetype, dimensions)
+
     def __init__(self, basetype, packed_range=None, unpacked_range=None):
         self.basetype = basetype
         self.packed_range = packed_range
@@ -264,7 +342,24 @@ class svtype:
         return f"{self.basetype}"+(f"[{self.packed_range.left}:{self.packed_range.right}]" if self.packed_range is not None else "")
         
     def subst(self, ns):
-        rval = svtype(subst(self.basetype, ns), subst(self.packed_range, ns))
+        newbase = subst(self.basetype, ns)
+        new_packed_range = subst(self.packed_range, ns)
+        new_unpacked_range = subst(self.unpacked_range, ns)
+        
+        if isinstance(newbase, svtype):
+            # TODO -- Should make dimensions lists, etc but unnecessary for IP integrator right now
+            assert not (self.vector and newbase.vector), "Can't handle two dimensions yet"
+                
+            if newbase.packed_range is not None:
+                new_packed_range = newbase.packed_range
+                
+            if newbase.unpacked_range is not None:
+                new_unpacked_range = newbase.unpacked_range
+                
+            newbase = newbase.basetype
+        
+        rval = svtype(newbase, new_packed_range, new_unpacked_range)
+
         return rval
 
     @property
@@ -276,21 +371,35 @@ class svtype:
         return f"{self.basetype}{self.packed_range}"
 
     @property
-    def vector(self):
-        return self.packed_range is not None
+    def const(self):
+        return self.basetype.const or self.packed_range.const or self.unpacked_range.const
+
+    @property
+    def unresolved(self):
+        r = set()
+
+        if self.basetype:
+            r = r | self.basetype.unresolved
+
+        if self.packed_range:
+            r = r | self.packed_range.unresolved
+            
+        if self.unpacked_range:
+            r = r | self.unpacked_range.unresolved
         
+        return r
     
-@svex("kDataType")
-def parse_type(node):
-    assert_nchild(node, 4)
-    assert svexcreate(node.children[0]) == None
-    assert svexcreate(node.children[2]) == None
-
-    basetype = svexcreate(node.children[1])
-
-    dimensions = svexcreate(node.children[3])
-
-    return svtype(basetype, dimensions)
+    @property
+    def vector(self):
+        try:
+            return self.basetype.vector or (self.packed_range is not None)
+        except Exception as e:
+            print(f"Invalid type: {self} {type(self.basetype)}")
+            sys.exit(0)
+            
+def svlogicvector(left, right):
+    return svtype(svlogic(), svrange(svexliteral(left), svexliteral(right)))
+            
 
 class svtypedecl:
     def __init__(self, datatype, typename):
@@ -300,6 +409,21 @@ class svtypedecl:
     def __str__(self):
         return f"typedef {self.datatype} {self.typename};"
 
+    def __repr__(self):
+        return f"typedef {self.datatype} {self.typename};"
+
+    
+    @property
+    def const(self):
+        return self.datatype.const
+    
+    @property
+    def unresolved(self):
+        return self.datatype.unresolved
+    
+    def subst(self, ns):
+        return svtypedecl(self.typename, subst(self.datatype, ns))
+    
 @svex("kTypeDeclaration")
 def parse_type_decl(node):
     assert_nchild(node, 5)

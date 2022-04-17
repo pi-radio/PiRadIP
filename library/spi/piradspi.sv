@@ -30,7 +30,7 @@ module piradspi #(
         .NUM_PROFILES(C_NUM_PROFILES),
         .DATA_WIDTH(C_CSR_DATA_WIDTH),
         .ADDR_WIDTH(C_CSR_ADDR_WIDTH)
-    ) csr (
+    ) csr_inst (
         .aximm(csr),
         .axis_cmd(cmd_stream.MANAGER),
         .axis_mosi(mosi_stream.MANAGER),

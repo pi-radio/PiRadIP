@@ -32,7 +32,7 @@ class svparameter:
             svparametertype(
                 subst(self.basetype, ns),
                 subst(self.packed_dimensions, ns),
-                subst(self.name, ns),
+                self.name,
                 subst(self.unpacked_dimensions, ns)
             ),
             subst(self.default, ns),

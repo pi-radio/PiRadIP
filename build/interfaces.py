@@ -129,7 +129,15 @@ class svinterface:
 
         for i in body.datas:
             self.datas[i.name] = i
-        
+
+    @property
+    def local_params(self):
+        return { k:v for k,v in self.params.items() if v.local }
+    
+    @property
+    def exposed_params(self):
+        return { k:v for k,v in self.params.items() if not v.local }
+    
     @property
     def ipxdesc(self):
         return self.desc.ipxdesc

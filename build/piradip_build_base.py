@@ -12,6 +12,7 @@ DEBUG_IPXACT='IPXACT:'
 debug_flags = { DEBUG_IPXACT: 0 }
 
 dump_definitions=False
+show_substitutions=False
 
 def debug_print(flag, *args, **kwargs):
     if debug_flags.get(flag, 0):

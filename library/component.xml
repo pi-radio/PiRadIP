@@ -30,28 +30,19 @@
     <spirit:fileSet>
       <spirit:name>xilinx_anylanguagesynthesis_view_fileset</spirit:name>
       <spirit:file>
-        <spirit:name>axis/piradip_axis_sample_buffer_out.sv</spirit:name>
+        <spirit:name>axi/piradip_axi4.svh</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:isIncludeFile>true</spirit:isIncludeFile>
       </spirit:file>
       <spirit:file>
-        <spirit:name>axis/piradip_axis.sv</spirit:name>
+        <spirit:name>axis/piradip_axis.svh</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:isIncludeFile>true</spirit:isIncludeFile>
       </spirit:file>
       <spirit:file>
-        <spirit:name>axis/piradip_axis_fifo.sv</spirit:name>
+        <spirit:name>spi/piradspi.svh</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
-      </spirit:file>
-      <spirit:file>
-        <spirit:name>axis/piradip_axis_sample_buffer_in.sv</spirit:name>
-        <spirit:fileType>systemVerilogSource</spirit:fileType>
-      </spirit:file>
-      <spirit:file>
-        <spirit:name>mem/piradip_axi4_ram_adapter.sv</spirit:name>
-        <spirit:fileType>systemVerilogSource</spirit:fileType>
-      </spirit:file>
-      <spirit:file>
-        <spirit:name>mem/piradip_dual_port_ram.sv</spirit:name>
-        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:isIncludeFile>true</spirit:isIncludeFile>
       </spirit:file>
       <spirit:file>
         <spirit:name>util/piradip_latency_synchronizer.sv</spirit:name>
@@ -82,39 +73,58 @@
         <spirit:fileType>systemVerilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
+        <spirit:name>axis/piradip_axis.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>fifo/piradip_sync_fifo.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
+        <spirit:name>axis/piradip_axis_fifo.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>mem/piradip_dual_port_ram.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>cdc/piradip_cdc.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>mem/piradip_axi4_ram_adapter.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>axis/piradip_axis_sample_buffer_out.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>axis/piradip_axis_sample_buffer_in.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>spi/piradspi.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
       <spirit:name>xilinx_anylanguagebehavioralsimulation_view_fileset</spirit:name>
       <spirit:file>
-        <spirit:name>axis/piradip_axis_sample_buffer_out.sv</spirit:name>
+        <spirit:name>axi/piradip_axi4.svh</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:isIncludeFile>true</spirit:isIncludeFile>
       </spirit:file>
       <spirit:file>
-        <spirit:name>axis/piradip_axis.sv</spirit:name>
+        <spirit:name>axis/piradip_axis.svh</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:isIncludeFile>true</spirit:isIncludeFile>
       </spirit:file>
       <spirit:file>
-        <spirit:name>axis/piradip_axis_fifo.sv</spirit:name>
+        <spirit:name>spi/piradspi.svh</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
-      </spirit:file>
-      <spirit:file>
-        <spirit:name>axis/piradip_axis_sample_buffer_in.sv</spirit:name>
-        <spirit:fileType>systemVerilogSource</spirit:fileType>
-      </spirit:file>
-      <spirit:file>
-        <spirit:name>mem/piradip_axi4_ram_adapter.sv</spirit:name>
-        <spirit:fileType>systemVerilogSource</spirit:fileType>
-      </spirit:file>
-      <spirit:file>
-        <spirit:name>mem/piradip_dual_port_ram.sv</spirit:name>
-        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:isIncludeFile>true</spirit:isIncludeFile>
       </spirit:file>
       <spirit:file>
         <spirit:name>util/piradip_latency_synchronizer.sv</spirit:name>
@@ -145,11 +155,39 @@
         <spirit:fileType>systemVerilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
+        <spirit:name>axis/piradip_axis.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>fifo/piradip_sync_fifo.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
       </spirit:file>
       <spirit:file>
+        <spirit:name>axis/piradip_axis_fifo.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>mem/piradip_dual_port_ram.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>cdc/piradip_cdc.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>mem/piradip_axi4_ram_adapter.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>axis/piradip_axis_sample_buffer_out.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>axis/piradip_axis_sample_buffer_in.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>spi/piradspi.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
       </spirit:file>
     </spirit:fileSet>
@@ -177,7 +215,7 @@
       </xilinx:xpmLibraries>
       <xilinx:vendorDisplayName>Pi Radio Inc.</xilinx:vendorDisplayName>
       <xilinx:vendorURL>https://pi-rad.io/</xilinx:vendorURL>
-      <xilinx:coreRevision>1650075246</xilinx:coreRevision>
+      <xilinx:coreRevision>1650230957</xilinx:coreRevision>
     </xilinx:coreExtensions>
   </spirit:vendorExtensions>
 </spirit:component>

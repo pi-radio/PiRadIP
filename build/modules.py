@@ -2,6 +2,7 @@ from .piradip_build_base import *
 from .structure import module_map
 from .sv import parse, get_modules, dump_node
 from .svbase import *
+from .expr import svlogicvector
 from .ipxact import IPXACTModule
 from .port import svport
 
@@ -16,15 +17,15 @@ from .parameter import svparameter, svparametertype
 # TODO: Parse the package
 #
 global_type_punts = {
-    'axi_resp_t': 'logic [1:0]',
-    'axi_burst_t': 'logic [1:0]',
-    'axi_size_t': 'logic [2:0]',
-    'axi_len_t': "logic [7:0]",
-    'axi_prot_t': 'logic [2:0]',
-    'axi_cache_t': 'logic [3:0]',
-    'axi_qos_t': 'logic [3:0]',
-    'axi_region_t': 'logic [3:0]',
-    'axi_lock_t': 'logic'
+    'axi_resp_t': svlogicvector(1, 0),
+    'axi_burst_t': svlogicvector(1, 0),
+    'axi_size_t': svlogicvector(2, 0),
+    'axi_len_t': svlogicvector(7, 0),
+    'axi_prot_t': svlogicvector(2, 0),
+    'axi_cache_t': svlogicvector(3, 0),
+    'axi_qos_t': svlogicvector(3, 0),
+    'axi_region_t': svlogicvector(3, 0),
+    'axi_lock_t': svlogic()
 }
 
 class svmodule:
@@ -60,37 +61,52 @@ def parse_svinterfacedecl(node):
 
     return svmodule(svexcreate(node.children[0]), svexcreate(node.children[1]))
 
-    
+def unresolved_symbols(ns):
+    unresolved = set()
 
+    for sym in ns.values():
+        unresolved |= sym.unresolved
 
+    return unresolved
+
+def resolve_types(ns):
+    known_symbols = set(ns.keys())
+
+    while unresolved_symbols(ns) & known_symbols != set():    
+        for n in ns:
+            if not ns[n].const:
+                ns[n] = subst(ns[n], ns)
+
+    return ns
+
+                
 class WrappedParameter(svparameter):
-    def __init__(self, parent, param):
+    def __init__(self, parent, new_name, param, desc):
         super(WrappedParameter, self).__init__(
             svparametertype(
                 param.basetype,
                 param.packed_dimensions,
-                param.name,
+                new_name,
                 param.unpacked_dimensions
             ),
             param.default,
             param.local
         )
-
+        
+        self.desc = desc
         self.parent = parent
 
-    def subst(self, ns):
-        return WrappedParameter(self.parent, super(WrappedParameter, self).subst(ns))
+    def __repr__(self):
+        return f"WRAPPED({'local' if self.local else ''}{self.basetype}{self.packed_dimensions if self.packed_dimensions is not None else ''} {self.name} {self.unpacked_dimensions if self.unpacked_dimensions is not None else ''} = {self.default})"
         
-    @property
-    def desc(self):
-        return self.parent.desc.param_map.get(self.name, None)
-
+    def subst(self, ns):
+        return WrappedParameter(self.parent, self.name, super(WrappedParameter, self).subst(ns), self.desc)
+        
     @property
     def allowed_values(self):
-        if self.desc == None:
-            return None
-        
-        return self.desc.allowed_values        
+        if self.desc is not None:
+            return self.desc.allowed_values
+        return list()
     
     
 class WrapperIfacePort:
@@ -109,21 +125,39 @@ class WrapperIfacePort:
         self.clock = None
         self.reset = None
         
-        param_prefix = f"{port.name.upper()}_"
-        port_prefix = f"{port.name}_"
+        self.param_prefix = f"{port.name.upper()}_"
+        self.port_prefix = f"{port.name}_"
+
+        ns = { **global_type_punts }
+
+        for p in self.interface.params.values():
+            ns[p.name] = svsymbol(self.wrap_param_name(p.name))
         
-        ns = { **{ p.name: svsymbol(param_prefix + p.name) for p in self.interface.params.values() }, **global_type_punts }
+        local_update = { svsymbol(self.param_prefix + p.name): p.default.subst(ns) for p in self.interface.local_params.values() } 
         
         for p in self.interface.params.values():
-            pname = param_prefix + p.name
+            pname = self.wrap_param_name(p.name)
 
-            wp = WrappedParameter(self, p)
+            pdesc = self.interface.desc.param_map.get(p.name, None)
+            
+            wp = WrappedParameter(self, pname, p, pdesc)
             
             self.param_map[pname] = wp
-            self.module.params[pname] = wp.subst(ns)
 
+            if not p.local:
+                self.module.params[pname] = wp.subst(ns)
+
+        typemap = {}
+            
+        for t in self.interface.types.values():
+            typemap[t.typename] =  subst(t.datatype, ns)
+            
+        typemap = resolve_types(typemap)
+
+        ns = { **ns, **typemap }
+            
         for p in self.interface.ports.values():
-            pname = port_prefix + p.name
+            pname = self.wrap_port_name(p.name)
 
             if p.name == self.desc.ipxdesc.reset.name:
                 self.reset = pname
@@ -132,23 +166,39 @@ class WrapperIfacePort:
                 self.clock = pname
             
             self.port_map[pname] = p
-            self.module.ports[pname] = p.subst(ns)
+            self.module.ports[pname] = p.subst(ns).subst(local_update)
 
         for p in self.modport.ports.values():
             if p.name in [ "aclk", "aresetn" ]:
                 continue
             
-            pname = port_prefix + p.name
+            pname = self.wrap_port_name(p.name)
 
             data = self.interface.datas[p.name]
             
             self.data_map[pname] = p
 
             d = data.subst(ns)
+            d = d.subst(local_update)
 
             self.module.ports[pname] = svport(p.direction, d.datatype, pname)
 
+    def wrap_param_name(self, name):
+        desc = self.interface.desc.param_map.get(name, None)
+
+        pname = ""
         
+        if desc is not None:
+            pname += desc.prefix
+
+        pname += self.param_prefix
+
+        return svsymbol(pname + name)
+
+    def wrap_port_name(self, name):
+        return svsymbol(self.port_prefix + name)
+
+    
     @property
     def ipxdesc(self):
         return self.interface.ipxdesc
@@ -161,9 +211,17 @@ class WrapperIfacePort:
     def name(self):
         return f"{self.interface.name}_inst"
 
+    @property
+    def local_params(self):
+        return filter(lambda p: self.param_map[p].local, self.param_map)
+    
+    @property
+    def exposed_params(self):
+        return filter(lambda p: not self.param_map[p].local, self.param_map)
+    
     def generate_verilog(self, f):
         print(f"    {self.interface.name} #(", file=f)
-        print("        "+",\n        ".join([ f".{self.param_map[p].name}({p})" for p in self.param_map]), file=f)
+        print("        "+",\n        ".join([ f".{self.param_map[p].name}({p})" for p in self.exposed_params]), file=f)
         print(f"    ) {self.name} (", file=f)
 
         print("        "+",\n        ".join([ f".{self.port_map[p].name}({p})" for p in self.port_map ]), file=f)
@@ -184,17 +242,26 @@ class WrapperModule:
         self.module = module
 
         self.params = {}
-        self.param_map = {}
         self.ports = {}
         self.interface_ports = { p.name: WrapperIfacePort(self, p) for p in filter(lambda x: x.is_interface_port, self.module.ports.values()) }
         
         for p in module.params.values():
-            self.params[p.name] = WrappedParameter(self, p)
+            self.params[p.name] = WrappedParameter(self, p.name, p, self.desc.param_map.get(p.name, None))
 
+        local_update = { p: self.params[p].default for p in self.local_params }
+
+        for p in self.params:
+            self.params[p] = subst(self.params[p], local_update)
+                    
         for p in module.ports.values():
             if not p.is_interface_port:
                 self.ports[p.name] = p
 
+        for p in module.ports.values():
+            if not p.is_interface_port:
+                self.ports[p.name] = subst(p, local_update)
+
+            
         if dump_definitions:
             print("Wrapper module definitions")
             print("================================")
@@ -211,15 +278,23 @@ class WrapperModule:
     @property
     def has_interfaces(self):
         return len(self.interface_ports) > 0
-                
+
+    @property
+    def exposed_params(self):
+        return filter(lambda p: not self.params[p].local, self.params)
+
+    @property
+    def local_params(self):
+        return filter(lambda p: self.params[p].local, self.params)
+    
     def generate_verilog(self, f):
         print("`timescale 1ns/1ps", file=f)
         print(f"module {self.name} #(", file=f)
             
-        print("    "+",\n    ".join([p.decl for p in self.params.values()]), file=f)
+        print("    "+",\n    ".join([self.params[p].decl for p in self.exposed_params]), file=f)
 
         print(") (", file = f)
-
+        
         print("    "+",\n    ".join([p.decl for p in self.ports.values()]), file=f)
 
         print(");", file=f)
@@ -236,7 +311,7 @@ class WrapperModule:
         
         print(f"    {self.module.name} #(", file=f)
 
-        print(8*" "+(",\n"+8*" ").join([f".{n}({n})" for n in self.params ]), file=f)
+        print(8*" "+(",\n"+8*" ").join([f".{n}({n})" for n in self.exposed_params ]), file=f)
 
         print(f"    ) {self.module.name}_inst (", file=f)
         

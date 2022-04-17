@@ -36,7 +36,7 @@ class svport:
     
     @property
     def decl(self):
-        return str(self.datatype)
+        return f"{str(self.datatype)} {self.name}"
 
     @property
     def is_interface_port(self):
@@ -53,11 +53,6 @@ class svport:
         return self.datatype.basetype.modport
     
         
-@svex("kInterfacePortHeader")
-def parse_interface_port_header(node):
-    assert_nchild(node, 3)
-    assert node.children[1].tag == '.'
-    return svinterfaceportheader(svexcreate(node.children[0]), svexcreate(node.children[2]))
         
 
 @svex("kPortDeclaration")

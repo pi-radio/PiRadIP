@@ -5,7 +5,7 @@ from .modules import get_modules, WrapperModule
 from .interfaces import get_interfaces
 from .ipxact import IPXACTLibrary, IPXACTModule
 from .ipx import IPXScript, TCLScript
-
+from .xilinx import template_bd_tcl
 
 def build_interfaces():
     interface_files = set([v.file for v in interface_map.values()])
@@ -56,6 +56,7 @@ def wrap_modules():
         
         os.makedirs(w.desc.wrapper_verilog_path.parent, exist_ok=True)
         os.makedirs(w.desc.wrapper_xgui_path.parent, exist_ok=True)
+        os.makedirs(w.desc.wrapper_bd_tcl_path.parent, exist_ok=True)
         
         INFO(f"Generating wrapper {w.name} for {m.name} at {w.desc.wrapper_verilog_path}")
         
@@ -81,6 +82,10 @@ def wrap_modules():
         f = open(w.desc.wrapper_xgui_path, "w")
 
         print(l.xgui.body, file = f)
+
+        f = open(w.desc.wrapper_bd_tcl_path, "w")
+
+        print(l.bd.body, file = f)
         
 def build_libraries():
     library_path = os.path.join(os.getcwd(), "library")
@@ -121,8 +126,16 @@ def make_generate_all():
 
     for w in wrapper_modules.values(): 
         tcl.cmd("cd $script_path")
+        tcl.cmd(f"ipx::unload_core {w.desc.wrapper_xml_path}")
         tcl.cmd(f"source {w.desc.ipx_generate_script}")
 
+    tcl.comment("INTEGRITY CHECKS")
+        
+    for w in wrapper_modules.values():
+        tcl.cmd("cd $script_path")
+        tcl.cmd(f"ipx::check_integrity [ipx::open_core {w.desc.wrapper_xml_path}]")
+        tcl.cmd(f"ipx::unload_core")
+        
     tcl.cmd("cd $prev_path")
 
     f = open("generate_all.tcl", "w")
@@ -148,8 +161,32 @@ def deploy_file(src, dest):
     os.makedirs(fpath.parent, exist_ok=True)
     os.system(f"cp {src} {fpath}")
 
-
+def clean_file(src, dest):
+    fpath = dest.joinpath(src)
+    INFO(f"clean {src} => rm {fpath}")
+    os.makedirs(fpath.parent, exist_ok=True)
+    os.system(f"rm {fpath}")
     
+    
+def do_clean(dest):
+    dest_path = Path(dest)
+    INFO(f"Cleaning {dest}")
+    
+    clean_file(Path("library/component.xml"), dest_path)
+    clean_file(Path("generate_all.tcl"), dest_path)
+    
+    for w in wrapper_modules.values():
+        INFO(f"Deploying {w.name}...")
+        clean_file(w.desc.ipx_generate_script, dest_path)
+        clean_file(w.desc.wrapper_verilog_path, dest_path)
+        clean_file(w.desc.wrapper_xgui_path, dest_path)
+        clean_file(w.desc.wrapper_bd_tcl_path, dest_path)
+    
+    for w in wrapper_modules.values():
+        INFO(f"Removing IP dir {dest_path.joinpath(w.desc.wrapper_path)}")
+        os.system(f"rm -rf {dest_path.joinpath(w.desc.wrapper_path)}")
+
+        
 def do_deploy(dest):
     dest_path = Path(dest)
     INFO(f"Deploying to {dest}")
@@ -162,3 +199,4 @@ def do_deploy(dest):
         deploy_file(w.desc.ipx_generate_script, dest_path)
         deploy_file(w.desc.wrapper_verilog_path, dest_path)
         deploy_file(w.desc.wrapper_xgui_path, dest_path)
+        deploy_file(w.desc.wrapper_bd_tcl_path, dest_path)

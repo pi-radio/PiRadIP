@@ -39,7 +39,7 @@ def ipxact_file(fn):
         f.file_type = ipxact2009.FileTypeFileType.SYSTEM_VERILOG_SOURCE
     elif ext == ".svh":
         f.file_type = ipxact2009.FileTypeFileType.SYSTEM_VERILOG_SOURCE
-        f.is_include = True
+        f.is_include_file = True
     elif ext == ".tcl":
         f.file_type = ipxact2009.FileTypeFileType.TCL_SOURCE
     else:
