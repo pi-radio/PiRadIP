@@ -31,6 +31,9 @@ add_library_file("library/mem/piradip_axi4_ram_adapter.sv")
 add_library_file("library/axis/piradip_axis_sample_buffer_out.sv")
 add_library_file("library/axis/piradip_axis_sample_buffer_in.sv")
 
+add_library_file("library/spi/piradspi_pkg.sv")
+add_library_file("library/spi/piradspi_csr.sv")
+add_library_file("library/spi/piradspi_engine.sv")
 add_library_file("library/spi/piradspi.sv")
 
 def upper_map(l):
