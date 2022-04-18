@@ -512,8 +512,8 @@ class XilinxBDTcl(TCLScript):
         self.cmd("continue")
         self.cmd("}")
         self.cmd("foreach tparam $axi_standard_param_list {")
-        # Removed C prefix
-        self.cmd("lappend busif_param_list \"${busif_name}_${tparam}\"")
+        self.cmd("lappend busif_param_list \"C_${busif_name}_${tparam}\"")
+
         self.cmd("}")
         self.cmd("bd::mark_propagate_only $cell_handle $busif_param_list")
         self.cmd("}")
@@ -533,8 +533,7 @@ class XilinxBDTcl(TCLScript):
         self.cmd("}")
         self.cmd("set busif_name [get_property NAME $busif]")
         self.cmd("foreach tparam $axi_standard_param_list {")
-        # NOTW -- Removed C prefix
-        self.cmd("set busif_param_name \"${busif_name}_${tparam}\"")
+        self.cmd("set busif_param_name \"C_${busif_name}_${tparam}\"")
         # puts line
         self.cmd("puts \"PIRADIO: pre-propagate  Setting busif param name to ${busif_name}_${tparam}\"")
         self.cmd("set val_on_cell_intf_pin [get_property CONFIG.${tparam} $busif]")
@@ -562,8 +561,7 @@ class XilinxBDTcl(TCLScript):
         self.cmd("}")
         self.cmd("set busif_name [get_property NAME $busif]")
         self.cmd("foreach tparam $axi_standard_param_list {")
-        # NOTE -- Removed C prefix
-        self.cmd("set busif_param_name \"${busif_name}_${tparam}\"")
+        self.cmd("set busif_param_name \"C_${busif_name}_${tparam}\"")
         # puts line
         self.cmd("puts \"PIRADIO: propagate  Setting busif param name to ${busif_name}_${tparam}\"")
         self.cmd("")
@@ -572,7 +570,7 @@ class XilinxBDTcl(TCLScript):
         self.cmd("")
         self.cmd("if { [string equal -nocase $val_on_cell_intf_pin $val_on_cell] != 1 } {")
         self.cmd("#override property of bd_interface_net to bd_cell -- only for slaves.  May check for supported values..")
-        self.cmd("if { $val_on_cell_intf_pin != "" } {")
+        self.cmd("if { $val_on_cell_intf_pin != \"\" } {")
         self.cmd("set_property CONFIG.${busif_param_name} $val_on_cell_intf_pin $cell_handle")
         self.cmd("}")
         self.cmd("}")

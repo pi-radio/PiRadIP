@@ -27,9 +27,7 @@ module piradspi #(
     logic engine_busy;
 
     piradspi_csr # ( 
-        .NUM_PROFILES(C_NUM_PROFILES),
-        .DATA_WIDTH(C_CSR_DATA_WIDTH),
-        .ADDR_WIDTH(C_CSR_ADDR_WIDTH)
+        .NUM_PROFILES(C_NUM_PROFILES)
     ) csr_inst (
         .aximm(csr),
         .axis_cmd(cmd_stream.MANAGER),
