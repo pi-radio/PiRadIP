@@ -3,7 +3,8 @@ from .sv import parse, svexcreate
 from .structure import *
 from .modules import get_modules, WrapperModule
 from .interfaces import get_interfaces
-from .ipxact import IPXACTLibrary, IPXACTModule
+from .ipxact_library import IPXACTLibrary
+from .ipxact import IPXACTModule
 from .ipx import IPXScript, TCLScript
 from .xilinx import template_bd_tcl
 
@@ -88,33 +89,14 @@ def wrap_modules():
         print(l.bd.body, file = f)
         
 def build_libraries():
-    library_path = os.path.join(os.getcwd(), "library")
-
-    xml_path = os.path.join(library_path, "component.xml")
-    
-    input_times = [ os.path.getmtime(i) for i in piradlib_files ]
-    
-    input_times.append(os.path.getmtime("buildlib.py"))
-    
-    output_time = 0
-    
-    try:
-        output_time = os.path.getmtime(xml_path)
-    except FileNotFoundError:
-        pass
-    
-    if False and all(output_time > i for i in input_times):
-        INFO(f"Not rebuilding {xml_path} -- up to date")
-        return    
-
-    l = IPXACTLibrary(piradlib_files)
-
-    f = open(xml_path, "w")
-
-    print(f"Writing library XML to {xml_path}...")
-    l.export_ipxact(f)
-
-    
+    for lib in library_map.values():
+        if False and lib.up_to_date:
+            INFO(f"Not rebuilding {lib.xml_path} -- up to date")
+            continue
+        
+        ipxlib = IPXACTLibrary(lib)
+        
+        ipxlib.export_ipxact()
 
 
 def make_generate_all():
@@ -167,11 +149,18 @@ def clean_file(src, dest):
     os.makedirs(fpath.parent, exist_ok=True)
     os.system(f"rm {fpath}")
     
+
+def deploy_libraries(dest):
+    for lib in library_map.values():
+        for fn in lib.files:
+            deploy_file(Path(fn), dest)
+
+        deploy_file(Path(lib.xml_path), dest)
     
 def do_clean(dest):
     dest_path = Path(dest)
     INFO(f"Cleaning {dest}")
-    
+
     clean_file(Path("library/component.xml"), dest_path)
     clean_file(Path("generate_all.tcl"), dest_path)
     
@@ -185,13 +174,13 @@ def do_clean(dest):
     for w in wrapper_modules.values():
         INFO(f"Removing IP dir {dest_path.joinpath(w.desc.wrapper_path)}")
         os.system(f"rm -rf {dest_path.joinpath(w.desc.wrapper_path)}")
-
+    
         
 def do_deploy(dest):
     dest_path = Path(dest)
     INFO(f"Deploying to {dest}")
 
-    deploy_file(Path("library/component.xml"), dest_path)
+    deploy_libraries(dest_path)
     deploy_file(Path("generate_all.tcl"), dest_path)
     
     for w in wrapper_modules.values():

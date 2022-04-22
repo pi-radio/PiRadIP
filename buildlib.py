@@ -4,38 +4,46 @@ from build import *
 
 import click
 
+Library("piradlib",
+        path="library/",
+        vlnv=VLNV("pi-rad.io", "library", "PiRadIP", "1.0"),
+        description="Pi Radio IP Library",
+        files = [
+            "library/axi/piradip_axi4.svh",
+            "library/axis/piradip_axis.svh",
+            
+            "library/util/piradip_latency_synchronizer.sv",
+            "library/util/piradip_state_timer.sv",
+            "library/util/piradip_tb_shift_registers.sv",
+            "library/util/piradip_shift_registers.sv",
+            "library/util/piradip_shifters.sv",
+            
+            "library/aximm/piradip_axi4.sv",
+            "library/aximm/piradip_axi4mmlite.sv",
+            "library/aximm/piradip_aximm.sv",
+            "library/aximm/piradip_register_if.sv",
 
-add_library_file("library/axi/piradip_axi4.svh")
-add_library_file("library/axis/piradip_axis.svh")
-add_library_file("library/spi/piradspi.svh")
-
-add_library_file("library/util/piradip_latency_synchronizer.sv")
-add_library_file("library/util/piradip_state_timer.sv")
-add_library_file("library/util/piradip_tb_shift_registers.sv")
-add_library_file("library/util/piradip_shift_registers.sv")
-add_library_file("library/util/piradip_shifters.sv")
-
-add_library_file("library/aximm/piradip_axi4mmlite.sv")
-add_library_file("library/aximm/piradip_aximm.sv")
-add_library_file("library/axis/piradip_axis.sv")
-
-add_library_file("library/fifo/piradip_sync_fifo.sv")
-
-add_library_file("library/axis/piradip_axis_fifo.sv")
-
-add_library_file("library/mem/piradip_dual_port_ram.sv")
-add_library_file("library/cdc/piradip_cdc.sv")
-
-add_library_file("library/mem/piradip_axi4_ram_adapter.sv")
-
-add_library_file("library/axis/piradip_axis_sample_buffer_out.sv")
-add_library_file("library/axis/piradip_axis_sample_buffer_in.sv")
-
-add_library_file("library/spi/piradspi_pkg.sv")
-add_library_file("library/spi/piradspi_csr.sv")
-add_library_file("library/spi/piradspi_engine.sv")
-add_library_file("library/spi/piradspi.sv")
-
+            "library/axis/piradip_axis.sv",
+        
+            "library/fifo/piradip_sync_fifo.sv",
+            
+            "library/axis/piradip_axis_fifo.sv",
+            
+            "library/mem/piradip_dual_port_ram.sv",
+            "library/cdc/piradip_cdc.sv",
+            
+            "library/mem/piradip_axi4_ram_adapter.sv",
+        
+            "library/axis/piradip_axis_sample_buffer_out.sv",
+            "library/axis/piradip_axis_sample_buffer_in.sv",
+            
+            "library/spi/piradspi_pkg.sv",
+            "library/spi/piradspi_cmd_fifo.sv",
+            "library/spi/piradspi_csr.sv",
+            "library/spi/piradspi_engine.sv",
+            "library/spi/piradspi.sv",
+])
+        
 def upper_map(l):
     return dict([ (i, i.upper()) for i in l ])
 

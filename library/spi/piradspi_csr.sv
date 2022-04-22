@@ -1,75 +1,52 @@
-`timescale 1 ns / 1 ps
+`timescale 1ns/1ps
 
-/*
- Register map
- 
- Reg 00h: Control/Status
- Bit 0 - Enable(d)
- Bit 1 - Error
- Bit 2 - Busy
- Bit 3 - Autoincrement ID enable
- Bit 4 - Interrupt Asserted
- Bit 5 - Interrupt Enable
- Reg 01h: 
- 
- --- Command Programming
- Reg 10h: Device Select
- Reg 11h: Profile Select
- Reg 12h: Command ID
- Reg 18h: MOSI FIFO
- Reg 19h: MISO FIFO
- Reg 1Fh: Trigger
- 
- -- Profiles start at 20h
- Reg 0h: POL/PHA
- Reg 1h: SCLK div
- Reg 2h: Start wait cycles
- Reg 3h: CSN assert to SCLK cycles
- Reg 4h: SCLK to CSN deassert cycles
- Reg 5h: Transfer Length    
- */
-module piradspi_csr 
-  #(
-    parameter NUM_PROFILES = 8,
-    parameter DEBUG=1
-    ) 
-   (
-    axi4mm_lite.SUBORDINATE aximm,
-    
-    axis_simple.MANAGER axis_cmd,
-    axis_simple.MANAGER axis_mosi,
-    axis_simple.SUBORDINATE axis_miso,
-    
-    output logic engine_enable,
-    input logic engine_error,
-    input logic engine_busy,
-    input logic command_completed,
-    output logic intr_out
+module piradspi_csr #(
+                      parameter integer NUM_PROFILES = 8
+                      ) 
+   (    
+        output logic engine_enable,
+        input logic  engine_error,
+        input logic  engine_busy,
+        input logic  command_completed,
+        output logic intr_out,
+        piradspi_cmd_stream.MANAGER cmd_stream,
+        axis_simple.MANAGER axis_mosi,
+        axis_simple.SUBORDINATE axis_miso,
+        axi4mm_lite.SUBORDINATE csr        
     );
-   import piradspi::*;
+   
+   import piradspi_pkg::*;
 
-   localparam integer DATA_WIDTH = $bits(aximm.rdata);
-   localparam integer ADDR_WIDTH = $bits(aximm.araddr);
-      
-   localparam integer AXI_BYTE_WIDTH       = DATA_WIDTH/8;
-   localparam integer ADDR_WORD_BITS       = $clog2(AXI_BYTE_WIDTH);
-   localparam integer REGISTER_ADDR_BITS   = ADDR_WIDTH - ADDR_WORD_BITS; 
-   localparam integer PROFILE_SELECT_WIDTH = $clog2(NUM_PROFILES);
+   typedef csr.data_t csr_data_t;
+   
+   
+   generate
+      localparam integer CSR_DATA_WIDTH = $bits(csr.wdata);
+      localparam integer CSR_ADDR_WIDTH = $bits(csr.awaddr);
+      localparam integer STRB_WIDTH = CSR_DATA_WIDTH/8;
+      localparam integer REGISTER_ADDR_BITS = CSR_ADDR_WIDTH - $clog2(STRB_WIDTH);
+      localparam integer PROFILE_SELECT_WIDTH = $clog2(NUM_PROFILES);
 
-   typedef logic [DATA_WIDTH-1:0] axi_data_t;
-   typedef logic [REGISTER_ADDR_BITS-1:0] regno_t;
+      piradip_register_if #(
+                            .DATA_WIDTH(CSR_DATA_WIDTH), 
+                            .REGISTER_ADDR_BITS(REGISTER_ADDR_BITS)
+                            ) reg_if (
+                                      .aclk(csr.aclk), 
+                                      .aresetn(csr.aresetn)
+                                      );
+   endgenerate
+
+   csr_data_t ctrlstat_out;
+   csr_data_t completion_count;
+   csr_data_t mosi_read_data;
+     
    typedef logic [PROFILE_SELECT_WIDTH-1:0] profile_id_t;
 
    localparam WRITE_PROFILE_REG_MASK = (REGISTER_PROFSIZE - 1);
    
-   piradip_register_if reg_if (
-                               .aclk(aximm.aclk), 
-                               .aresetn(aximm.aresetn)
-                               );
 
-   piradip_axi4mmlite_subordinate sub_imp(.reg_if(reg_if.SERVER), .aximm(aximm), .*);
+   piradip_axi4mmlite_subordinate sub_imp(.reg_if(reg_if.SERVER), .aximm(csr));
 
-   axi_data_t ctrlstat_out;
    
    genvar                                   i;
 
@@ -82,37 +59,24 @@ module piradspi_csr
    typedef logic [15:0]                     xfer_len_t;
    logic                                    intr_en, intr_assert;
 
-   axi_data_t completion_count;
 
    profile_id_t profile_sel;
 
    always_comb ctrlstat_out = {  axis_miso.tvalid, axis_mosi.tready, intr_en, intr_assert, autoinc_id, engine_busy, engine_error, engine_enable };
 
-   logic                                    do_cmd_issue, failed_cmd_issue;
+   logic                                    cmd_do_issue, cmd_failed_issue;
    logic                                    do_mosi_issue, failed_mosi_issue;
    
-   register_to_stream #(.REGISTER_NO(REGISTER_TRIGGER)) cmd_reg_to_stream(
-                                                                          .do_issue(do_cmd_issue),
-                                                                          .failed_issue(failed_cmd_issue),
-                                                                          .read_data(cmd_read_data),
-                                                                          .stream(axis_cmd),
-                                                                          .reg_if(reg_if)
-                                                                          );
-
-   register_to_stream #(.REGISTER_NO(REGISTER_MOSIFIFO)) mosi_reg_to_stream(
-                                                                            .do_issue(do_mosi_issue),
-                                                                            .failed_issue(failed_mosi_issue),
-                                                                            .read_data(mosi_read_data),
-                                                                            .stream(axis_mosi),
-                                                                            .reg_if(reg_if)
-                                                                            );
-
-   
-   command_u_t cmd_out;
-   
-   assign axis_cmd.tdata = cmd_out.data;
-   
-
+   register_to_stream 
+     #(.REGISTER_NO(REGISTER_MOSIFIFO)) 
+   mosi_reg_to_stream
+     (
+      .do_issue(do_mosi_issue),
+      .failed_issue(failed_mosi_issue),
+      .read_data(mosi_read_data),
+      .stream(axis_mosi),
+      .reg_if(reg_if.CLIENT)
+      );
    
    typedef struct                           packed {
       logic                                 cpol;
@@ -133,9 +97,9 @@ module piradspi_csr
    // ADDR_LSB = 2 for 32 bits (n downto 2)
    // ADDR_LSB = 3 for 64 bits (n downto 3)
 
-   always @(posedge aximm.aclk)
+   always @(posedge csr.aclk)
      begin
-        if (~aximm.aresetn) begin
+        if (~csr.aresetn) begin
            completion_count = 0;
         end else begin
            completion_count = (reg_if.is_reg_write(REGISTER_CMPLCNT) ? 0 : completion_count) +
@@ -145,18 +109,18 @@ module piradspi_csr
    
    always_comb intr_out = intr_assert & intr_en;
    
-   always @(posedge aximm.aclk)
+   always @(posedge csr.aclk)
      begin
-        if (~aximm.aresetn) begin
+        if (~csr.aresetn) begin
            intr_en <= 0;
         end else begin
            intr_en <= reg_if.reg_update_bit(REGISTER_CTRLSTAT, CTRLSTAT_INTREN, intr_en);
         end
      end
    
-   always @(posedge aximm.aclk)
+   always @(posedge csr.aclk)
      begin
-        if (~aximm.aresetn) begin
+        if (~csr.aresetn) begin
            intr_assert <= 0;
         end else begin
            intr_assert <= (reg_if.is_reg_bit_set(REGISTER_CTRLSTAT, CTRLSTAT_INTR) | 
@@ -165,11 +129,11 @@ module piradspi_csr
         end
      end
    
-   function automatic logic [DATA_WIDTH-1:0] mask_write_bytes(input logic [DATA_WIDTH-1:0] r);
+   function automatic logic [CSR_DATA_WIDTH-1:0] mask_write_bytes(input logic [CSR_DATA_WIDTH-1:0] r);
       integer	 i;
-      logic [aximm.DATA_WIDTH-1:0] retval;;
-      for ( i = 0; i < aximm.STRB_WIDTH; i = i+1 ) begin
-         retval[(i*8) +: 8] = aximm.wstrb[i] ? aximm.wdata[(i*8) +: 8] : r[(i*8) +: 8];
+      logic [CSR_DATA_WIDTH-1:0] retval;
+      for ( i = 0; i < STRB_WIDTH; i = i+1 ) begin
+         retval[(i*8) +: 8] = csr.wstrb[i] ? csr.wdata[(i*8) +: 8] : r[(i*8) +: 8];
       end
       return retval;
       //WHYYYYYYYY won't this reference work in synthesis
@@ -179,17 +143,18 @@ module piradspi_csr
    generate
       for (i = 0; i < NUM_PROFILES; i++) begin
          logic [REGISTER_ADDR_BITS-1:0] write_profile_reg;
+         logic                          is_profile_write;
 
-         function logic is_profile_write(input regno_t rno);
-            return reg_if.wren && (rno >= REGISTER_PROFBASE + i * REGISTER_PROFSIZE) &&
-                                          (rno < (REGISTER_PROFBASE + (i + 1) * REGISTER_PROFSIZE));   
-         endfunction
+
+         assign is_profile_write = reg_if.wren && 
+                                   (reg_if.wreg_no >= REGISTER_PROFBASE + i * REGISTER_PROFSIZE) &&
+                                   (reg_if.wreg_no < (REGISTER_PROFBASE + (i + 1) * REGISTER_PROFSIZE));   
          
          assign write_profile_reg = (reg_if.wreg_no - REGISTER_PROFBASE) & WRITE_PROFILE_REG_MASK;
          
-         always @( posedge aximm.aclk )
+         always @( posedge csr.aclk )
            begin
-              if (~aximm.aresetn) begin
+              if (~csr.aresetn) begin
                  profiles[i].cpol = 0;
                  profiles[i].cpha = 0;
                  profiles[i].sclk_cycles = 16'hFFFF;
@@ -197,44 +162,44 @@ module piradspi_csr
                  profiles[i].csn_to_sclk_cycles = 16'hFFFF;
                  profiles[i].sclk_to_csn_cycles = 16'hFFFF;        
                  profiles[i].xfer_len = 16'h8;
-              end else if (is_profile_write(reg_if.wreg_no)) begin
+              end else if (is_profile_write) begin
                  case(write_profile_reg)
                    REGISTER_POLPHA: 
-                     if (aximm.wstrb[0]) begin
-                        { profiles[i].cpol, profiles[i].cpha } <= aximm.wdata;
+                     if (csr.wstrb[0]) begin
+                        { profiles[i].cpol, profiles[i].cpha } <= csr.wdata;
                      end
                    REGISTER_SCLKDIV: profiles[i].sclk_cycles <= reg_if.mask_write_bytes(profiles[i].sclk_cycles);
                    REGISTER_STARTWAIT: profiles[i].wait_start <=  reg_if.mask_write_bytes(profiles[i].wait_start);
                    REGISTER_CSNTOSCLK: profiles[i].csn_to_sclk_cycles <= reg_if.mask_write_bytes(profiles[i].csn_to_sclk_cycles);
                    REGISTER_SCLKTOCSN: profiles[i].sclk_to_csn_cycles <= reg_if.mask_write_bytes(profiles[i].sclk_to_csn_cycles);
                    REGISTER_XFERLEN: profiles[i].xfer_len <= reg_if.mask_write_bytes(profiles[i].xfer_len);
-                   default: begin $display("Prof reg: %b", write_profile_reg); end                          
+                   default: begin end                          
                  endcase
               end
            end
       end
    endgenerate
 
-   assign error_clear = reg_if.is_reg_write(REGISTER_CTRLSTAT) & aximm.wdata[1] & aximm.wstrb[0];
+   assign error_clear = reg_if.is_reg_write(REGISTER_CTRLSTAT) & csr.wdata[1] & csr.wstrb[0];
 
    // Control Status
-   always @(posedge aximm.aclk)
+   always @(posedge csr.aclk)
      begin
-        if (~aximm.aresetn) begin
+        if (~csr.aresetn) begin
            autoinc_id <= 1'b0;
            engine_enable <= 1'b0;
         end else if (reg_if.is_reg_write(REGISTER_CTRLSTAT)) begin
-           if (aximm.wstrb[0]) begin
-              engine_enable <= aximm.wdata[0];
-              autoinc_id <= aximm.wdata[3];
+           if (csr.wstrb[0]) begin
+              engine_enable <= csr.wdata[0];
+              autoinc_id <= csr.wdata[3];
            end
         end
      end
 
    
-   always @(posedge aximm.aclk)
+   always @(posedge csr.aclk)
      begin
-        if (~aximm.aresetn) begin
+        if (~csr.aresetn) begin
            cmd_id <= 0;
         end else if(reg_if.wren) begin
            case (reg_if.wreg_no)
@@ -248,36 +213,45 @@ module piradspi_csr
         end
      end
 
-   always @(posedge aximm.aclk)
+
+
+   assign cmd_stream.cmd.cpol = profiles[profile_sel].cpol;
+   assign cmd_stream.cmd.cpha = profiles[profile_sel].cpha;
+   assign cmd_stream.cmd.id = cmd_id;
+   assign cmd_stream.cmd.device = device_sel;
+   assign cmd_stream.cmd.sclk_cycles = profiles[profile_sel].sclk_cycles;
+   assign cmd_stream.cmd.wait_start = profiles[profile_sel].wait_start;
+   assign cmd_stream.cmd.csn_to_sclk_cycles = profiles[profile_sel].csn_to_sclk_cycles;
+   assign cmd_stream.cmd.sclk_to_csn_cycles = profiles[profile_sel].sclk_to_csn_cycles;
+   assign cmd_stream.cmd.xfer_len = profiles[profile_sel].xfer_len;
+
+   logic cmd_trigger, cmd_is_busy;
+   
+   always @(posedge csr.aclk)
      begin
-        if (~aximm.aresetn) begin
-           cmd_out.c.pad <= 0;
-           cmd_out.c.cmd.cpol <= 0;
-           cmd_out.c.cmd.cpha <= 0;
-           cmd_out.c.cmd.id <= 0;
-           cmd_out.c.cmd.device <= 0;
-           cmd_out.c.cmd.sclk_cycles <= 0;
-           cmd_out.c.cmd.wait_start <= 0;
-           cmd_out.c.cmd.csn_to_sclk_cycles <= 0;
-           cmd_out.c.cmd.sclk_to_csn_cycles <= 0;        
-           cmd_out.c.cmd.xfer_len <= 0;
-        end else if (do_cmd_issue) begin
-           cmd_out.c.cmd.cpol <= profiles[profile_sel].cpol;
-           cmd_out.c.cmd.cpha <= profiles[profile_sel].cpha;
-           cmd_out.c.cmd.id <= cmd_id;
-           cmd_out.c.cmd.device <= device_sel;
-           cmd_out.c.cmd.sclk_cycles <= profiles[profile_sel].sclk_cycles;
-           cmd_out.c.cmd.wait_start <= profiles[profile_sel].wait_start;
-           cmd_out.c.cmd.csn_to_sclk_cycles <= profiles[profile_sel].csn_to_sclk_cycles;
-           cmd_out.c.cmd.sclk_to_csn_cycles <= profiles[profile_sel].sclk_to_csn_cycles;
-           cmd_out.c.cmd.xfer_len <= profiles[profile_sel].xfer_len;
+        cmd_trigger = reg_if.is_reg_write(REGISTER_TRIGGER);
+        cmd_is_busy = (cmd_stream.cmd_valid & ~cmd_stream.cmd_ready);
+        cmd_do_issue = cmd_trigger & ~cmd_is_busy;
+        
+        if (~reg_if.aresetn | ~cmd_stream.aresetn) begin
+            cmd_stream.cmd_valid = 1'b0;
+            cmd_failed_issue = 1'b0;
+        end else if (cmd_trigger) begin
+            if (cmd_do_issue) begin
+                cmd_stream.cmd_valid = 1'b1;
+            end else begin
+                cmd_failed_issue = 1;
+            end
+        end else begin
+            cmd_failed_issue = reg_if.is_reg_read(REGISTER_TRIGGER) ? 0 : cmd_failed_issue;
+            cmd_stream.cmd_valid = cmd_stream.cmd_valid & ~cmd_stream.cmd_ready;
         end
-     end
+    end
 
    
-   always @( posedge aximm.aclk )
+   always @( posedge csr.aclk )
      begin
-        if (~aximm.aresetn) begin
+        if (~csr.aresetn) begin
            device_sel <= 0;
            profile_sel <= 0;
            axis_mosi.tdata <= 0;
@@ -314,7 +288,7 @@ module piradspi_csr
         if (reg_if.rreg_no >= REGISTER_PROFBASE) begin
            case (read_profile_reg)
              REGISTER_POLPHA:
-               reg_if.rreg_data <= { {{DATA_WIDTH-2}{1'b0}}, read_profile.cpol, read_profile.cpha };
+               reg_if.rreg_data <= { {{CSR_DATA_WIDTH-2}{1'b0}}, read_profile.cpol, read_profile.cpha };
              REGISTER_SCLKDIV: reg_if.rreg_data <= read_profile.sclk_cycles;
              REGISTER_STARTWAIT: reg_if.rreg_data <=  read_profile.wait_start;
              REGISTER_CSNTOSCLK: reg_if.rreg_data <= read_profile.csn_to_sclk_cycles;
@@ -330,10 +304,10 @@ module piradspi_csr
              REGISTER_DEVSELECT: reg_if.rreg_data <= device_sel;
              REGISTER_PROFSELECT: reg_if.rreg_data <= profile_sel;
              REGISTER_CMD_ID: reg_if.rreg_data <= cmd_id; 
-             REGISTER_TRIGGER: reg_if.rreg_data <= cmd_read_data;
+             REGISTER_TRIGGER: reg_if.rreg_data <= { cmd_failed_issue, cmd_stream.cmd_ready };
              REGISTER_MOSIFIFO: reg_if.rreg_data <= mosi_read_data;
-             REGISTER_MISOFIFO: reg_if.rreg_data <= axis_miso.tvalid ? axis_miso.tdata : {{DATA_WIDTH}{1'b1}};
-             REGISTER_TRIGGER: reg_if.rreg_data <= { {{DATA_WIDTH-2}{1'b0}}, failed_cmd_issue, axis_cmd.tready};
+             REGISTER_MISOFIFO: reg_if.rreg_data <= axis_miso.tvalid ? axis_miso.tdata : {{CSR_DATA_WIDTH}{1'b1}};
+             REGISTER_TRIGGER: reg_if.rreg_data <= { {{CSR_DATA_WIDTH-2}{1'b0}}, cmd_failed_issue, cmd_stream.cmd_ready};
              default: reg_if.rreg_data <= 0;
            endcase
         end

@@ -3,7 +3,8 @@
 __pycache__
 *~
 /edit_*.*
-*.wcfg
+*.jou
+*.log
 component.xml
 AXIS_SampleBufferOut/
 piradspi_ip/

@@ -92,7 +92,8 @@ class WrappedParameter(svparameter):
             param.default,
             param.local
         )
-        
+
+        self.orig_param = param
         self.desc = desc
         self.parent = parent
 
@@ -101,13 +102,29 @@ class WrappedParameter(svparameter):
         
     def subst(self, ns):
         return WrappedParameter(self.parent, self.name, super(WrappedParameter, self).subst(ns), self.desc)
-        
+
+    @property
+    def propagator(self):
+        return f".{self.orig_param.name}({self.name})"
+    
     @property
     def allowed_values(self):
         if self.desc is not None:
             return self.desc.allowed_values
         return list()
-    
+
+class WrappedPort(svport):
+    def __init__(self, parent, new_name, port):
+        super(WrappedPort, self).__init__(port.direction, port.datatype, new_name)
+        self.parent = parent
+        self.orig_port = port
+
+    def subst(self, ns):
+        return WrappedPort(self.parent, self.name, self.orig_port.subst(ns))
+
+    @property
+    def propagator(self):
+        return f".{self.orig_port.name}({self.name})"    
     
 class WrapperIfacePort:
     def __init__(self, module, port):
@@ -145,7 +162,7 @@ class WrapperIfacePort:
             self.param_map[pname] = wp
 
             if not p.local:
-                self.module.params[pname] = wp.subst(ns)
+                self.module.outer_params[pname] = wp.subst(ns)
 
         typemap = {}
             
@@ -164,9 +181,12 @@ class WrapperIfacePort:
 
             if p.name == self.desc.ipxdesc.clock.name:
                 self.clock = pname
-            
-            self.port_map[pname] = p
-            self.module.ports[pname] = p.subst(ns).subst(local_update)
+
+            wp = WrappedPort(self, pname, p)
+                
+            self.port_map[pname] = wp
+            print(f"OUTER PORT {pname} {wp}")
+            self.module.outer_ports[pname] = wp.subst(ns).subst(local_update)
 
         for p in self.modport.ports.values():
             if p.name in [ "aclk", "aresetn" ]:
@@ -181,7 +201,8 @@ class WrapperIfacePort:
             d = data.subst(ns)
             d = d.subst(local_update)
 
-            self.module.ports[pname] = svport(p.direction, d.datatype, pname)
+            print(f"OUTER DATA PORT {pname} {svport(p.direction, d.datatype, pname)}")
+            self.module.outer_ports[pname] = svport(p.direction, d.datatype, pname)
 
     def wrap_param_name(self, name):
         desc = self.interface.desc.param_map.get(name, None)
@@ -209,7 +230,7 @@ class WrapperIfacePort:
     
     @property
     def name(self):
-        return f"{self.interface.name}_inst"
+        return f"{self.interface_port.name}_if"
 
     @property
     def local_params(self):
@@ -221,10 +242,10 @@ class WrapperIfacePort:
     
     def generate_verilog(self, f):
         print(f"    {self.interface.name} #(", file=f)
-        print("        "+",\n        ".join([ f".{self.param_map[p].name}({p})" for p in self.exposed_params]), file=f)
+        print("        "+",\n        ".join([ self.param_map[p].propagator for p in self.exposed_params]), file=f)
         print(f"    ) {self.name} (", file=f)
 
-        print("        "+",\n        ".join([ f".{self.port_map[p].name}({p})" for p in self.port_map ]), file=f)
+        print("        "+",\n        ".join([ p.propagator for p in self.port_map.values() ]), file=f)
         
         print(f"    );", file=f)
 
@@ -234,6 +255,10 @@ class WrapperIfacePort:
         for p in filter(lambda p: self.data_map[p].direction == 'output', self.data_map):
             print(f"    assign {p} = {self.name}.{self.data_map[p].name};", file=f)
 
+
+    @property
+    def propagator(self):
+        return f".{self.interface_port.name}({self.name}.{self.modport.name})"
     
 class WrapperModule:
     def __init__(self, module):
@@ -241,25 +266,35 @@ class WrapperModule:
         self.name = self.desc.wrapper_name
         self.module = module
 
-        self.params = {}
-        self.ports = {}
+        self.outer_params = {}
+        
+        self.outer_ports = {}
+        self.inner_ports = {}
+
         self.interface_ports = { p.name: WrapperIfacePort(self, p) for p in filter(lambda x: x.is_interface_port, self.module.ports.values()) }
+        self.module_params = {}
+
+        for p in self.module.ports.values():
+            if p.is_interface_port:
+                wp = WrapperIfacePort(self, p)
+                self.interface_ports[p.name] = wp
+                self.inner_ports[p.name] = wp
         
         for p in module.params.values():
-            self.params[p.name] = WrappedParameter(self, p.name, p, self.desc.param_map.get(p.name, None))
+            wp = WrappedParameter(self, p.name, p, self.desc.param_map.get(p.name, None))
+            self.module_params[p.name] = wp
+            self.outer_params[p.name] = wp
 
-        local_update = { p: self.params[p].default for p in self.local_params }
+        local_update = { p: self.outer_params[p].default for p in self.local_params }
 
-        for p in self.params:
-            self.params[p] = subst(self.params[p], local_update)
+        for p in self.outer_params:
+            self.outer_params[p] = subst(self.outer_params[p], local_update)
                     
         for p in module.ports.values():
             if not p.is_interface_port:
-                self.ports[p.name] = p
-
-        for p in module.ports.values():
-            if not p.is_interface_port:
-                self.ports[p.name] = subst(p, local_update)
+                wp = WrappedPort(self, p.name, p)
+                self.outer_ports[p.name] = subst(wp, local_update)
+                self.inner_ports[p.name] = subst(wp, local_update)
 
             
         if dump_definitions:
@@ -267,35 +302,38 @@ class WrapperModule:
             print("================================")
             print("  Parameters:")
             
-            for p in self.params:
+            for p in self.outer_params:
                 print(f"    {p}")
                 
             print("  Ports:")
 
-            for p in self.ports:
+            for p in self.outer_ports:
                 print(f"    {p}")
 
+        print(self.outer_ports)
+        print(self.inner_ports)
+        
     @property
     def has_interfaces(self):
         return len(self.interface_ports) > 0
 
     @property
     def exposed_params(self):
-        return filter(lambda p: not self.params[p].local, self.params)
+        return filter(lambda p: not self.outer_params[p].local, self.outer_params)
 
     @property
     def local_params(self):
-        return filter(lambda p: self.params[p].local, self.params)
+        return filter(lambda p: self.outer_params[p].local, self.outer_params)
     
     def generate_verilog(self, f):
         print("`timescale 1ns/1ps", file=f)
         print(f"module {self.name} #(", file=f)
             
-        print("    "+",\n    ".join([self.params[p].decl for p in self.exposed_params]), file=f)
+        print("    "+",\n    ".join([self.outer_params[p].decl for p in self.exposed_params]), file=f)
 
         print(") (", file = f)
         
-        print("    "+",\n    ".join([p.decl for p in self.ports.values()]), file=f)
+        print("    "+",\n    ".join([p.decl for p in self.outer_ports.values()]), file=f)
 
         print(");", file=f)
 
@@ -309,13 +347,16 @@ class WrapperModule:
 
         print("", file=f)
         
-        print(f"    {self.module.name} #(", file=f)
+        print(f"    {self.module.name} ", file=f, end='')
 
-        print(8*" "+(",\n"+8*" ").join([f".{n}({n})" for n in self.exposed_params ]), file=f)
+        if len(self.module_params):
+            print(f" #(", file=f)
+            print(8*" "+(",\n"+8*" ").join([ p.propagator for p in self.module_params.values() ]), file=f)
+            print(f"      ) ", file=f, end='')
 
-        print(f"    ) {self.module.name}_inst (", file=f)
+        print(f"{self.module.name}_inst (", file=f)
         
-        print(8*" "+(",\n"+8*" ").join([ f".{p.name}({p.name})" for p in self.module.ports.values() ]), file=f)
+        print(8*" "+(",\n"+8*" ").join([ self.inner_ports[p].propagator for p in self.module.ports ]), file=f)
             
         print(f"    );", file=f);
             

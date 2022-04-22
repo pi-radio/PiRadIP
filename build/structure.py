@@ -10,8 +10,6 @@ build_root = Path(__file__).parent.parent.absolute()
 
 INFO(f"Build root: {build_root}")
 
-piradlib_files = []
-
 interface_map = {}
 
 module_map = {}
@@ -141,11 +139,29 @@ class ModuleDesc:
 @dataclass
 class Library:
     name: str
+    path: str
+    vlnv: VLNV
+    description: str
     files: List[str]
 
     def __post_init__(self):
         library_map[self.name] = self
 
-    
-def add_library_file(file):
-    piradlib_files.append(file)
+    @property
+    def xml_path(self):
+        return PurePath(self.path).joinpath("component.xml")
+
+    @property
+    def up_to_date(self):
+        input_times = [ os.path.getmtime(i) for i in self.files ]
+
+        input_times.append(os.path.getmtime("buildlib.py"))
+        
+        output_time = 0
+        
+        try:
+            output_time = os.path.getmtime(self.xml_path)
+        except FileNotFoundError:
+            pass
+        
+        return all(output_time > i for i in input_times)

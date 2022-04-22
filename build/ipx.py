@@ -1,7 +1,5 @@
 from .piradip_build_base import *
 
-from .structure import piradlib_files
-
 from .ipxact_base import *
 """
 from .ipxact_node import *
@@ -97,8 +95,8 @@ class IPXScript(TCLScript):
             self.model_param_ids[p] = svsymbol(f"MODELPARAM_VALUE.{p}")
             self.model_param_refs[p] = svsymbol(f"spirit:decode(id('{self.model_param_ids[p]}'))")
 
-        for p in self.module.params:
-            self.default_dict[p] = self.module.params[p].default
+        for p in self.module.outer_params:
+            self.default_dict[p] = self.module.outer_params[p].default
 
         known_symbols = set(self.default_dict.keys())
 
@@ -140,7 +138,7 @@ class IPXScript(TCLScript):
         self.comment("Generate ports")
         self.comment("")
 
-        for n, p in enumerate(sorted(self.module.ports)):
+        for n, p in enumerate(sorted(self.module.outer_ports)):
             self.generate_port(n, p)
 
 
@@ -149,7 +147,7 @@ class IPXScript(TCLScript):
         self.comment("")
 
         for n, p in enumerate(sorted(self.module.exposed_params)):
-            self.generate_parameter(n, self.module.params[p])
+            self.generate_parameter(n, self.module.outer_params[p])
 
 
         self.comment("")
@@ -209,8 +207,6 @@ class IPXScript(TCLScript):
 
         self.cmd("ipx::save_core [ipx::current_core]")
 
-        self.cmd("ipx::create_default_gui_files [ipx::current_core]")
-        self.cmd("ipx::create_xgui_files [ipx::current_core]")
         self.cmd("ipx::unload_core [ipx::current_core]")
         self.cmd("cd $prev_path")
 
@@ -270,11 +266,12 @@ class IPXScript(TCLScript):
 
 
     def generate_port(self, n, port_name):
+        print(f"Generating {port_name}")
         self.comment("")
         self.comment(f"Port {port_name}")
         self.comment("")
 
-        p = self.module.ports[port_name]
+        p = self.module.outer_ports[port_name]
 
         cp = self.set_var("current_port", f"[::ipx::add_port {port_name} $top]")
 
@@ -461,12 +458,9 @@ class XilinxXGUITcl(TCLScript):
     def generate(self):
         self.cmd("proc init_gui { IPINST } {")
         self.cmd(" ipgui::add_param $IPINST -name \"Component_Name\"")
-        self.cmd(" set Page_0 ipgui::add_page $IPINST -name \"Page 0\"")
+        self.cmd(" set Page_0 [ipgui::add_page $IPINST -name \"Page 0\"]")
 
-        for p in self.module.params:
-            pass
-
-        for p in self.module.params.values():
+        for p in self.module.outer_params.values():
             # ipgui::add_param $IPINST -name "C_S01_AXI_ID_WIDTH" -parent ${Page_0}
             # ipgui::add_param $IPINST -name "C_S01_AXI_DATA_WIDTH" -parent ${Page_0} -widget comboBox
             self.cmd(f"ipgui::add_param $IPINST -name \"{p.name}\" -parent ${{Page_0}}")  #add combobox
@@ -474,7 +468,7 @@ class XilinxXGUITcl(TCLScript):
         self.cmd("}")
 
 
-        for p in self.module.params.values():
+        for p in self.module.outer_params.values():
             self.cmd("")
             self.cmd(f"proc update_PARAM_VALUE.{p.name} {{ PARAM_VALUE.{p.name} }} {{")
             self.cmd("}")

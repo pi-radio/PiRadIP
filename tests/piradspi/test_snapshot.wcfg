@@ -1,0 +1,652 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="test_snapshot.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="piradip_axi4" />
+            <top_module name="piradspi_pkg" />
+            <top_module name="piradspi_tb_full" />
+            <top_module name="std" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000000 us"></ZoomStartTime>
+      <ZoomEndTime time="13.688349 us"></ZoomEndTime>
+      <Cursor1Time time="12.970000 us"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="400"></NameColumnWidth>
+      <ValueColumnWidth column_width="160"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="4" />
+   <wvobject type="group" fp_name="group67">
+      <obj_property name="label">CSR</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject type="group" fp_name="group148">
+         <obj_property name="label">reg_if</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+         <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/reg_if/wren">
+            <obj_property name="ElementShortName">wren</obj_property>
+            <obj_property name="ObjectShortName">wren</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/reg_if/wreg_no">
+            <obj_property name="ElementShortName">wreg_no[5:0]</obj_property>
+            <obj_property name="ObjectShortName">wreg_no[5:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/reg_if/wreg_data">
+            <obj_property name="ElementShortName">wreg_data[31:0]</obj_property>
+            <obj_property name="ObjectShortName">wreg_data[31:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/reg_if/wstrb">
+            <obj_property name="ElementShortName">wstrb[3:0]</obj_property>
+            <obj_property name="ObjectShortName">wstrb[3:0]</obj_property>
+         </wvobject>
+         <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/reg_if/rden">
+            <obj_property name="ElementShortName">rden</obj_property>
+            <obj_property name="ObjectShortName">rden</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/reg_if/rreg_no">
+            <obj_property name="ElementShortName">rreg_no[5:0]</obj_property>
+            <obj_property name="ObjectShortName">rreg_no[5:0]</obj_property>
+         </wvobject>
+         <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/reg_if/rreg_data">
+            <obj_property name="ElementShortName">rreg_data[31:0]</obj_property>
+            <obj_property name="ObjectShortName">rreg_data[31:0]</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/cmd_trigger">
+         <obj_property name="ElementShortName">cmd_trigger</obj_property>
+         <obj_property name="ObjectShortName">cmd_trigger</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/clk">
+         <obj_property name="ElementShortName">clk</obj_property>
+         <obj_property name="ObjectShortName">clk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/rstn">
+         <obj_property name="ElementShortName">rstn</obj_property>
+         <obj_property name="ObjectShortName">rstn</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/sclk">
+         <obj_property name="ElementShortName">sclk</obj_property>
+         <obj_property name="ObjectShortName">sclk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/mosi">
+         <obj_property name="ElementShortName">mosi</obj_property>
+         <obj_property name="ObjectShortName">mosi</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/miso">
+         <obj_property name="ElementShortName">miso</obj_property>
+         <obj_property name="ObjectShortName">miso</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/csn_active">
+         <obj_property name="ElementShortName">csn_active</obj_property>
+         <obj_property name="ObjectShortName">csn_active</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/csn_mode_1">
+         <obj_property name="ElementShortName">csn_mode_1[4:0]</obj_property>
+         <obj_property name="ObjectShortName">csn_mode_1[4:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/interrupt_sel_mode_1">
+         <obj_property name="ElementShortName">interrupt_sel_mode_1</obj_property>
+         <obj_property name="ObjectShortName">interrupt_sel_mode_1</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/SEL_WIDTH">
+         <obj_property name="ElementShortName">SEL_WIDTH[31:0]</obj_property>
+         <obj_property name="ObjectShortName">SEL_WIDTH[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/engine_enable">
+         <obj_property name="ElementShortName">engine_enable</obj_property>
+         <obj_property name="ObjectShortName">engine_enable</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/engine_error">
+         <obj_property name="ElementShortName">engine_error</obj_property>
+         <obj_property name="ObjectShortName">engine_error</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/engine_busy">
+         <obj_property name="ElementShortName">engine_busy</obj_property>
+         <obj_property name="ObjectShortName">engine_busy</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/command_completed">
+         <obj_property name="ElementShortName">command_completed</obj_property>
+         <obj_property name="ObjectShortName">command_completed</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/intr_out">
+         <obj_property name="ElementShortName">intr_out</obj_property>
+         <obj_property name="ObjectShortName">intr_out</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/ctrlstat_out">
+         <obj_property name="ElementShortName">ctrlstat_out[31:0]</obj_property>
+         <obj_property name="ObjectShortName">ctrlstat_out[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/completion_count">
+         <obj_property name="ElementShortName">completion_count[31:0]</obj_property>
+         <obj_property name="ObjectShortName">completion_count[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/mosi_read_data">
+         <obj_property name="ElementShortName">mosi_read_data[31:0]</obj_property>
+         <obj_property name="ObjectShortName">mosi_read_data[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/autoinc_id">
+         <obj_property name="ElementShortName">autoinc_id</obj_property>
+         <obj_property name="ObjectShortName">autoinc_id</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/cmd_id">
+         <obj_property name="ElementShortName">cmd_id[15:0]</obj_property>
+         <obj_property name="ObjectShortName">cmd_id[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/device_sel">
+         <obj_property name="ElementShortName">device_sel[15:0]</obj_property>
+         <obj_property name="ObjectShortName">device_sel[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/intr_en">
+         <obj_property name="ElementShortName">intr_en</obj_property>
+         <obj_property name="ObjectShortName">intr_en</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/intr_assert">
+         <obj_property name="ElementShortName">intr_assert</obj_property>
+         <obj_property name="ObjectShortName">intr_assert</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/profile_sel">
+         <obj_property name="ElementShortName">profile_sel[3:0]</obj_property>
+         <obj_property name="ObjectShortName">profile_sel[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/cmd_do_issue">
+         <obj_property name="ElementShortName">cmd_do_issue</obj_property>
+         <obj_property name="ObjectShortName">cmd_do_issue</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/cmd_failed_issue">
+         <obj_property name="ElementShortName">cmd_failed_issue</obj_property>
+         <obj_property name="ObjectShortName">cmd_failed_issue</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/do_mosi_issue">
+         <obj_property name="ElementShortName">do_mosi_issue</obj_property>
+         <obj_property name="ObjectShortName">do_mosi_issue</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/failed_mosi_issue">
+         <obj_property name="ElementShortName">failed_mosi_issue</obj_property>
+         <obj_property name="ObjectShortName">failed_mosi_issue</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/profiles">
+         <obj_property name="ElementShortName">profiles[0:15]</obj_property>
+         <obj_property name="ObjectShortName">profiles[0:15]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[0].write_profile_reg ">
+         <obj_property name="ElementShortName">\genblk1[0].write_profile_reg [5:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk1[0].write_profile_reg [5:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[0].is_profile_write ">
+         <obj_property name="ElementShortName">\genblk1[0].is_profile_write </obj_property>
+         <obj_property name="ObjectShortName">\genblk1[0].is_profile_write </obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[1].write_profile_reg ">
+         <obj_property name="ElementShortName">\genblk1[1].write_profile_reg [5:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk1[1].write_profile_reg [5:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[1].is_profile_write ">
+         <obj_property name="ElementShortName">\genblk1[1].is_profile_write </obj_property>
+         <obj_property name="ObjectShortName">\genblk1[1].is_profile_write </obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[2].write_profile_reg ">
+         <obj_property name="ElementShortName">\genblk1[2].write_profile_reg [5:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk1[2].write_profile_reg [5:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[2].is_profile_write ">
+         <obj_property name="ElementShortName">\genblk1[2].is_profile_write </obj_property>
+         <obj_property name="ObjectShortName">\genblk1[2].is_profile_write </obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[3].write_profile_reg ">
+         <obj_property name="ElementShortName">\genblk1[3].write_profile_reg [5:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk1[3].write_profile_reg [5:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[3].is_profile_write ">
+         <obj_property name="ElementShortName">\genblk1[3].is_profile_write </obj_property>
+         <obj_property name="ObjectShortName">\genblk1[3].is_profile_write </obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[4].write_profile_reg ">
+         <obj_property name="ElementShortName">\genblk1[4].write_profile_reg [5:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk1[4].write_profile_reg [5:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[4].is_profile_write ">
+         <obj_property name="ElementShortName">\genblk1[4].is_profile_write </obj_property>
+         <obj_property name="ObjectShortName">\genblk1[4].is_profile_write </obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[5].write_profile_reg ">
+         <obj_property name="ElementShortName">\genblk1[5].write_profile_reg [5:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk1[5].write_profile_reg [5:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[5].is_profile_write ">
+         <obj_property name="ElementShortName">\genblk1[5].is_profile_write </obj_property>
+         <obj_property name="ObjectShortName">\genblk1[5].is_profile_write </obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[6].write_profile_reg ">
+         <obj_property name="ElementShortName">\genblk1[6].write_profile_reg [5:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk1[6].write_profile_reg [5:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[6].is_profile_write ">
+         <obj_property name="ElementShortName">\genblk1[6].is_profile_write </obj_property>
+         <obj_property name="ObjectShortName">\genblk1[6].is_profile_write </obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[7].write_profile_reg ">
+         <obj_property name="ElementShortName">\genblk1[7].write_profile_reg [5:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk1[7].write_profile_reg [5:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[7].is_profile_write ">
+         <obj_property name="ElementShortName">\genblk1[7].is_profile_write </obj_property>
+         <obj_property name="ObjectShortName">\genblk1[7].is_profile_write </obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[8].write_profile_reg ">
+         <obj_property name="ElementShortName">\genblk1[8].write_profile_reg [5:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk1[8].write_profile_reg [5:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[8].is_profile_write ">
+         <obj_property name="ElementShortName">\genblk1[8].is_profile_write </obj_property>
+         <obj_property name="ObjectShortName">\genblk1[8].is_profile_write </obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[9].write_profile_reg ">
+         <obj_property name="ElementShortName">\genblk1[9].write_profile_reg [5:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk1[9].write_profile_reg [5:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[9].is_profile_write ">
+         <obj_property name="ElementShortName">\genblk1[9].is_profile_write </obj_property>
+         <obj_property name="ObjectShortName">\genblk1[9].is_profile_write </obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[10].write_profile_reg ">
+         <obj_property name="ElementShortName">\genblk1[10].write_profile_reg [5:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk1[10].write_profile_reg [5:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[10].is_profile_write ">
+         <obj_property name="ElementShortName">\genblk1[10].is_profile_write </obj_property>
+         <obj_property name="ObjectShortName">\genblk1[10].is_profile_write </obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[11].write_profile_reg ">
+         <obj_property name="ElementShortName">\genblk1[11].write_profile_reg [5:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk1[11].write_profile_reg [5:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[11].is_profile_write ">
+         <obj_property name="ElementShortName">\genblk1[11].is_profile_write </obj_property>
+         <obj_property name="ObjectShortName">\genblk1[11].is_profile_write </obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[12].write_profile_reg ">
+         <obj_property name="ElementShortName">\genblk1[12].write_profile_reg [5:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk1[12].write_profile_reg [5:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[12].is_profile_write ">
+         <obj_property name="ElementShortName">\genblk1[12].is_profile_write </obj_property>
+         <obj_property name="ObjectShortName">\genblk1[12].is_profile_write </obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[13].write_profile_reg ">
+         <obj_property name="ElementShortName">\genblk1[13].write_profile_reg [5:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk1[13].write_profile_reg [5:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[13].is_profile_write ">
+         <obj_property name="ElementShortName">\genblk1[13].is_profile_write </obj_property>
+         <obj_property name="ObjectShortName">\genblk1[13].is_profile_write </obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[14].write_profile_reg ">
+         <obj_property name="ElementShortName">\genblk1[14].write_profile_reg [5:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk1[14].write_profile_reg [5:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[14].is_profile_write ">
+         <obj_property name="ElementShortName">\genblk1[14].is_profile_write </obj_property>
+         <obj_property name="ObjectShortName">\genblk1[14].is_profile_write </obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[15].write_profile_reg ">
+         <obj_property name="ElementShortName">\genblk1[15].write_profile_reg [5:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk1[15].write_profile_reg [5:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/\genblk1[15].is_profile_write ">
+         <obj_property name="ElementShortName">\genblk1[15].is_profile_write </obj_property>
+         <obj_property name="ObjectShortName">\genblk1[15].is_profile_write </obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/read_profile_no">
+         <obj_property name="ElementShortName">read_profile_no[31:0]</obj_property>
+         <obj_property name="ObjectShortName">read_profile_no[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/read_profile_reg">
+         <obj_property name="ElementShortName">read_profile_reg[31:0]</obj_property>
+         <obj_property name="ObjectShortName">read_profile_reg[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/read_profile">
+         <obj_property name="ElementShortName">read_profile</obj_property>
+         <obj_property name="ObjectShortName">read_profile</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/read_miso">
+         <obj_property name="ElementShortName">read_miso</obj_property>
+         <obj_property name="ObjectShortName">read_miso</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/error_clear">
+         <obj_property name="ElementShortName">error_clear</obj_property>
+         <obj_property name="ObjectShortName">error_clear</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/csr_inst/cmd_is_busy">
+         <obj_property name="ElementShortName">cmd_is_busy</obj_property>
+         <obj_property name="ObjectShortName">cmd_is_busy</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group68">
+      <obj_property name="label">FIFO Engine</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/cmd_completed">
+         <obj_property name="ElementShortName">cmd_completed</obj_property>
+         <obj_property name="ObjectShortName">cmd_completed</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine_error">
+         <obj_property name="ElementShortName">engine_error</obj_property>
+         <obj_property name="ObjectShortName">engine_error</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine_busy">
+         <obj_property name="ElementShortName">engine_busy</obj_property>
+         <obj_property name="ObjectShortName">engine_busy</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/sclk">
+         <obj_property name="ElementShortName">sclk</obj_property>
+         <obj_property name="ObjectShortName">sclk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/mosi">
+         <obj_property name="ElementShortName">mosi</obj_property>
+         <obj_property name="ObjectShortName">mosi</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/miso">
+         <obj_property name="ElementShortName">miso</obj_property>
+         <obj_property name="ObjectShortName">miso</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/csn">
+         <obj_property name="ElementShortName">csn[4:0]</obj_property>
+         <obj_property name="ObjectShortName">csn[4:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/sel_active">
+         <obj_property name="ElementShortName">sel_active</obj_property>
+         <obj_property name="ObjectShortName">sel_active</obj_property>
+      </wvobject>
+      <wvobject type="group" fp_name="group99">
+         <obj_property name="label">Inputs</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+         <wvobject type="group" fp_name="group135">
+            <obj_property name="label">CMD</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/cmd_stream/cmd_ready">
+               <obj_property name="ElementShortName">cmd_ready</obj_property>
+               <obj_property name="ObjectShortName">cmd_ready</obj_property>
+            </wvobject>
+            <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/cmd_stream/cmd">
+               <obj_property name="ElementShortName">cmd</obj_property>
+               <obj_property name="ObjectShortName">cmd</obj_property>
+            </wvobject>
+            <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/cmd_stream/cmd_valid">
+               <obj_property name="ElementShortName">cmd_valid</obj_property>
+               <obj_property name="ObjectShortName">cmd_valid</obj_property>
+            </wvobject>
+         </wvobject>
+         <wvobject type="group" fp_name="group119">
+            <obj_property name="label">MOSI</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/axis_mosi/tvalid">
+               <obj_property name="ElementShortName">tvalid</obj_property>
+               <obj_property name="ObjectShortName">tvalid</obj_property>
+            </wvobject>
+            <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/axis_mosi/tlast">
+               <obj_property name="ElementShortName">tlast</obj_property>
+               <obj_property name="ObjectShortName">tlast</obj_property>
+            </wvobject>
+            <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/axis_mosi/tdata">
+               <obj_property name="ElementShortName">tdata[31:0]</obj_property>
+               <obj_property name="ObjectShortName">tdata[31:0]</obj_property>
+            </wvobject>
+            <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/axis_mosi/tready">
+               <obj_property name="ElementShortName">tready</obj_property>
+               <obj_property name="ObjectShortName">tready</obj_property>
+            </wvobject>
+         </wvobject>
+         <wvobject type="group" fp_name="group120">
+            <obj_property name="label">MISO</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/axis_miso/tvalid">
+               <obj_property name="ElementShortName">tvalid</obj_property>
+               <obj_property name="ObjectShortName">tvalid</obj_property>
+            </wvobject>
+            <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/axis_miso/tlast">
+               <obj_property name="ElementShortName">tlast</obj_property>
+               <obj_property name="ObjectShortName">tlast</obj_property>
+            </wvobject>
+            <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/axis_miso/tdata">
+               <obj_property name="ElementShortName">tdata[31:0]</obj_property>
+               <obj_property name="ObjectShortName">tdata[31:0]</obj_property>
+            </wvobject>
+            <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/axis_miso/tready">
+               <obj_property name="ElementShortName">tready</obj_property>
+               <obj_property name="ObjectShortName">tready</obj_property>
+            </wvobject>
+         </wvobject>
+      </wvobject>
+      <wvobject type="group" fp_name="group105">
+         <obj_property name="label">Outputs</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+         <wvobject type="group" fp_name="group136">
+            <obj_property name="label">CMD</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine_stream/cmd_valid">
+               <obj_property name="ElementShortName">cmd_valid</obj_property>
+               <obj_property name="ObjectShortName">cmd_valid</obj_property>
+            </wvobject>
+            <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine_stream/cmd_ready">
+               <obj_property name="ElementShortName">cmd_ready</obj_property>
+               <obj_property name="ObjectShortName">cmd_ready</obj_property>
+            </wvobject>
+            <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine_stream/cmd">
+               <obj_property name="ElementShortName">cmd</obj_property>
+               <obj_property name="ObjectShortName">cmd</obj_property>
+            </wvobject>
+         </wvobject>
+         <wvobject type="group" fp_name="group134">
+            <obj_property name="label">MOSI</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/f2e_mosi/tready">
+               <obj_property name="ElementShortName">tready</obj_property>
+               <obj_property name="ObjectShortName">tready</obj_property>
+            </wvobject>
+            <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/f2e_mosi/tvalid">
+               <obj_property name="ElementShortName">tvalid</obj_property>
+               <obj_property name="ObjectShortName">tvalid</obj_property>
+            </wvobject>
+            <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/f2e_mosi/tlast">
+               <obj_property name="ElementShortName">tlast</obj_property>
+               <obj_property name="ObjectShortName">tlast</obj_property>
+            </wvobject>
+            <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/f2e_mosi/tdata">
+               <obj_property name="ElementShortName">tdata[31:0]</obj_property>
+               <obj_property name="ObjectShortName">tdata[31:0]</obj_property>
+            </wvobject>
+         </wvobject>
+         <wvobject type="group" fp_name="group133">
+            <obj_property name="label">MISO</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/e2f_miso/tready">
+               <obj_property name="ElementShortName">tready</obj_property>
+               <obj_property name="ObjectShortName">tready</obj_property>
+            </wvobject>
+            <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/e2f_miso/tvalid">
+               <obj_property name="ElementShortName">tvalid</obj_property>
+               <obj_property name="ObjectShortName">tvalid</obj_property>
+            </wvobject>
+            <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/e2f_miso/tlast">
+               <obj_property name="ElementShortName">tlast</obj_property>
+               <obj_property name="ObjectShortName">tlast</obj_property>
+            </wvobject>
+            <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/e2f_miso/tdata">
+               <obj_property name="ElementShortName">tdata[31:0]</obj_property>
+               <obj_property name="ObjectShortName">tdata[31:0]</obj_property>
+            </wvobject>
+         </wvobject>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group79">
+      <obj_property name="label">Engine</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/cmd_completed">
+         <obj_property name="ElementShortName">cmd_completed</obj_property>
+         <obj_property name="ObjectShortName">cmd_completed</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/engine_error">
+         <obj_property name="ElementShortName">engine_error</obj_property>
+         <obj_property name="ObjectShortName">engine_error</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/engine_busy">
+         <obj_property name="ElementShortName">engine_busy</obj_property>
+         <obj_property name="ObjectShortName">engine_busy</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/sclk">
+         <obj_property name="ElementShortName">sclk</obj_property>
+         <obj_property name="ObjectShortName">sclk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/mosi">
+         <obj_property name="ElementShortName">mosi</obj_property>
+         <obj_property name="ObjectShortName">mosi</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/miso">
+         <obj_property name="ElementShortName">miso</obj_property>
+         <obj_property name="ObjectShortName">miso</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/csn">
+         <obj_property name="ElementShortName">csn[4:0]</obj_property>
+         <obj_property name="ObjectShortName">csn[4:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/sel_active">
+         <obj_property name="ElementShortName">sel_active</obj_property>
+         <obj_property name="ObjectShortName">sel_active</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/data_word_t">
+         <obj_property name="ElementShortName">data_word_t[31:0]</obj_property>
+         <obj_property name="ObjectShortName">data_word_t[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/cur_cmd">
+         <obj_property name="ElementShortName">cur_cmd</obj_property>
+         <obj_property name="ObjectShortName">cur_cmd</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/sclk_gen">
+         <obj_property name="ElementShortName">sclk_gen</obj_property>
+         <obj_property name="ObjectShortName">sclk_gen</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/sclk_cnt">
+         <obj_property name="ElementShortName">sclk_cnt[7:0]</obj_property>
+         <obj_property name="ObjectShortName">sclk_cnt[7:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/cur_data_out">
+         <obj_property name="ElementShortName">cur_data_out</obj_property>
+         <obj_property name="ObjectShortName">cur_data_out</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/state">
+         <obj_property name="ElementShortName">state[31:0]</obj_property>
+         <obj_property name="ObjectShortName">state[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/state_cycles">
+         <obj_property name="ElementShortName">state_cycles[31:0]</obj_property>
+         <obj_property name="ObjectShortName">state_cycles[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/state_trigger">
+         <obj_property name="ElementShortName">state_trigger</obj_property>
+         <obj_property name="ObjectShortName">state_trigger</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/xfer_bits">
+         <obj_property name="ElementShortName">xfer_bits[15:0]</obj_property>
+         <obj_property name="ObjectShortName">xfer_bits[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/sclk_hold">
+         <obj_property name="ElementShortName">sclk_hold</obj_property>
+         <obj_property name="ObjectShortName">sclk_hold</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/consume_cmd">
+         <obj_property name="ElementShortName">consume_cmd</obj_property>
+         <obj_property name="ObjectShortName">consume_cmd</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/mosi_bit_empty">
+         <obj_property name="ElementShortName">mosi_bit_empty</obj_property>
+         <obj_property name="ObjectShortName">mosi_bit_empty</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/dut_sel_mode_1/piradspi_inst/engine/engine/miso_bit_full">
+         <obj_property name="ElementShortName">miso_bit_full</obj_property>
+         <obj_property name="ObjectShortName">miso_bit_full</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group147">
+      <obj_property name="label">SPI Device</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/device_00/sclk">
+         <obj_property name="ElementShortName">sclk</obj_property>
+         <obj_property name="ObjectShortName">sclk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/device_00/mosi">
+         <obj_property name="ElementShortName">mosi</obj_property>
+         <obj_property name="ObjectShortName">mosi</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/device_00/miso">
+         <obj_property name="ElementShortName">miso</obj_property>
+         <obj_property name="ObjectShortName">miso</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/device_00/csn">
+         <obj_property name="ElementShortName">csn</obj_property>
+         <obj_property name="ObjectShortName">csn</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/device_00/rstn">
+         <obj_property name="ElementShortName">rstn</obj_property>
+         <obj_property name="ObjectShortName">rstn</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/device_00/data">
+         <obj_property name="ElementShortName">data[63:0]</obj_property>
+         <obj_property name="ObjectShortName">data[63:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/device_00/active">
+         <obj_property name="ElementShortName">active</obj_property>
+         <obj_property name="ObjectShortName">active</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/device_00/clk_raw">
+         <obj_property name="ElementShortName">clk_raw</obj_property>
+         <obj_property name="ObjectShortName">clk_raw</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/device_00/shift_count">
+         <obj_property name="ElementShortName">shift_count[31:0]</obj_property>
+         <obj_property name="ObjectShortName">shift_count[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/device_00/latch_count">
+         <obj_property name="ElementShortName">latch_count[31:0]</obj_property>
+         <obj_property name="ObjectShortName">latch_count[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/device_00/\genblk1.mosi_r ">
+         <obj_property name="ElementShortName">\genblk1.mosi_r </obj_property>
+         <obj_property name="ObjectShortName">\genblk1.mosi_r </obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradspi_tb_full/device_00/nclk_raw">
+         <obj_property name="ElementShortName">nclk_raw</obj_property>
+         <obj_property name="ObjectShortName">nclk_raw</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/device_00/CPOL">
+         <obj_property name="ElementShortName">CPOL[31:0]</obj_property>
+         <obj_property name="ObjectShortName">CPOL[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/device_00/CPHA">
+         <obj_property name="ElementShortName">CPHA[31:0]</obj_property>
+         <obj_property name="ObjectShortName">CPHA[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/device_00/WIDTH">
+         <obj_property name="ElementShortName">WIDTH[31:0]</obj_property>
+         <obj_property name="ObjectShortName">WIDTH[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradspi_tb_full/device_00/INITIAL_VALUE">
+         <obj_property name="ElementShortName">INITIAL_VALUE[63:0]</obj_property>
+         <obj_property name="ObjectShortName">INITIAL_VALUE[63:0]</obj_property>
+      </wvobject>
+   </wvobject>
+</wave_config>

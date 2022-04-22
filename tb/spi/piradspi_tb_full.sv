@@ -19,7 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-import piradspi::*;
+import piradspi_pkg::*;
 import piradip_tb_aximm_util::*;     
 
 module piradspi_tb_full(
@@ -39,23 +39,23 @@ module piradspi_tb_full(
     
     axi4mm_lite axilite_bus(.clk(clk), .resetn(rstn));
     
-    piradip_tb_spi_slave #(
+    piradip_tb_spi_device #(
         .WIDTH(64),
         .CPOL(0),
         .CPHA(0),
         .INITIAL_VALUE(64'h01020304_05060708)
-    ) slave_00 (
+    ) device_00 (
         .rstn(rstn),
         .sclk(sclk),
         .mosi(mosi),
         .miso(miso),
         .csn(~(csn_active && (csn_mode_1 == 0))),
-        .name("Slave 00")
+        .name("Device 00")
     );
     
     logic interrupt_sel_mode_1;
     
-    PiRadSPI_v1_0 #(
+    piradspi_ip #(
         .C_SPI_SEL_MODE(1),
         .C_CSR_DATA_WIDTH(32),
         .C_CSR_ADDR_WIDTH(8),
@@ -68,8 +68,8 @@ module piradspi_tb_full(
         .interrupt(interrupt_sel_mode_1),
         .csn_active(csn_active),
         .csn(csn_mode_1),
-        .csr_aclk(clk),
-        .csr_aresetn(rstn),
+        .csr_clk(clk),
+        .csr_resetn(rstn),
         .csr_awaddr(axilite_bus.awaddr),
         .csr_awprot(axilite_bus.awprot),
         .csr_awvalid(axilite_bus.awvalid),
@@ -247,7 +247,7 @@ module piradspi_tb_full(
         driver.push_mosi(32'hA5A6A7A8);
         driver.start_spi_command(0, 0, 1);
         
-        driver.push_mosi(32'hA1A2A3A4);
+         driver.push_mosi(32'hA1A2A3A4);
         driver.push_mosi(32'hA5A6A7A8);
 
         driver.start_spi_command(0, 3, 1);
@@ -260,8 +260,8 @@ module piradspi_tb_full(
         $display("MISO: %x", data);
         driver.pop_miso(data);
         $display("MISO: %x", data);
-        driver.pop_miso(data);
-        $display("MISO: %x", data);
+        //driver.pop_miso(data);
+        //$display("MISO: %x", data);
         
 /*        
         

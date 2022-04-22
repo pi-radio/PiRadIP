@@ -32,11 +32,11 @@ class svport:
         return f"{self.direction} {self.datatype} {self.name}"
 
     def subst(self, ns):
-        return svport(self.direction, subst(self.datatype, ns), subst(self.name, ns))
+        return svport(self.direction, subst(self.datatype, ns), self.name)
     
     @property
     def decl(self):
-        return f"{str(self.datatype)} {self.name}"
+        return f"{self.direction} {str(self.datatype)} {self.name}"
 
     @property
     def is_interface_port(self):

@@ -38,7 +38,9 @@ class IPXACTComponent2():
             )
         )
 
-    def export_ipxact(self, f):
+    def export_ipxact(self):
+        INFO(f"Writing library XML to {self.desc.xml_path}...")
+        f = self.xml_file("w")
         config = SerializerConfig(pretty_print=True)
         serializer = XmlSerializer(config=config)
         print(serializer.render(self.component, ns_map=ns_map), file=f)

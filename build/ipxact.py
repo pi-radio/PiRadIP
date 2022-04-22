@@ -1,6 +1,6 @@
 from .piradip_build_base import *
 
-from .structure import piradlib_files, VLNV
+from .structure import VLNV
 
 from .ipxact_base import *
 """
@@ -21,47 +21,6 @@ from .ipx import *
     
 library_rev=str(int(time.time()))
 
-class IPXACTLibrary(IPXACTComponent2):
-    def __init__(self, library_files):
-        self.library_path = os.path.join(os.getcwd(), "library")
-        self.library_files = library_files
-
-        super(IPXACTLibrary, self).__init__(VLNV("pi-rad.io", "library", "PiRadIP", "1.0"), "Pi Radio IP Library")
-        
-        relpaths = [ os.path.relpath(i, self.library_path) for i in self.library_files ]
-
-        self.synthesis_fs.file = [ ipxact_file(fn) for fn in relpaths ]
-        
-        self.simulation_fs.file = [ ipxact_file(fn) for fn in relpaths ]
-                
-        self.component.parameters = ipxact2009.Parameters()
-        self.component.parameters.parameter = [
-            ipxact2009.Parameter(name="Component_Name",
-                                 value=ipxact2009.NameValuePairType.Value(
-                                     value = "PiRadIP_v1_0",
-                                     resolve="user",
-                                     id="PARAM_VALUE.Component_Name",
-                                     order=1
-                                 )
-            ) ]
-
-        self.component.vendor_extensions = ipxact2009.VendorExtensions(
-            any_element=CoreExtensions(
-                taxonomies=CoreExtensions.Taxonomies( [
-                    "/BaseIP",
-                    "/Embedded_Processing/AXI_Infrastructure",
-                    "/Memories_&_Storage_Elements"
-                ] ),
-                displayName="Pi Radio IP Library v1.0",
-                hideInCatalogGUI=True,
-                xpmLibraries=CoreExtensions.XPMLibraries(
-                    [ CoreExtensions.XPMLibraries.XPMLibrary(i) for i in ["XPM_CDC", "XPM_FIFO", "XPM_MEMORY"]]
-                ),
-                vendorURL="https://pi-rad.io/",
-                vendorDisplayName="Pi Radio Inc.",
-                coreRevision=library_rev
-            )
-        )
         
 class IPXACTModule(IPXACTComponent2):
     def __init__(self, module):
@@ -334,31 +293,5 @@ class IPXACTModule(IPXACTComponent2):
                 if i.ipxdesc is not None:
                     self.generate_interface(i)
         
-def build_libraries():
-    library_path = os.path.join(os.getcwd(), "library")
-
-    xml_path = os.path.join(library_path, "component.xml")
-    
-    input_times = [ os.path.getmtime(i) for i in piradlib_files ]
-    
-    input_times.append(os.path.getmtime("buildlib.py"))
-    
-    output_time = 0
-    
-    try:
-        output_time = os.path.getmtime(xml_path)
-    except FileNotFoundError:
-        pass
-    
-    if False and all(output_time > i for i in input_times):
-        INFO(f"Not rebuilding {xml_path} -- up to date")
-        return    
-
-    l = IPXACTLibrary(piradlib_files)
-
-    f = open(xml_path, "w")
-
-    print(f"Writing library XML to {xml_path}...")
-    l.export_ipxact(f)
 
 

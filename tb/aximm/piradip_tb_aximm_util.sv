@@ -91,7 +91,7 @@ module piradip_tb_axilite_manager #(
     endtask
 
     task wdata_task;
-        integer WSTRB={{aximm.STRB_WIDTH}{1'b1}};
+        integer WSTRB={{aximm.DATA_WIDTH/8}{1'b1}};
 
         forever @(posedge aximm.aclk) begin
             automatic aximm_op op;

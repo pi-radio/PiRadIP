@@ -248,14 +248,22 @@ def svdumpnode(tag):
 
 def _svparselist(children, tag, childTypes, listclass):
     l = []
-    for c in children:
-        if c.tag in  [ ',' ]:
-            continue
+    try:
+        for c in children:
+            if not hasattr(c, 'tag'):
+                print("NULL NODE FOUND")
+                continue
+            
+            if c.tag in  [ ',' ]:
+                continue
+                
+            assert c.tag in childTypes, f"Found improper tag in list {c.tag} expected {childTypes}"
 
-        assert c.tag in childTypes, f"Found improper tag in list {c.tag} expected {childTypes}"
-
-        l.append(svexcreate(c))
-
+            l.append(svexcreate(c))
+    except Exception as e:
+        print(f"Failed to parse list: children: {children} tag: {tag} childTypes: {childTypes}")
+        raise e
+        
     return listclass(l, tag=tag)
 
 def svlistnode(tag, childTypes, listclass=svlist):
@@ -314,6 +322,8 @@ svignorenode('kSystemTFCall', okay=True)
 svignorenode('kActualParameterList', okay=True)
 svignorenode('kGateInstance', okay=True)
 svignorenode('kAlwaysStatement', okay=True)
+svignorenode('kGenerateRegion')
+svignorenode('kStructType')
 
 module_item_list = [
     'kParamDeclaration',
@@ -322,6 +332,7 @@ module_item_list = [
     'kTypeDeclaration',
     'kModportDeclaration',
     'kContinuousAssignmentStatement',
-    'kAlwaysStatement'
+    'kAlwaysStatement',
+    'kGenerateRegion'
 ]
 

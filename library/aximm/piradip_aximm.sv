@@ -5,14 +5,14 @@
 
 		
 interface axi4mm #(
-        parameter integer ADDR_WIDTH    = 32,
-        parameter integer DATA_WIDTH    = 32,
-		parameter integer ID_WIDTH  	= 1,
-        parameter integer AWUSER_WIDTH	= 0,
-		parameter integer ARUSER_WIDTH	= 0,
-		parameter integer WUSER_WIDTH	= 0,
-		parameter integer RUSER_WIDTH	= 0,
-		parameter integer BUSER_WIDTH	= 0
+        parameter integer ADDR_WIDTH = 32,
+        parameter integer DATA_WIDTH = 32,
+	parameter integer ID_WIDTH = 1,
+        parameter integer AWUSER_WIDTH = 0,
+	parameter integer ARUSER_WIDTH = 0,
+	parameter integer WUSER_WIDTH = 0,
+	parameter integer RUSER_WIDTH = 0,
+	parameter integer BUSER_WIDTH = 0
     ) (
         input logic clk,
         input logic resetn
@@ -80,13 +80,13 @@ interface axi4mm #(
     assign aresetn = resetn;
 
     modport MANAGER(
-        output aclk, aresetn, 
+        output
             awid, awaddr, awlen, awsize, awburst, awlock, awcache, awprot, awqos, awregion, awuser, awvalid,
             wdata, wstrb, wlast, wuser, wvalid,
             bready,
             arid, araddr, arlen, arsize, arburst, arlock, arcache, arprot, arqos, arregion, aruser, arvalid,
             rready,
-        input 
+        input aclk, aresetn, 
             awready, 
             wready,
             bid, bresp, buser, bvalid,
@@ -95,13 +95,13 @@ interface axi4mm #(
     );
 
     modport SUBORDINATE(
-        output aclk, aresetn,
+        output
             awready, 
             wready,
             bid, bresp, buser, bvalid,
             arready,
             rid, rdata, rresp, rlast, ruser, rvalid,
-        input
+        input aclk, aresetn,
             awid, awaddr, awlen, awsize, awburst, awlock, awcache, awprot, awqos, awregion, awuser, awvalid,
             wdata, wstrb, wlast, wuser, wvalid,
             bready,

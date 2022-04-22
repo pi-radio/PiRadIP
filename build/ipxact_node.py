@@ -1,7 +1,5 @@
 from .piradip_build_base import *
 
-from .structure import piradlib_files
-
 from .ipxact_base import *
 
 import lxml.etree
