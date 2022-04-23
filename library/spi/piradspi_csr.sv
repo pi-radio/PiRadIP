@@ -254,7 +254,6 @@ module piradspi_csr #(
         if (~csr.aresetn) begin
            device_sel <= 0;
            profile_sel <= 0;
-           axis_mosi.tdata <= 0;
         end  else if (reg_if.wren) begin
            case (reg_if.wreg_no)
              REGISTER_DEVSELECT: begin
@@ -262,9 +261,6 @@ module piradspi_csr #(
              end
              REGISTER_PROFSELECT: begin
                 profile_sel = mask_write_bytes(profile_sel);
-             end
-             REGISTER_MOSIFIFO: begin
-                axis_mosi.tdata = mask_write_bytes(axis_mosi.tdata);
              end
              default : begin
              end

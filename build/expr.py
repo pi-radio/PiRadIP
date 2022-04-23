@@ -438,12 +438,8 @@ def parse_type_decl(node):
 
 
 
-svdumpnode("kUnpackedDimensions")
+svpassnode("kUnpackedDimensions")
 
-@svex("kUnpackedDimensions")
-def parse_unpacked_dimensions(node):
-    assert_nchild(node, 1)
-    assert svexcreate(node.children[0]) == None, f"Can't handle unpacked dimensions yet {node.children}"
 
 class svregistervariable:
     def __init__(self, name, unpacked):

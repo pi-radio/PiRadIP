@@ -34,8 +34,11 @@ Library("piradlib",
             
             "library/mem/piradip_axi4_ram_adapter.sv",
         
+            "library/axis/piradip_axis_sample_buffer.sv",
             "library/axis/piradip_axis_sample_buffer_out.sv",
             "library/axis/piradip_axis_sample_buffer_in.sv",
+
+            "library/util/piradip_trigger_unit.sv",
             
             "library/spi/piradspi_pkg.sv",
             "library/spi/piradspi_cmd_fifo.sv",
@@ -172,15 +175,23 @@ ModuleDesc(name="piradip_axis_sample_buffer_out",
            ipxact_name="axis_sample_buffer_out"
 )
 
-#ModuleDesc(name="piradip_axis_sample_buffer_in",
-#           version="1.0",
-#           file="library/axis/piradip_axis_sample_buffer_out.sv",
-#           wrapper_name="AXIS_SampleBufferOut",
-#           description="A memory mapped sample buffer to stream out over an AXI stream interface",
-#           display_name="AXI Sample Buffer Out",
-#           ipxact_name="axis_sample_buffer_out"
-#)
+ModuleDesc(name="piradip_axis_sample_buffer_in",
+           version="1.0",
+           file="library/axis/piradip_axis_sample_buffer_in.sv",
+           wrapper_name="AXIS_SampleBufferIn",
+           description="A memory mapped sample buffer to capture streamed data",
+           display_name="AXI Sample Buffer In",
+           ipxact_name="axis_sample_buffer_in"
+)
 
+ModuleDesc(name="piradip_trigger_unit",
+           version="1.0",
+           file="library/util/piradip_trigger_unit.sv",
+           wrapper_name="piradip_trigger_unit_ip",
+           description="A unit to coordinate triggers across mulitple other units",
+           display_name="AXI Trigger Unit w/ Delay",
+           ipxact_name="piradip_trigger_unit"
+)
 
 ModuleDesc(name="piradspi",
            version="1.0",

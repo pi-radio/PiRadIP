@@ -143,8 +143,8 @@ module piradspi_engine #(
    wire         state_trigger;
    xfer_len_t xfer_bits;
    
-   piradip_state_timer state_timer(.rstn(cmd_stream.aresetn), 
-                                   .clk(cmd_stream.aclk), 
+   piradip_state_timer state_timer(.rstn(cmds_in.aresetn), 
+                                   .clk(cmds_in.aclk), 
                                    .state(state), 
                                    .cycles(state_cycles), 
                                    .trigger(state_trigger));

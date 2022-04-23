@@ -163,13 +163,10 @@ module register_to_stream #(
                                piradip_register_if.CLIENT reg_if,
                                axis_simple.MANAGER stream
                                );
-   logic                                                     is_reg, busy;
+   logic                                                     busy;
 
    assign busy = (stream.tvalid & ~stream.tready);
-   assign do_issue = is_reg & ~busy;
    assign read_data = { failed_issue, stream.tready };
-
-   always_comb is_reg = reg_if.is_reg_write(REGISTER_NO);
 
    always @(posedge reg_if.aclk)
      begin
@@ -179,7 +176,7 @@ module register_to_stream #(
            stream.tvalid <= 1'b0;
            failed_issue <= 1'b0;
         end else if (reg_if.is_reg_write(REGISTER_NO)) begin
-           if (do_issue) begin
+           if (~busy) begin
               stream.tvalid <= 1'b1;
               stream.tdata <= reg_if.wreg_data;
            end else begin

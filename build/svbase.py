@@ -12,8 +12,16 @@ v = VeribleVerilogSyntax()
 r = anytree.Resolver("tag")
 
 def parse(filename):
-    return v.parse_file(filename, options= { 'gen_tree': True }).tree
+    try:
+        retval = v.parse_file(filename, options= { 'gen_tree': True }).tree
 
+        if retval == None:
+            ERROR(f"Failed to parse file {filename}")
+
+        return retval
+    except Exception as e:
+        ERROR(f"Failed to parse file {filename}: {e}")
+    
 def dump_node(header, node):
     print(header)
     for p, _, t in anytree.RenderTree(node):
@@ -323,6 +331,7 @@ svignorenode('kActualParameterList', okay=True)
 svignorenode('kGateInstance', okay=True)
 svignorenode('kAlwaysStatement', okay=True)
 svignorenode('kGenerateRegion')
+svignorenode('kGenvarDeclaration')
 svignorenode('kStructType')
 
 module_item_list = [
@@ -333,6 +342,7 @@ module_item_list = [
     'kModportDeclaration',
     'kContinuousAssignmentStatement',
     'kAlwaysStatement',
-    'kGenerateRegion'
+    'kGenerateRegion',
+    'kGenvarDeclaration'
 ]
 
