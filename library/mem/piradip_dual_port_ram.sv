@@ -20,13 +20,13 @@ interface piradip_ram_if #(
     assign rst = rst_in;
     
     modport CLIENT(
-        output clk, rst, rdata,
-        input en, we, addr, wdata
+        input  clk, rst, rdata,
+        output en, we, addr, wdata
     );
     
     modport RAM_PORT(
-        output clk, rst, en, we, addr, wdata,
-        input rdata
+        input clk, rst, en, we, addr, wdata,
+        output rdata
     );
     
 endinterface

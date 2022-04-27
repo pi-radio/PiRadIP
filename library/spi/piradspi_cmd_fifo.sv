@@ -50,8 +50,8 @@ module piradspi_cmd_fifo
       localparam CMD_FIFO_WIDTH = 8*($bits(cmd_in.cmd)/8 + (($bits(cmd_in.cmd) & 3'h7) ? 1 : 0));
    endgenerate
    
-   axis_simple cmd_in_axis(.clk(cmd_in.aclk), .resetn(cmd_in.aresetn));
-   axis_simple cmd_out_axis(.clk(cmd_out.aclk), .resetn(cmd_out.aresetn));
+   axi4s cmd_in_axis(.clk(cmd_in.aclk), .resetn(cmd_in.aresetn));
+   axi4s cmd_out_axis(.clk(cmd_out.aclk), .resetn(cmd_out.aresetn));
 
    assign cmd_in.cmd_ready = cmd_in_axis.tready;
    assign cmd_in_axis.tvalid = cmd_in.cmd_valid;
@@ -61,14 +61,14 @@ module piradspi_cmd_fifo
    assign cmd_out.cmd_valid = cmd_out_axis.tvalid;
    assign cmd_out.cmd = cmd_out_axis.tdata;
 
-   piradip_axis_fifo_sss 
+   piradip_axis_gearbox
      #(
        .DEPTH(CMD_FIFO_DEPTH)
        ) 
    cmd_fifo 
        (
-        .s_axis(cmd_in_axis.SUBORDINATE),
-        .m_axis(cmd_out_axis.MANAGER)
+        .in(cmd_in_axis.SUBORDINATE),
+        .out(cmd_out_axis.MANAGER)
         );
 
 endmodule

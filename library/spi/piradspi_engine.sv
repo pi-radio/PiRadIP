@@ -9,13 +9,15 @@ module piradspi_fifo_engine
     ) 
    (
     piradspi_cmd_stream.SUBORDINATE       cmd_stream,
-    axis_simple.SUBORDINATE      axis_mosi,
-    axis_simple.MANAGER          axis_miso,
+    axi4s.SUBORDINATE      axis_mosi,
+    axi4s.MANAGER          axis_miso,
    
     output logic                 cmd_completed,
     output logic                 engine_error,
     output logic                 engine_busy,
-   
+
+    input logic                  io_clk,
+    input logic                  io_rstn,
     output logic                 sclk,
     output logic                 mosi,
     input logic                  miso,
@@ -29,47 +31,50 @@ module piradspi_fifo_engine
       localparam MOSI_FIFO_WIDTH = $bits(axis_mosi.tdata);
       localparam MISO_FIFO_WIDTH = $bits(axis_miso.tdata);
 
-      axis_simple #(.WIDTH(MOSI_FIFO_WIDTH)) f2e_mosi(.clk(axis_mosi.aclk), .resetn(axis_mosi.aresetn));
-      axis_simple #(.WIDTH(MISO_FIFO_WIDTH)) e2f_miso(.clk(axis_miso.aclk), .resetn(axis_miso.aresetn));
+      axi4s #(.WIDTH(MOSI_FIFO_WIDTH)) f2e_mosi(.clk(io_clk), .resetn(io_rstn));
+      axi4s #(.WIDTH(MISO_FIFO_WIDTH)) e2f_miso(.clk(io_clk), .resetn(io_rstn));
    endgenerate
    
-   piradspi_cmd_stream engine_stream (.clk(cmd_stream.aclk),
-                                      .resetn(cmd_stream.aresetn));
+   piradspi_cmd_stream engine_stream (.clk(io_clk),
+                                      .resetn(io_rstn));
    
-
-   piradspi_engine #(
-	             .SEL_MODE(SEL_MODE),
-                     .SEL_WIDTH(SEL_WIDTH)
-                     ) engine (
-                               .sclk(sclk),
-                               .mosi(mosi),
-                               .miso(miso),
-                               .sel_active(sel_active),
-                               .csn(csn),
-                               .cmd_completed(cmd_completed),
-                               .engine_error(engine_error),
-                               .engine_busy(engine_busy),
-                               .cmds_in(engine_stream.SUBORDINATE),
-                               .axis_mosi(f2e_mosi.SUBORDINATE),
-                               .axis_miso(e2f_miso.MANAGER)
-                               );
 
    piradspi_cmd_fifo cmd_fifo(.cmd_in(cmd_stream), 
                               .cmd_out(engine_stream.MANAGER));
 
-   piradip_axis_fifo_sss #(
-                           .DEPTH(DATA_FIFO_DEPTH)
-                           ) mosi_fifo (
-                                        .s_axis(axis_mosi),
-                                        .m_axis(f2e_mosi.MANAGER)
-                                        );
+   piradip_axis_gearbox #(
+                          .DEPTH(DATA_FIFO_DEPTH)
+                          ) mosi_fifo (
+                                       .in(axis_mosi),
+                                       .out(f2e_mosi.MANAGER)
+                                       );
    
-   piradip_axis_fifo_sss #(
-                           .DEPTH(DATA_FIFO_DEPTH)
-                           ) miso_fifo (
-                                        .s_axis(e2f_miso.SUBORDINATE),
-                                        .m_axis(axis_miso)
-                                        );
+   piradip_axis_gearbox #(
+                          .DEPTH(DATA_FIFO_DEPTH)
+                          ) miso_fifo (
+                                       .in(e2f_miso.SUBORDINATE),
+                                       .out(axis_miso)
+                                       );
+   
+   
+   piradspi_engine #(
+	             .SEL_MODE(SEL_MODE),
+                     .SEL_WIDTH(SEL_WIDTH)
+                     ) 
+   engine (
+           .io_clk(io_clk),
+           .sclk(sclk),
+           .mosi(mosi),
+           .miso(miso),
+           .sel_active(sel_active),
+           .csn(csn),
+           .cmd_completed(cmd_completed),
+           .engine_error(engine_error),
+           .engine_busy(engine_busy),
+           .cmds_in(engine_stream.SUBORDINATE),
+           .axis_mosi(f2e_mosi.SUBORDINATE),
+           .axis_miso(e2f_miso.MANAGER)
+           );
 
 
 endmodule
@@ -80,8 +85,8 @@ module piradspi_engine #(
                          ) (
                             piradspi_cmd_stream.SUBORDINATE  cmds_in,
                                                        
-                            axis_simple.SUBORDINATE    axis_mosi,
-                            axis_simple.MANAGER        axis_miso,
+                            axi4s.SUBORDINATE    axis_mosi,
+                            axi4s.MANAGER        axis_miso,
 
                             output logic               cmd_completed,
                             output logic               engine_error,
@@ -95,10 +100,12 @@ module piradspi_engine #(
                             );
    import piradspi_pkg::*;
 
-   localparam DATA_FIFO_WIDTH = $bits(axis_miso.tdata);
-   localparam BIT_COUNT_WIDTH = $clog2(DATA_FIFO_WIDTH+1);
-   localparam RESPONSE_PAD_WIDTH = DATA_FIFO_WIDTH-MAGIC_WIDTH-CMD_ID_WIDTH;
-
+   generate
+      localparam DATA_FIFO_WIDTH = $bits(axis_miso.tdata);
+      localparam BIT_COUNT_WIDTH = $clog2(DATA_FIFO_WIDTH+1);
+      localparam RESPONSE_PAD_WIDTH = DATA_FIFO_WIDTH-MAGIC_WIDTH-CMD_ID_WIDTH;
+   endgenerate
+   
    typedef axis_miso.data_t fifo_data_t;
    typedef cmds_in.command_t cmd_t;
    
@@ -187,7 +194,6 @@ module piradspi_engine #(
    assign cur_data_out.r.pad = 0;
 
    assign sclk_hold = (mosi_stream.tready & ~mosi_stream.tvalid) || (~miso_stream.tready & miso_stream.tvalid);
-
    
    always @(posedge cmds_in.aclk)
      begin

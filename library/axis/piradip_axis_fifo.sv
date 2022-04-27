@@ -35,6 +35,7 @@ module piradip_axis_gearbox #(
    logic                                        empty, almost_empty, prog_empty;
    logic                                        overflow, underflow;
    logic                                        rd_rst_busy, wr_rst_busy;
+   logic                                        read_count, write_count;
    
    logic                                        we, re;
    
@@ -75,12 +76,19 @@ module piradip_axis_gearbox #(
                                .we(we),
                                .din(in.tdata),
                                .re(re),
+                               .full(full),
                                .empty(empty),
                                .dout(out.tdata),
                                .almost_full(almost_full),
+                               .almost_empty(almost_empty),
                                .prog_full(prog_full),
+                               .prog_empty(prog_empty),
+                               .overflow(overflow),
+                               .underflow(underflow),
                                .rd_rst_busy(rd_rst_busy),
-                               .wr_rst_busy(wr_rst_busy)        
+                               .wr_rst_busy(wr_rst_busy),
+                               .read_count(read_count),
+                               .write_count(write_count)
                                );
 endmodule
 

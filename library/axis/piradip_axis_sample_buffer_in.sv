@@ -28,13 +28,14 @@ module piradip_axis_sample_buffer_in (
    logic                                     enable_stream;
 
    piradip_ram_if #(.DATA_WIDTH(AXIMM_DATA_WIDTH), .ADDR_WIDTH(MEMORY_BIT_WIDTH-$clog2(AXIMM_DATA_WIDTH))) mem_mm(.clk_in(aximm.aclk), .rst_in(~aximm.aresetn));
-   piradip_ram_if #(.DATA_WIDTH(STREAM_DATA_WIDTH), .ADDR_WIDTH(STREAM_ADDR_WIDTH)) mem_stream(.clk_in(stream_out.aclk), .rst_in(~stream_out.aresetn));
+   piradip_ram_if #(.DATA_WIDTH(STREAM_DATA_WIDTH), .ADDR_WIDTH(STREAM_ADDR_WIDTH)) mem_stream(.clk_in(stream_in.aclk), .rst_in(~stream_in.aresetn));
 
    piradip_axis_sample_buffer_csr #(
                                     .STREAM_OFFSET_WIDTH(STREAM_ADDR_WIDTH)
                                     ) csr (
                                            .aximm(axilite),
-                                           .stream_clk(stream_out.aclk),
+                                           .stream_rstn(stream_in.aresetn),
+                                           .stream_clk(stream_in.aclk),
                                            .*
                                            );
    

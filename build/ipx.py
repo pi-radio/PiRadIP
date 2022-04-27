@@ -32,8 +32,8 @@ class TCLVar:
         self.s.cmd(f"::set_property {prop} {{{val}}} ${self.var};")
 
 class TCLScript:
-    def __init__(self):
-        self._tcl_body = io.StringIO()
+    def __init__(self, f):
+        self._tcl_body = f
         self._indent = 0
 
     def cmd(self, v):
@@ -52,10 +52,6 @@ class TCLScript:
     def indent_string(self):
         return 4*self._indent*" "
 
-    @property
-    def body(self):
-        return self._tcl_body.getvalue()
-
     def get_var(self, v):
         return TCLVar(self, v)
 
@@ -68,8 +64,8 @@ class TCLScript:
 
 
 class IPXScript(TCLScript):
-    def __init__(self, module):
-        super(IPXScript, self).__init__()
+    def __init__(self, module, f):
+        super(IPXScript, self).__init__(f)
         self.module = module
         self.desc = module.desc
         self.n = 0
@@ -77,10 +73,6 @@ class IPXScript(TCLScript):
         self.model_param_ids = {}
         self.model_param_refs = {}
         self.default_dict = {}
-
-        self.xgui = XilinxXGUITcl(self.module)
-        self.bd = XilinxBDTcl(self.module)
-
 
     def generate(self):
         self.comment("Create component")
@@ -210,9 +202,6 @@ class IPXScript(TCLScript):
         self.cmd("ipx::unload_core [ipx::current_core]")
         self.cmd("cd $prev_path")
 
-        self.xgui.generate()
-        self.bd.generate()
-
     def generate_parameter(self, n, p):
 
         self.comment("")
@@ -266,7 +255,6 @@ class IPXScript(TCLScript):
 
 
     def generate_port(self, n, port_name):
-        print(f"Generating {port_name}")
         self.comment("")
         self.comment(f"Port {port_name}")
         self.comment("")
@@ -451,8 +439,8 @@ class IPXScript(TCLScript):
 
 
 class XilinxXGUITcl(TCLScript):
-    def __init__(self, module):
-        super(XilinxXGUITcl, self).__init__()
+    def __init__(self, module, f):
+        super(XilinxXGUITcl, self).__init__(f)
         self.module = module
 
     def generate(self):
@@ -484,8 +472,8 @@ class XilinxXGUITcl(TCLScript):
             self.cmd("}")
 
 class XilinxBDTcl(TCLScript):
-    def __init__(self, module):
-        super(XilinxBDTcl, self).__init__()
+    def __init__(self, module, f):
+        super(XilinxBDTcl, self).__init__(f)
         self.module = module
 
     def generate(self):

@@ -185,7 +185,6 @@ class WrapperIfacePort:
             wp = WrappedPort(self, pname, p)
                 
             self.port_map[pname] = wp
-            print(f"OUTER PORT {pname} {wp}")
             self.module.outer_ports[pname] = wp.subst(ns).subst(local_update)
 
         for p in self.modport.ports.values():
@@ -201,7 +200,6 @@ class WrapperIfacePort:
             d = data.subst(ns)
             d = d.subst(local_update)
 
-            print(f"OUTER DATA PORT {pname} {svport(p.direction, d.datatype, pname)}")
             self.module.outer_ports[pname] = svport(p.direction, d.datatype, pname)
 
     def wrap_param_name(self, name):
@@ -309,9 +307,6 @@ class WrapperModule:
 
             for p in self.outer_ports:
                 print(f"    {p}")
-
-        print(self.outer_ports)
-        print(self.inner_ports)
         
     @property
     def has_interfaces(self):

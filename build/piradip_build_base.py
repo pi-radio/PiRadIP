@@ -13,6 +13,8 @@ debug_flags = { DEBUG_IPXACT: 0 }
 
 dump_definitions=False
 show_substitutions=False
+tcl_direct=True
+log_vivado=False
 
 def debug_print(flag, *args, **kwargs):
     if debug_flags.get(flag, 0):

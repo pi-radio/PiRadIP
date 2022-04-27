@@ -1,5 +1,6 @@
 from .piradip_build_base import *
 
+import sys
 import os
 from pathlib import PurePath, Path
 
@@ -131,6 +132,20 @@ class ModuleDesc:
     def wrapper_bd_tcl_path(self):
         return self.wrapper_path.joinpath("bd/bd.tcl")
 
+    @property
+    def up_to_date(self):
+        input_times = [ os.path.getmtime(i) for i in self.files ]
+
+        input_times.append(os.path.getmtime("buildlib.py"))
+
+        output_time = 0
+        
+        try:
+            output_time = os.path.getmtime(self.xml_path)
+        except FileNotFoundError:
+            pass
+        
+        return all(output_time > i for i in input_times)
     
     @property
     def ipx_generate_script(self):
@@ -156,12 +171,19 @@ class Library:
         input_times = [ os.path.getmtime(i) for i in self.files ]
 
         input_times.append(os.path.getmtime("buildlib.py"))
-        
+
+        input_times += [ os.path.getmtime(i) for i in Path('build').glob('*.py') ]
+
+        print(f"Input file times: {input_times}")
+        print(max(input_times))
         output_time = 0
         
         try:
             output_time = os.path.getmtime(self.xml_path)
         except FileNotFoundError:
             pass
+
+        print(f"Output file times: {output_time}")
         
-        return all(output_time > i for i in input_times)
+        return max(input_times) < output_time
+    

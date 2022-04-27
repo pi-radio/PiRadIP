@@ -10,8 +10,8 @@ module piradspi_csr #(
         input logic  command_completed,
         output logic intr_out,
         piradspi_cmd_stream.MANAGER cmd_stream,
-        axis_simple.MANAGER axis_mosi,
-        axis_simple.SUBORDINATE axis_miso,
+        axi4s.MANAGER axis_mosi,
+        axi4s.SUBORDINATE axis_miso,
         axi4mm_lite.SUBORDINATE csr        
     );
    
@@ -67,7 +67,7 @@ module piradspi_csr #(
    logic                                    cmd_do_issue, cmd_failed_issue;
    logic                                    do_mosi_issue, failed_mosi_issue;
    
-   register_to_stream 
+   piradip_register_to_stream 
      #(.REGISTER_NO(REGISTER_MOSIFIFO)) 
    mosi_reg_to_stream
      (

@@ -8,16 +8,17 @@ module piradspi
     parameter integer C_NUM_PROFILES = 16
     ) 
    (
-    output logic                      sclk,
-    output logic                      mosi,
-    input logic                       miso,
+    input logic                        io_clk,
+    output logic                       sclk,
+    output logic                       mosi,
+    input logic                        miso,
 
     output logic                       csn_active,
     output logic [C_SPI_SEL_WIDTH-1:0] csn,
 
-    output logic                      interrupt,
-                                      
-    axi4mm_lite.SUBORDINATE           csr
+    output logic                       interrupt,
+                                       
+                                       axi4mm_lite.SUBORDINATE csr
     );
    
    import piradspi_pkg::*;
@@ -27,8 +28,8 @@ module piradspi
    generate
       localparam integer DATA_FIFO_WIDTH = $bits(csr.wdata);
 
-      axis_simple #(.WIDTH(DATA_FIFO_WIDTH)) mosi_stream(.clk(csr.aclk), .resetn(csr.aresetn));
-      axis_simple #(.WIDTH(DATA_FIFO_WIDTH)) miso_stream(.clk(csr.aclk), .resetn(csr.aresetn));
+      axi4s #(.WIDTH(DATA_FIFO_WIDTH)) mosi_stream(.clk(csr.aclk), .resetn(csr.aresetn));
+      axi4s #(.WIDTH(DATA_FIFO_WIDTH)) miso_stream(.clk(csr.aclk), .resetn(csr.aresetn));
    endgenerate
    
    logic                 cmd_completed;
@@ -60,6 +61,7 @@ module piradspi
        ) 
    engine 
      (
+      .io_clk(io_clk),
       .sclk(sclk),
       .mosi(mosi),
       .miso(miso),

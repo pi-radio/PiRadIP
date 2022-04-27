@@ -153,7 +153,7 @@ module piradip_axi4mmlite_subordinate (
    end
 endmodule
 
-module register_to_stream #(
+module piradip_register_to_stream #(
                             parameter DATA_WIDTH = 32,
                             parameter REGISTER_NO = 0
                             ) (
@@ -161,7 +161,7 @@ module register_to_stream #(
                                output logic                  failed_issue,
                                output logic [DATA_WIDTH-1:0] read_data,
                                piradip_register_if.CLIENT reg_if,
-                               axis_simple.MANAGER stream
+                               axi4s.MANAGER stream
                                );
    logic                                                     busy;
 

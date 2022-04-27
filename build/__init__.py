@@ -1,12 +1,19 @@
-from .piradip_build_base import registered_modules, registered_interfaces
+from .piradip_build_base import registered_modules, registered_interfaces, tcl_direct
 from .sv import parse, svexcreate
 from .structure import *
 from .modules import get_modules, WrapperModule
 from .interfaces import get_interfaces
 from .ipxact_library import IPXACTLibrary
 from .ipxact import IPXACTModule
-from .ipx import IPXScript, TCLScript
+from .ipx import XilinxBDTcl, XilinxXGUITcl, IPXScript, TCLScript
 from .xilinx import template_bd_tcl
+
+from subprocess import Popen, PIPE
+import sys
+import os
+from pathlib import Path
+
+import pexpect
 
 def build_interfaces():
     interface_files = set([v.file for v in interface_map.values()])
@@ -49,8 +56,37 @@ def build_modules():
 
 
 wrapper_modules = {}
-                
+
+class TCLFileWrapper:
+    def __init__(self, f):
+        self.f = f
+
+    def write(self, line):
+        self.f.write(line)
+
+class TCLVivadoWrapper:
+    def __init__(self):
+        kwargs = {}
+
+        if log_vivado:
+           kwargs["logfile"] = sys.stdout
+            
+        self.p = pexpect.spawnu("vivado -nolog -nojournal -mode tcl", **kwargs)
+        self.p.expect("Vivado%")
+
+    def write(self, line):
+        if line[0] == '#':
+            return
+        self.p.send(line)
+        self.p.expect("Vivado%")
+        
 def wrap_modules():
+    vivado = None
+
+    if tcl_direct:
+        INFO("Launching background Vivado process")
+        vivado = TCLVivadoWrapper()
+    
     for m in registered_modules.values():
         w = WrapperModule(m)
         wrapper_modules[w.name] = w
@@ -65,42 +101,38 @@ def wrap_modules():
 
         w.generate_verilog(f)
 
-        """
-        INFO(f"Generating IP-XACT for {w.name} at {w.desc.wrapper_xml}...")
-        os.makedirs(w.desc.wrapper_xml.parent, exist_ok=True)
+        INFO(f"Generating XGUI for {w.name} at {w.desc.wrapper_xgui_path}...")
+        l = XilinxXGUITcl(w, open(w.desc.wrapper_xgui_path, "w"))
 
-        f = open(m.wrapper_xml, "w")
-        """
-        
-        l = IPXScript(w)
+        l.generate()
+
+        INFO(f"Generating BD TCL for {w.name} at {w.desc.wrapper_bd_tcl_path}...")
+        l = XilinxBDTcl(w, open(w.desc.wrapper_bd_tcl_path, "w"))
+
+        l.generate()
+
+
+        if tcl_direct:
+            INFO(f"Generating IP-XACT for {w.name} through Vivado...")
+            f = vivado
+        else:
+            INFO(f"Generating IP-XACT script {w.name} at {w.desc.ipx_generate_script}...") 
+            f = open(w.desc.ipx_generate_script, "w")
+
+        l = IPXScript(w, f)
         
         l.generate()
 
-        f = open(w.desc.ipx_generate_script, "w")
         
-        print(l.body, file=f)
-
-        f = open(w.desc.wrapper_xgui_path, "w")
-
-        print(l.xgui.body, file = f)
-
-        f = open(w.desc.wrapper_bd_tcl_path, "w")
-
-        print(l.bd.body, file = f)
-        
-def build_libraries():
+def build_libraries():        
     for lib in library_map.values():
-        if False and lib.up_to_date:
-            INFO(f"Not rebuilding {lib.xml_path} -- up to date")
-            continue
-        
         ipxlib = IPXACTLibrary(lib)
         
         ipxlib.export_ipxact()
 
 
 def make_generate_all():
-    tcl = TCLScript()
+    tcl = TCLScript(open("generate_all.tcl", "w"))
 
     tcl.cmd("set prev_path [pwd]")
     tcl.cmd("set script_path [ file dirname [ file normalize [ info script ] ] ]")
@@ -120,13 +152,45 @@ def make_generate_all():
         
     tcl.cmd("cd $prev_path")
 
-    f = open("generate_all.tcl", "w")
+def up_to_date():
+    input_files = list(Path("build").glob("*.py"))
 
-    print(tcl.body, file=f)
-    
+    for l in library_map.values():
+        input_files += l.files
+
+    input_timestamp = max([os.path.getmtime(p) for p in input_files])
+
+    output_files = []
+
+    for l in library_map.values():
+        output_files.append(l.xml_path)
+
+    for m in module_map.values():
+        output_files.append(m.wrapper_verilog_path)
+        output_files.append(m.wrapper_xgui_path)
+        output_files.append(m.wrapper_xml_path)
+        output_files.append(m.wrapper_bd_tcl_path)
+
+    if not all([Path(p).exists for p in output_files]):
+        INFO("Could not find all outputs, rebuilding")
+        return False
+
+    if min([os.path.getmtime(p) for p in output_files]) < input_timestamp:
+        INFO("Outputs out of date, rebuilding")
+        return False
+
+    return True
     
 def build_all():
-    print("Building all...")
+    #
+    # First -- check if all outputs exist, and are up to date
+    #
+    if up_to_date():
+        INFO("Everything up to date. Exiting.")
+        sys.exit(0)
+    
+    INFO("Building all...")
+
     build_libraries()
     
     build_interfaces()

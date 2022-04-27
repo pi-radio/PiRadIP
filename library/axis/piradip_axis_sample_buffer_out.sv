@@ -34,6 +34,7 @@ module piradip_axis_sample_buffer_out (
         .STREAM_OFFSET_WIDTH(STREAM_ADDR_WIDTH)
     ) csr (
         .aximm(axilite),
+        .stream_rstn(stream_out.aresetn),
         .stream_clk(stream_out.aclk),
         .*
     );

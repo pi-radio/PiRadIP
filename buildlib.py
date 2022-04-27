@@ -17,6 +17,7 @@ Library("piradlib",
             "library/util/piradip_tb_shift_registers.sv",
             "library/util/piradip_shift_registers.sv",
             "library/util/piradip_shifters.sv",
+            "library/util/piradip_slice.sv",
             
             "library/aximm/piradip_axi4.sv",
             "library/aximm/piradip_axi4mmlite.sv",
@@ -202,11 +203,38 @@ ModuleDesc(name="piradspi",
            ipxact_name="piradspi_ip"
 )
 
+ModuleDesc(name="piradip_slice8",
+           version="1.0",
+           file="library/util/piradip_slice.sv",
+           wrapper_name="piradip_slice8_ip",
+           description="Slice 8 bits individually",
+           display_name="PiRadIP Slice 8",
+           ipxact_name="piradip_slice8"
+)
+
+ModuleDesc(name="piradip_slice16",
+           version="1.0",
+           file="library/util/piradip_slice.sv",
+           wrapper_name="piradip_slice16_ip",
+           description="Slice 16 bits individually",
+           display_name="PiRadIP Slice 16",
+           ipxact_name="piradip_slice16"
+)
+
+ModuleDesc(name="piradip_slice32",
+           version="1.0",
+           file="library/util/piradip_slice.sv",
+           wrapper_name="piradip_slice32_ip",
+           description="Slice 8 bits individually",
+           display_name="PiRadIP Slice 32",
+           ipxact_name="piradip_slice32"
+)
+
 
 @click.group(chain=True)
 @click.option('--debug/--no-debug', default=False)
 def cli(debug):
-    print("CLI")
+    pass
 
 @cli.command('build')
 def build():
@@ -222,8 +250,6 @@ def deploy(destination):
 def cleandeploy(destination):
     do_clean(destination)
     do_deploy(destination)
-
-
 
 if __name__ == '__main__':
     cli()
