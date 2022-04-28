@@ -236,6 +236,10 @@ ModuleDesc(name="piradip_slice32",
 def cli(debug):
     pass
 
+@cli.command('reformat')
+def reformat():
+    reformat_all()
+
 @cli.command('build')
 def build():
     build_all()

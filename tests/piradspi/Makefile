@@ -32,5 +32,5 @@ SOURCES+=tb/spi/piradspi_tb_full.sv
 
 TOP_MODULE=piradspi_tb_full
 
-include "../Makefile.inc"
+include ../include.mk
 

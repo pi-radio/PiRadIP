@@ -10,7 +10,7 @@ all: elaborate
 ../glbl.v: ${RDI_APPROOT}/data/verilog/src/glbl.v
 	cp $< $@
 
-xvlog.pb: $(VSOURCES) glbl.v Makefile ../Makefile.inc
+xvlog.pb: $(VSOURCES) glbl.v Makefile ../include.mk
 	xvlog --work work --sv $(VSOURCES) ../glbl.v
 
 compile: xvlog.pb
@@ -25,3 +25,6 @@ simulate: elaborate
 
 gui: elaborate
 	xsim --gui test_snapshot --view test_snapshot.wcfg
+
+lint: $(VSOURCES) 
+	verible-verilog-lint $(VSOURCES)

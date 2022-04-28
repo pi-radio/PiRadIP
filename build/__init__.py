@@ -66,6 +66,7 @@ class TCLFileWrapper:
 
 class TCLVivadoWrapper:
     def __init__(self):
+        INFO("Launching background Vivado process")
         kwargs = {}
 
         if log_vivado:
@@ -84,7 +85,6 @@ def wrap_modules():
     vivado = None
 
     if tcl_direct:
-        INFO("Launching background Vivado process")
         vivado = TCLVivadoWrapper()
     
     for m in registered_modules.values():
@@ -253,3 +253,15 @@ def do_deploy(dest):
         deploy_file(w.desc.wrapper_verilog_path, dest_path)
         deploy_file(w.desc.wrapper_xgui_path, dest_path)
         deploy_file(w.desc.wrapper_bd_tcl_path, dest_path)
+
+def reformat_all():
+    print("Reformatting")
+    input_files = []
+    
+    for l in library_map.values():
+        input_files += l.files
+
+    for f in input_files:
+        print(f"mv {f} {f}.bak")
+        print(f"verible-verilog-format {f}.bak > {f}")
+        print(f"rm {f}.bak")

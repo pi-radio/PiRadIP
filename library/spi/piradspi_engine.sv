@@ -62,7 +62,6 @@ module piradspi_fifo_engine
                      .SEL_WIDTH(SEL_WIDTH)
                      ) 
    engine (
-           .io_clk(io_clk),
            .sclk(sclk),
            .mosi(mosi),
            .miso(miso),
@@ -73,7 +72,7 @@ module piradspi_fifo_engine
            .engine_busy(engine_busy),
            .cmds_in(engine_stream.SUBORDINATE),
            .axis_mosi(f2e_mosi.SUBORDINATE),
-           .axis_miso(e2f_miso.MANAGER)
+           .axis_miso2(e2f_miso.MANAGER)
            );
 
 
@@ -86,7 +85,7 @@ module piradspi_engine #(
                             piradspi_cmd_stream.SUBORDINATE  cmds_in,
                                                        
                             axi4s.SUBORDINATE    axis_mosi,
-                            axi4s.MANAGER        axis_miso,
+                            axi4s.MANAGER        axis_miso2,
 
                             output logic               cmd_completed,
                             output logic               engine_error,
@@ -101,12 +100,13 @@ module piradspi_engine #(
    import piradspi_pkg::*;
 
    generate
-      localparam DATA_FIFO_WIDTH = $bits(axis_miso.tdata);
-      localparam BIT_COUNT_WIDTH = $clog2(DATA_FIFO_WIDTH+1);
-      localparam RESPONSE_PAD_WIDTH = DATA_FIFO_WIDTH-MAGIC_WIDTH-CMD_ID_WIDTH;
+      localparam DATA_FIFO_WIDTH = $bits(axis_miso2.tdata);
    endgenerate
+
+   localparam RESPONSE_PAD_WIDTH = DATA_FIFO_WIDTH-$bits(response_t);
+
    
-   typedef axis_miso.data_t fifo_data_t;
+   typedef axis_miso2.data_t fifo_data_t;
    typedef cmds_in.command_t cmd_t;
    
    fifo_data_t data_word_t;
@@ -182,7 +182,7 @@ module piradspi_engine #(
                                             .align(cmd_completed),
                                             .full(miso_bit_full),
                                             .bits_in(miso_stream.SUBORDINATE),
-                                            .words_out(axis_miso)
+                                            .words_out(axis_miso2)
                                             );
 
    assign mosi = mosi_stream.tdata;
@@ -249,7 +249,7 @@ module piradspi_engine #(
                    end
                 end else begin
                    state <= IDLE;
-                   cmds_in.cmd_ready <= ~mosi_bit_empty & axis_miso.tready;
+                   cmds_in.cmd_ready <= ~mosi_bit_empty & axis_miso2.tready;
                 end
              end
              
