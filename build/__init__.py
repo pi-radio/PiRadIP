@@ -263,6 +263,21 @@ def reformat_all():
 
     for f in input_files:
         print(f"Reformatting {f}")
-        os.system(f"mv {f} {f}.bak")
-        os.system(f"verible-verilog-format {f}.bak > {f}")
-        os.system(f"rm {f}.bak")
+        p = Popen(["verible-verilog-format", "-inplace", f], stdout=sys.stdout, stderr=sys.stderr)
+        p.wait()
+        p = Popen(["sed", "-i", "s/[[:space:]]*$//", f], stdout=sys.stdout, stderr=sys.stderr)
+        p.wait()
+        p = Popen(["sed", "-i", "s/\t/  /", f], stdout=sys.stdout, stderr=sys.stderr)
+        p.wait()
+        
+def lint_all():
+    print("Linting")
+
+    input_files = []
+    
+    for l in library_map.values():
+        input_files += l.files
+
+    for f in input_files:
+        p = Popen(["verible-verilog-lint", f], stdout=sys.stdout, stderr=sys.stderr)
+        p.wait()

@@ -240,6 +240,10 @@ def cli(debug):
 def reformat():
     reformat_all()
 
+@cli.command('lint')
+def lint():
+    lint_all()
+    
 @cli.command('build')
 def build():
     build_all()

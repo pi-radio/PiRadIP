@@ -86,8 +86,8 @@ interface axi4mm #(
             bready,
             arid, araddr, arlen, arsize, arburst, arlock, arcache, arprot, arqos, arregion, aruser, arvalid,
             rready,
-      input aclk, aresetn, 
-            awready, 
+      input aclk, aresetn,
+            awready,
             wready,
             bid, bresp, buser, bvalid,
             arready,
@@ -96,7 +96,7 @@ interface axi4mm #(
 
   modport SUBORDINATE(
       output
-            awready, 
+            awready,
             wready,
             bid, bresp, buser, bvalid,
             arready,
@@ -177,7 +177,7 @@ module piradip_axi4_imp #(
       cur_awburst <= 0;
       cur_awlen <= 0;
     end else if (~aximm.awready && aximm.awvalid && ~cur_awv_awr_flag) begin
-      // address latching 
+      // address latching
       cur_awaddr <= aximm.awaddr[ADDR_WIDTH-1:0];
       cur_awburst <= aximm.awburst;
       cur_awlen <= aximm.awlen;
@@ -202,10 +202,10 @@ module piradip_axi4_imp #(
     end
   end
 
-  // Implement aximm.wready ADDR_LSB 
+  // Implement aximm.wready ADDR_LSB
   // aximm.wready is asserted for one aximm.aclk clock cycle when both
-  // aximm.awvalid and aximm.wvalid are asserted. aximm.wready is 
-  // de-asserted when reset is low. 
+  // aximm.awvalid and aximm.wvalid are asserted. aximm.wready is
+  // de-asserted when reset is low.
   always @(posedge aximm.aclk) begin
     if (~aximm.aresetn) begin
       aximm.wready <= 1'b0;
@@ -217,11 +217,11 @@ module piradip_axi4_imp #(
   end
 
 
-  // Implement write response logic ADDR_LSB 
+  // Implement write response logic ADDR_LSB
 
-  // The write response and response valid signals are asserted by the slave 
-  // when aximm.wready, aximm.wvalid, aximm.wready and aximm.wvalid are asserted.  
-  // This marks the acceptance of address and indicates the status of 
+  // The write response and response valid signals are asserted by the slave
+  // when aximm.wready, aximm.wvalid, aximm.wready and aximm.wvalid are asserted.
+  // This marks the acceptance of address and indicates the status of
   // write transaction.
 
   always @(posedge aximm.aclk) begin
@@ -239,9 +239,9 @@ module piradip_axi4_imp #(
   // Implement aximm.arready generation
 
   // aximm.arready is asserted for one aximm.aclk clock cycle when
-  // aximm.arvalid is asserted. aximm.awready is 
-  // de-asserted when reset (active low) is asserted. 
-  // The read address is also latched when aximm.arvalid is 
+  // aximm.arvalid is asserted. aximm.awready is
+  // de-asserted when reset (active low) is asserted.
+  // The read address is also latched when aximm.arvalid is
   // asserted. cur_araddr is reset to zero on reset assertion.
 
   always @(posedge aximm.aclk) begin
@@ -259,8 +259,8 @@ module piradip_axi4_imp #(
   end
   // Implement cur_araddr latching
 
-  //This process is used to latch the address when both 
-  //aximm.arvalid and aximm.rvalid are valid. 
+  //This process is used to latch the address when both
+  //aximm.arvalid and aximm.rvalid are valid.
   always @(posedge aximm.aclk) begin
     if (~aximm.aresetn) begin
       cur_araddr <= 0;
@@ -270,7 +270,7 @@ module piradip_axi4_imp #(
       aximm.rlast <= 1'b0;
       aximm.ruser <= 0;
     end else if (~aximm.arready && aximm.arvalid && ~cur_arv_arr_flag) begin
-      // address latching 
+      // address latching
       cur_araddr <= aximm.araddr[ADDR_WIDTH-1:0];
       cur_arburst <= aximm.arburst;
       cur_arlen <= aximm.arlen;
@@ -297,13 +297,13 @@ module piradip_axi4_imp #(
 
   // Implement cur_arvalid generation
 
-  // aximm.rvalid is asserted for one aximm.aclk clock cycle when both 
-  // aximm.arvalid and aximm.arready are asserted. The slave registers 
-  // data are available on the aximm.rdata bus at this instance. The 
-  // assertion of aximm.rvalid marks the validity of read data on the 
-  // bus and aximm.rresp indicates the status of read transaction.aximm.rvalid 
-  // is deasserted on reset (active low). aximm.rresp and aximm.rdata are 
-  // cleared to zero on reset (active low).  
+  // aximm.rvalid is asserted for one aximm.aclk clock cycle when both
+  // aximm.arvalid and aximm.arready are asserted. The slave registers
+  // data are available on the aximm.rdata bus at this instance. The
+  // assertion of aximm.rvalid marks the validity of read data on the
+  // bus and aximm.rresp indicates the status of read transaction.aximm.rvalid
+  // is deasserted on reset (active low). aximm.rresp and aximm.rdata are
+  // cleared to zero on reset (active low).
 
   always @(posedge aximm.aclk) begin
     if (~aximm.aresetn) begin
@@ -312,7 +312,7 @@ module piradip_axi4_imp #(
     end else if (cur_arv_arr_flag && ~aximm.rvalid) begin
       aximm.rvalid <= 1'b1;
       aximm.rresp  <= AXI_RESP_OKAY;
-      // 'OKAY' ADDR_LSB 
+      // 'OKAY' ADDR_LSB
     end else if (aximm.rvalid && aximm.rready) begin
       aximm.rvalid <= 1'b0;
     end
@@ -331,62 +331,62 @@ module piradip_axi4_imp #(
 	      assign mem_address = (cur_arv_arr_flag? cur_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]:(cur_awv_awr_flag? cur_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]:0));
 	    end
 	endgenerate
-	     
+
 	// implement Block RAM(s)
-	generate 
+	generate
 	  for(i=0; i<= user_NUM_MEM-1; i=i+1)
 	    begin:BRAM_GEN
 	      wire mem_rden;
 	      wire mem_wren;
-	
+
 	      assign mem_wren = aximm.wready && aximm.wvalid ;
-	
+
 	      assign mem_rden = cur_arv_arr_flag ; //& ~aximm.rvalid
-	     
+
 	      for(mem_byte_index=0; mem_byte_index<= (DATA_WIDTH/8-1); mem_byte_index=mem_byte_index+1)
 	      begin:BYTE_BRAM_GEN
 	        wire [8-1:0] data_in ;
 	        wire [8-1:0] data_out;
 	        reg  [8-1:0] byte_ram [0 : 255];
 	        integer  j;
-	     
+
 	        //assigning 8 bit data
 	        assign data_in  = aximm.wDATA[(mem_byte_index*8+7) -: 8];
 	        assign data_out = byte_ram[mem_address];
-	     
+
 	        always @(posedge aximm.aclk)
 	        begin
 	          if (mem_wren && aximm.wSTRB[mem_byte_index])
 	            begin
 	              byte_ram[mem_address] <= data_in;
-	            end   
-	        end    
-	      
+	            end
+	        end
+
 	        always @(posedge aximm.aclk)
 	        begin
 	          if (mem_rden)
 	            begin
 	              mem_data_out[i][(mem_byte_index*8+7) -: 8] <= data_out;
-	            end   
-	        end    
-	               
+	            end
+	        end
+
 	    end
-	  end       
+	  end
 	endgenerate
 	//Output register or memory read data
 
 	always @( mem_data_out, aximm.rvalid)
 	begin
-	  if (aximm.rvalid) 
+	  if (aximm.rvalid)
 	    begin
 	      // Read address mux
 	      aximm.rdata <= mem_data_out[0];
-	    end   
+	    end
 	  else
 	    begin
 	      aximm.rdata <= 32'h00000000;
-	    end       
-	end    
+	    end
+	end
 
 	// Add user logic here
 

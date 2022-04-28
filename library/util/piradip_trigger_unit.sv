@@ -90,7 +90,7 @@ module piradip_trigger_unit #(
 
 
   always @(*) begin
-    if (reg_if.rreg_no >= REGISTER_DELAY_BASE && 
+    if (reg_if.rreg_no >= REGISTER_DELAY_BASE &&
             reg_if.rreg_no < REGISTER_DELAY_BASE + N_TRIGGER) begin
       reg_if.rreg_data = delay_reg[reg_if.rreg_no-REGISTER_DELAY_BASE];
 

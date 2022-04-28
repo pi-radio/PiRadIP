@@ -2,7 +2,7 @@
 
 /*
  Register map
- 
+
  Reg 00h: Control/Status
  Bit 0 - Enable(d)
  Bit 1 - Error
@@ -10,8 +10,8 @@
  Bit 3 - Autoincrement ID enable
  Bit 4 - Interrupt Asserted
  Bit 5 - Interrupt Enable
- Reg 01h: 
- 
+ Reg 01h:
+
  --- Command Programming
  Reg 10h: Device Select
  Reg 11h: Profile Select
@@ -19,14 +19,14 @@
  Reg 18h: MOSI FIFO
  Reg 19h: MISO FIFO
  Reg 1Fh: Trigger
- 
+
  -- Profiles start at 20h
  Reg 0h: POL/PHA
  Reg 1h: SCLK div
  Reg 2h: Start wait cycles
  Reg 3h: CSN assert to SCLK cycles
  Reg 4h: SCLK to CSN deassert cycles
- Reg 5h: Transfer Length    
+ Reg 5h: Transfer Length
  */
 package piradspi_pkg;
   localparam SPI_IP_MAGIC = 32'h91700591;

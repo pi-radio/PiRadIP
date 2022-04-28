@@ -46,7 +46,7 @@ interface axi4mm_lite #(
   modport SUBORDINATE(
       output awready, wready, bresp, bvalid, arready, rdata, rresp, rvalid,
       input awaddr, awprot, awvalid, wdata, wstrb,
-                       wvalid, bready, araddr, arprot, arvalid, rready, 
+                       wvalid, bready, araddr, arprot, arvalid, rready,
                        aclk, aresetn
   );
 endinterface

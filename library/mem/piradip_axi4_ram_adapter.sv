@@ -237,7 +237,7 @@ module piradip_axi4_ram_adapter #(
         .USE_ADV_FEATURES("1F0F"),
         .WAKEUP_TIME(0),
         .WRITE_DATA_WIDTH(DATA_WIDTH+1),
-        .WR_DATA_COUNT_WIDTH(5)        
+        .WR_DATA_COUNT_WIDTH(5)
     ) gearbox (
         .wr_clk(aximm.aclk),
         .rst(~aximm.aresetn),

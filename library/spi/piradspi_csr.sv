@@ -145,7 +145,7 @@ module piradspi_csr #(
     end
     return retval;
     //WHYYYYYYYY won't this reference work in synthesis
-    //return sub_imp.mask_write_bytes(r);     
+    //return sub_imp.mask_write_bytes(r);
   endfunction
 
   generate
@@ -154,7 +154,7 @@ module piradspi_csr #(
       logic                          is_profile_write;
 
 
-      assign is_profile_write = reg_if.wren && 
+      assign is_profile_write = reg_if.wren &&
                                    (reg_if.wreg_no >= REGISTER_PROFBASE + i * REGISTER_PROFSIZE) &&
                                    (reg_if.wreg_no < (REGISTER_PROFBASE + (i + 1) * REGISTER_PROFSIZE));
 
