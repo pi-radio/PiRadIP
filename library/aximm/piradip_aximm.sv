@@ -321,75 +321,75 @@ module piradip_axi4_imp #(
 
   /*
 // ------------------------------------------
-	// -- Example code to access user logic memory region
-	// ------------------------------------------
+  // -- Example code to access user logic memory region
+  // ------------------------------------------
 
-	generate
-	  if (user_NUM_MEM >= 1)
-	    begin
-	      assign mem_select  = 1;
-	      assign mem_address = (cur_arv_arr_flag? cur_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]:(cur_awv_awr_flag? cur_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]:0));
-	    end
-	endgenerate
+  generate
+    if (user_NUM_MEM >= 1)
+      begin
+        assign mem_select  = 1;
+        assign mem_address = (cur_arv_arr_flag? cur_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]:(cur_awv_awr_flag? cur_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]:0));
+      end
+  endgenerate
 
-	// implement Block RAM(s)
-	generate
-	  for(i=0; i<= user_NUM_MEM-1; i=i+1)
-	    begin:BRAM_GEN
-	      wire mem_rden;
-	      wire mem_wren;
+  // implement Block RAM(s)
+  generate
+    for(i=0; i<= user_NUM_MEM-1; i=i+1)
+      begin:BRAM_GEN
+        wire mem_rden;
+        wire mem_wren;
 
-	      assign mem_wren = aximm.wready && aximm.wvalid ;
+        assign mem_wren = aximm.wready && aximm.wvalid ;
 
-	      assign mem_rden = cur_arv_arr_flag ; //& ~aximm.rvalid
+        assign mem_rden = cur_arv_arr_flag ; //& ~aximm.rvalid
 
-	      for(mem_byte_index=0; mem_byte_index<= (DATA_WIDTH/8-1); mem_byte_index=mem_byte_index+1)
-	      begin:BYTE_BRAM_GEN
-	        wire [8-1:0] data_in ;
-	        wire [8-1:0] data_out;
-	        reg  [8-1:0] byte_ram [0 : 255];
-	        integer  j;
+        for(mem_byte_index=0; mem_byte_index<= (DATA_WIDTH/8-1); mem_byte_index=mem_byte_index+1)
+        begin:BYTE_BRAM_GEN
+          wire [8-1:0] data_in ;
+          wire [8-1:0] data_out;
+          reg  [8-1:0] byte_ram [0 : 255];
+          integer  j;
 
-	        //assigning 8 bit data
-	        assign data_in  = aximm.wDATA[(mem_byte_index*8+7) -: 8];
-	        assign data_out = byte_ram[mem_address];
+          //assigning 8 bit data
+          assign data_in  = aximm.wDATA[(mem_byte_index*8+7) -: 8];
+          assign data_out = byte_ram[mem_address];
 
-	        always @(posedge aximm.aclk)
-	        begin
-	          if (mem_wren && aximm.wSTRB[mem_byte_index])
-	            begin
-	              byte_ram[mem_address] <= data_in;
-	            end
-	        end
+          always @(posedge aximm.aclk)
+          begin
+            if (mem_wren && aximm.wSTRB[mem_byte_index])
+              begin
+                byte_ram[mem_address] <= data_in;
+              end
+          end
 
-	        always @(posedge aximm.aclk)
-	        begin
-	          if (mem_rden)
-	            begin
-	              mem_data_out[i][(mem_byte_index*8+7) -: 8] <= data_out;
-	            end
-	        end
+          always @(posedge aximm.aclk)
+          begin
+            if (mem_rden)
+              begin
+                mem_data_out[i][(mem_byte_index*8+7) -: 8] <= data_out;
+              end
+          end
 
-	    end
-	  end
-	endgenerate
-	//Output register or memory read data
+      end
+    end
+  endgenerate
+  //Output register or memory read data
 
-	always @( mem_data_out, aximm.rvalid)
-	begin
-	  if (aximm.rvalid)
-	    begin
-	      // Read address mux
-	      aximm.rdata <= mem_data_out[0];
-	    end
-	  else
-	    begin
-	      aximm.rdata <= 32'h00000000;
-	    end
-	end
+  always @( mem_data_out, aximm.rvalid)
+  begin
+    if (aximm.rvalid)
+      begin
+        // Read address mux
+        aximm.rdata <= mem_data_out[0];
+      end
+    else
+      begin
+        aximm.rdata <= 32'h00000000;
+      end
+  end
 
-	// Add user logic here
+  // Add user logic here
 
-	// User logic ends
+  // User logic ends
 */
 endmodule

@@ -263,11 +263,11 @@ def reformat_all():
 
     for f in input_files:
         print(f"Reformatting {f}")
-        p = Popen(["verible-verilog-format", "-inplace", f], stdout=sys.stdout, stderr=sys.stderr)
-        p.wait()
         p = Popen(["sed", "-i", "s/[[:space:]]*$//", f], stdout=sys.stdout, stderr=sys.stderr)
         p.wait()
         p = Popen(["sed", "-i", "s/\t/  /", f], stdout=sys.stdout, stderr=sys.stderr)
+        p.wait()
+        p = Popen(["verible-verilog-format", "-inplace", f], stdout=sys.stdout, stderr=sys.stderr)
         p.wait()
         
 def lint_all():
@@ -279,5 +279,5 @@ def lint_all():
         input_files += l.files
 
     for f in input_files:
-        p = Popen(["verible-verilog-lint", f], stdout=sys.stdout, stderr=sys.stderr)
+        p = Popen(["verible-verilog-lint", "--rules=-interface-name-style,-parameter-name-style", f], stdout=sys.stdout, stderr=sys.stderr)
         p.wait()
