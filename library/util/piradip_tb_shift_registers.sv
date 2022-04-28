@@ -20,11 +20,9 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module piradip_tb_shift_registers(
+module piradip_tb_shift_registers ();
 
-    );
-    
-    wire clk;
-    reg rstn;
-    
+  wire clk;
+  reg  rstn;
+
 endmodule

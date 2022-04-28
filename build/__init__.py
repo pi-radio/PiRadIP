@@ -262,6 +262,7 @@ def reformat_all():
         input_files += l.files
 
     for f in input_files:
-        print(f"mv {f} {f}.bak")
-        print(f"verible-verilog-format {f}.bak > {f}")
-        print(f"rm {f}.bak")
+        print(f"Reformatting {f}")
+        os.system(f"mv {f} {f}.bak")
+        os.system(f"verible-verilog-format {f}.bak > {f}")
+        os.system(f"rm {f}.bak")
