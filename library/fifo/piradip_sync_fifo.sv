@@ -73,7 +73,15 @@ module piradip_sync_fifo #(
     output [READ_DATA_COUNT_WIDTH-1:0] write_count
 );
 
+  function bit[7:0] hex_to_str(x);
+    return ((x == 0) ? "0"  : (x == 1) ? "1"  : (x == 2) ? "2"  : (x == 3) ? "3" :
+	    (x == 4) ? "4"  : (x == 5) ? "5"  : (x == 6) ? "6"  : (x == 7) ? "7" : 
+	    (x == 8) ? "8"  : (x == 9) ? "9"  : (x == 10) ? "A" : (x == 11) ? "B" : 
+	    (x == 12) ? "C" : (x == 13) ? "D" : (x == 14) ? "E" : (x == 15) ? "F" :
+	    "?" );
+  endfunction  
 
+  
   localparam logic [15:0] feature_bits = {
     3'b0,
     `TEST_BO(DATA_VALID),
@@ -89,13 +97,6 @@ module piradip_sync_fifo #(
     `TEST_BO(OVERFLOW)
   };
 
-  localparam string features = {
-    `HEX_CHAR(feature_bits[15:12]),
-    `HEX_CHAR(feature_bits[11:8]),
-    `HEX_CHAR(feature_bits[7:4]),
-    `HEX_CHAR(feature_bits[3:0])
-  };
-
   xpm_fifo_sync #(
       .DOUT_RESET_VALUE("0"),
       .ECC_MODE("no_ecc"),
@@ -109,7 +110,10 @@ module piradip_sync_fifo #(
       .READ_DATA_WIDTH(WIDTH),
       .READ_MODE("std"),
       .SIM_ASSERT_CHK(1),
-      .USE_ADV_FEATURES(features),
+      .USE_ADV_FEATURES({hex_to_str(feature_bits[15:12]),
+			 hex_to_str(feature_bits[11:8]),
+			 hex_to_str(feature_bits[7:4]), 
+			 hex_to_str(feature_bits[3:0]) }),
       .WAKEUP_TIME(0),
       .WRITE_DATA_WIDTH(WIDTH),
       .WR_DATA_COUNT_WIDTH(WRITE_DATA_COUNT_WIDTH)

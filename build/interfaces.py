@@ -170,10 +170,12 @@ def parse_simple_port(node):
     return svexcreate(node.children[0])
 
 svpassnode("kModportSimplePort")
+svignorenode("kModportTFPortsDeclaration")
 
 svlistnode('kModportSimplePortsDeclaration', [ 'output', 'input', 'kModportSimplePort' ])
     
-svlistnode('kModportPortList', [ 'kModportSimplePortsDeclaration' ])
+svlistnode('kModportPortList', [ 'kModportSimplePortsDeclaration',
+                                 'kModportTFPortsDeclaration' ])
 
 @svex("kModportItem")
 def parse_modport_item(node):

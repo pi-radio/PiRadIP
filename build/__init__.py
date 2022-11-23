@@ -171,11 +171,14 @@ def up_to_date():
         output_files.append(m.wrapper_xml_path)
         output_files.append(m.wrapper_bd_tcl_path)
 
-    if not all([Path(p).exists for p in output_files]):
+    opaths = [Path(p) for p in output_files]
+        
+    if not all([p.exists() for p in opaths]):
         INFO("Could not find all outputs, rebuilding")
         return False
 
-    if min([os.path.getmtime(p) for p in output_files]) < input_timestamp:
+    
+    if min([p.stat().st_mtime for p in opaths]) < input_timestamp:
         INFO("Outputs out of date, rebuilding")
         return False
 

@@ -56,7 +56,38 @@ def parse_id(node):
     
 svpassnode("kLocalRoot")
 svpassnode("kReference")
-svpassnode("kReferenceCallBase")
+svignorenode("kMethodCallExtension")
+svignorenode("kFunctionDeclaration")
+
+    
+@svex2("kHierarchyExtension")
+class svexkheirarchyextension:
+    def parse(node):
+        assert_nchild(node, 2)
+        assert(node.children[0].tag == '.')
+        return svexcreate(node.children[1])
+
+        
+@svex2("kReferenceCallBase")
+class svexreferencecallbase:
+    def parse(node):
+        if len(node.children) == 1:
+            return svexcreate(node.children[0])
+        print(node.children)
+        assert_nchild(node, 2)
+        return svexreferencecallbase(svexcreate(node.children[0]), svexcreate(node.children[1]))
+
+    def __init__(self, base, ext):
+        self.base = base
+        self.ext = ext
+        print(base, ext)
+
+    @property
+    def const(self):
+        return False
+
+    def subst(self, ns):
+        pass
 
 class svexliteral:
     def __init__(self, n, width=32):

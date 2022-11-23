@@ -19,9 +19,23 @@ interface piradip_ram_if #(
   assign clk = clk_in;
   assign rst = rst_in;
 
-  modport CLIENT(input clk, rst, rdata, output en, we, addr, wdata);
+  function integer data_width();
+    return DATA_WIDTH;
+  endfunction			
 
-  modport RAM_PORT(input clk, rst, en, we, addr, wdata, output rdata);
+  function integer addr_width();
+    return ADDR_WIDTH;
+  endfunction			
+
+  function integer memory_size();
+    return DATA_WIDTH << ADDR_WIDTH;
+  endfunction		      
+  
+  modport CLIENT(import data_width, import addr_width, import memory_size,
+		 input clk, rst, rdata, output en, we, addr, wdata);
+
+  modport RAM_PORT(import data_width, import addr_width, import memory_size,
+		   input clk, rst, en, we, addr, wdata, output rdata);
 
 endinterface
 
@@ -35,16 +49,16 @@ module piradip_tdp_ram #(
     piradip_ram_if.RAM_PORT b
 );
 
-  localparam A_ADDR_WIDTH = $bits(a.addr);
-  localparam A_DATA_WIDTH = $bits(a.wdata);
+  localparam A_ADDR_WIDTH = a.addr_width();
+  localparam A_DATA_WIDTH = a.data_width();
 
-  localparam B_ADDR_WIDTH = $bits(b.addr);
-  localparam B_DATA_WIDTH = $bits(b.wdata);
+  localparam B_ADDR_WIDTH = b.addr_width();
+  localparam B_DATA_WIDTH = b.data_width();
 
-  localparam MEMORY_BITS = A_DATA_WIDTH << A_ADDR_WIDTH;
+  localparam MEMORY_BITS = a.memory_size();
 
   generate
-    if ((A_DATA_WIDTH << A_ADDR_WIDTH) != (B_DATA_WIDTH << B_ADDR_WIDTH))
+    if (a.memory_size() != b.memory_size())
       $error(
           "A and B iterfaces have different memory sizes (A: 2^%d %d bit words (%d bits) B: 2^%d %d bit words (%d bits))",
           A_ADDR_WIDTH,
@@ -107,6 +121,5 @@ module piradip_tdp_ram #(
       .doutb(b.rdata),
       .regceb(1'b1)
   );
-
-
+  
 endmodule

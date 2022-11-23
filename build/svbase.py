@@ -333,6 +333,7 @@ svignorenode('kAlwaysStatement', okay=True)
 svignorenode('kGenerateRegion')
 svignorenode('kGenvarDeclaration')
 svignorenode('kStructType')
+svignorenode('kInitialStatement')
 
 module_item_list = [
     'kParamDeclaration',
@@ -343,6 +344,8 @@ module_item_list = [
     'kContinuousAssignmentStatement',
     'kAlwaysStatement',
     'kGenerateRegion',
-    'kGenvarDeclaration'
+    'kGenvarDeclaration',
+    'kFunctionDeclaration',
+    'kInitialStatement'
 ]
 

@@ -7,12 +7,12 @@ module piradip_axis_sample_buffer_out (
     input trigger
 );
 
-  localparam AXIMM_DATA_WIDTH = $bits(aximm.rdata);
-  localparam AXIMM_ADDR_WIDTH = $bits(aximm.araddr);
+  localparam AXIMM_DATA_WIDTH = aximm.data_width();
+  localparam AXIMM_ADDR_WIDTH = aximm.addr_width();
 
-  localparam MEMORY_BIT_WIDTH = AXIMM_ADDR_WIDTH + 3;
+  localparam MEMORY_BIT_WIDTH = AXIMM_ADDR_WIDTH + $clog2(AXIMM_DATA_WIDTH);
 
-  localparam STREAM_DATA_WIDTH = $bits(stream_out.tdata);
+  localparam STREAM_DATA_WIDTH = stream_out.data_width();
   localparam STREAM_ADDR_WIDTH = MEMORY_BIT_WIDTH - $clog2(STREAM_DATA_WIDTH);
 
   localparam READ_LATENCY_A = 1;
@@ -132,5 +132,12 @@ module piradip_axis_sample_buffer_out (
     end
   end
 
+  initial
+    begin
+      $display("Pi Radio Sample Buffer: %d %d %d",
+	       AXIMM_DATA_WIDTH, AXIMM_ADDR_WIDTH,
+	       MEMORY_BIT_WIDTH);
+	       
+    end				
 
 endmodule

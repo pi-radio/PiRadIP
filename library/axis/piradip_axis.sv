@@ -12,6 +12,10 @@ interface axis_simple #(
   typedef logic [WIDTH-1:0] data_t;
 
 
+  function data_width();
+     data_width = WIDTH;
+  endfunction
+   
   logic aclk, aresetn;
   logic tready, tvalid, tlast;
   data_t tdata;
@@ -19,8 +23,8 @@ interface axis_simple #(
   assign aclk = clk;
   assign aresetn = resetn;
 
-  modport SUBORDINATE(input tvalid, tlast, tdata, aclk, aresetn, output tready);
-  modport MANAGER(output tvalid, tlast, tdata, input tready, aclk, aresetn);
+  modport SUBORDINATE(import data_width, input tvalid, tlast, tdata, aclk, aresetn, output tready);
+  modport MANAGER(import data_width, output tvalid, tlast, tdata, input tready, aclk, aresetn);
 endinterface
 
 interface axi4s #(
@@ -41,6 +45,11 @@ interface axi4s #(
   typedef logic [DEST_WIDTH-1:0] dest_t;
   typedef logic [USER_WIDTH-1:0] user_t;
 
+  function integer data_width();
+     return WIDTH;
+  endfunction
+
+  
   logic aclk, aresetn;
   logic tready, tvalid, tlast;
   data_t tdata;
@@ -52,12 +61,14 @@ interface axi4s #(
 
   assign aclk = clk;
   assign aresetn = resetn;
-
+  
   modport SUBORDINATE(
-      input tvalid, tlast, tdata, tstrb, tkeep, tid, tdest, tuser, aclk, aresetn,
+      import data_width,
+      input  tvalid, tlast, tdata, tstrb, tkeep, tid, tdest, tuser, aclk, aresetn,
       output tready
   );
   modport MANAGER(
+      import data_width,
       output tvalid, tlast, tdata, tstrb, tkeep, tid, tdest, tuser,
       input tready, aclk, aresetn
   );
