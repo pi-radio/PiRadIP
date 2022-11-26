@@ -10,7 +10,7 @@ module piradip_axis_sample_buffer_out (
   localparam AXIMM_DATA_WIDTH = aximm.data_width();
   localparam AXIMM_ADDR_WIDTH = aximm.addr_width();
 
-  localparam MEMORY_BIT_WIDTH = AXIMM_ADDR_WIDTH + $clog2(AXIMM_DATA_WIDTH);
+  localparam MEMORY_BIT_WIDTH = AXIMM_ADDR_WIDTH + 3;
 
   localparam STREAM_DATA_WIDTH = stream_out.data_width();
   localparam STREAM_ADDR_WIDTH = MEMORY_BIT_WIDTH - $clog2(STREAM_DATA_WIDTH);
@@ -43,6 +43,7 @@ module piradip_axis_sample_buffer_out (
   );
 
   piradip_axis_sample_buffer_csr #(
+      .BUFFER_BYTES(1 << (MEMORY_BIT_WIDTH - 3)),
       .STREAM_OFFSET_WIDTH(STREAM_ADDR_WIDTH)
   ) csr (
       .aximm(axilite),
@@ -102,21 +103,17 @@ module piradip_axis_sample_buffer_out (
       .out_data(gearbox_in.tdata)
   );
 
+  always_comb stream_stopped = ~enable_stream;
+  
   always @(posedge stream_out.aclk) begin
     if (~stream_out.aresetn) begin
       enable_stream  <= 1'b0;
-      stream_stopped <= 1'b0;
+    end else if (stream_update) begin
+      enable_stream  <= stream_active;
+    end else if ((mem_stream.addr >= stream_end_offset) && stream_one_shot) begin
+      enable_stream <= 1'b0;
     end else begin
-      stream_stopped = 1'b0;
-
-      if (stream_update) begin
-        enable_stream <= stream_active;
-      end else if ((mem_stream.addr >= stream_end_offset) && stream_one_shot) begin
-        enable_stream <= 1'b0;
-        stream_stopped = 1'b1;
-      end else begin
-        enable_stream <= enable_stream;
-      end
+      enable_stream <= enable_stream;
     end
   end
 
@@ -131,13 +128,4 @@ module piradip_axis_sample_buffer_out (
       end
     end
   end
-
-  initial
-    begin
-      $display("Pi Radio Sample Buffer: %d %d %d",
-	       AXIMM_DATA_WIDTH, AXIMM_ADDR_WIDTH,
-	       MEMORY_BIT_WIDTH);
-	       
-    end				
-
 endmodule

@@ -5,23 +5,51 @@ module piradip_cdc_auto_word #(
     parameter integer STAGES = 4,
     parameter RESET_VAL = 0
 ) (
-    input             src_rst,
-    input             src_clk,
-    input [WIDTH-1:0] src_data,
-    input             src_send,
+    input logic              src_rst,
+    input logic              src_clk,
+    input logic  [WIDTH-1:0] src_data,
+    input logic              src_send,
 
-    input              dst_rst,
-    input              dst_clk,
-    output [WIDTH-1:0] dst_data,
-    output             dst_update
+    input logic              dst_rst,
+    input logic              dst_clk,
+    output logic [WIDTH-1:0] dst_data,
+    output logic             dst_update
 );
   logic [WIDTH-1:0] dst_data_cdc;
-  logic reg_ready;
-
-  assign dst_data = reg_ready ? dst_data_cdc : RESET_VAL;
-
+  logic [WIDTH-1:0] src_data_r;
+  logic [WIDTH-1:0] next_data_r;
+  
+  logic src_rcv, dst_req;
+  logic dirty;
+  logic sending;
+   
+	    
+  always @(posedge src_clk) begin
+    if (src_rst) begin
+      dirty 	  <= 1'b0;
+      sending 	  <= 1'b0;
+      next_data_r <= 1'b0;
+      src_data_r  <= 1'b0;
+    end else if (src_rcv || sending) begin
+      sending <= ~src_rcv;
+      if (src_send) begin
+	dirty <= 1'b1;
+	next_data_r <= src_data;
+      end
+    end else begin
+      src_data_r <= src_send ? src_data : next_data_r;
+      sending 	 <= src_send | dirty;
+      dirty 	 <= 1'b0;
+    end
+  end
+  
   always @(posedge dst_clk) begin
-    reg_ready = dst_rst ? 1'b0 : ~reg_ready ? dst_update : 1'b1;
+    if (dst_req) begin
+      dst_data <= dst_data_cdc;
+      dst_update <= 1'b1;
+    end else begin
+      dst_update <= 1'b0;
+    end
   end
 
   xpm_cdc_handshake #(
@@ -33,11 +61,12 @@ module piradip_cdc_auto_word #(
   ) cdc (
       .dest_clk(dst_clk),
       .dest_out(dst_data_cdc),
-      .dest_req(dst_update),
+      .dest_req(dst_req),
 
+      .src_rcv (src_rcv),
       .src_clk (src_clk),
-      .src_in  (src_data),
-      .src_send(src_send)
+      .src_in  (src_data_r),
+      .src_send(sending)
   );
 endmodule
 

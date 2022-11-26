@@ -43,6 +43,7 @@ module piradip_axis_sample_buffer_in (
   );
 
   piradip_axis_sample_buffer_csr #(
+      .BUFFER_BYTES(1 << (MEMORY_BIT_WIDTH - 3)),
       .STREAM_OFFSET_WIDTH(STREAM_ADDR_WIDTH)
   ) csr (
       .aximm(axilite),
@@ -50,7 +51,6 @@ module piradip_axis_sample_buffer_in (
       .stream_clk(stream_in.aclk),
       .*
   );
-
 
   piradip_tdp_ram ram (
       .a(mem_mm.RAM_PORT),

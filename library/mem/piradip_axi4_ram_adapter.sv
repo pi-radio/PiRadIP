@@ -152,7 +152,7 @@ module piradip_axi4_ram_adapter #(
 
   /*** READ LOGIC ***/
 
-  assign aximm.arready = unit_ready & ~read_cmd_valid;
+  always_comb aximm.arready = unit_ready & ~read_cmd_valid;
   logic rd_fifo_sleep, rd_fifo_rd_rst_busy, rd_fifo_wr_rst_busy;
 
   localparam STARTUP_CYCLES = 20;
@@ -160,11 +160,12 @@ module piradip_axi4_ram_adapter #(
 
   always @(posedge aximm.aclk) begin
     if (~aximm.aresetn || rd_fifo_rd_rst_busy || rd_fifo_wr_rst_busy) begin
-      unit_ready = 1'b0;
+      unit_ready <= 1'b0;
+      startup_counter <= STARTUP_CYCLES;
     end else if (startup_counter > 0) begin
-      startup_counter = startup_counter - 1;
+      startup_counter <= startup_counter - 1;
     end else begin
-      unit_ready = 1'b1;
+      unit_ready <= 1'b1;
     end
   end
 
@@ -218,42 +219,6 @@ module piradip_axi4_ram_adapter #(
       .empty(rd_fifo_empty),
       .prog_full(rd_fifo_prog_full)
   );
-
-
-  /*
-    xpm_fifo_sync #(
-        .DOUT_RESET_VALUE("0"),
-        .ECC_MODE("no_ecc"),
-        .FIFO_MEMORY_TYPE("auto"),
-        .FIFO_READ_LATENCY(1),
-        .FIFO_WRITE_DEPTH(16),
-        .FULL_RESET_VALUE(0),
-        //.PROG_EMPTY_THRESH(),
-        .PROG_FULL_THRESH(PROG_FULL_DEPTH),
-        .RD_DATA_COUNT_WIDTH(5),
-        .READ_DATA_WIDTH(DATA_WIDTH+1),
-        .READ_MODE("std"),
-        .SIM_ASSERT_CHK(1),
-        .USE_ADV_FEATURES("1F0F"),
-        .WAKEUP_TIME(0),
-        .WRITE_DATA_WIDTH(DATA_WIDTH+1),
-        .WR_DATA_COUNT_WIDTH(5)
-    ) gearbox (
-        .wr_clk(aximm.aclk),
-        .rst(~aximm.aresetn),
-        .data_valid(rd_fifo_data_valid),
-        .din({ rd_fifo_tlast, mem.rdata }),
-        .dout(rd_fifo_dout),
-        .empty(rd_fifo_empty),
-        .full(rd_fifo_full),
-        .prog_full(rd_fifo_prog_full),
-        .rd_en(rd_fifo_rd_en),
-        .rd_rst_busy(rd_fifo_rd_rst_busy),
-        .wr_en(rd_fifo_wr_en),
-        .wr_rst_busy(rd_fifo_wr_rst_busy),
-        .sleep(rd_fifo_sleep)
-    );
-    */
 
   always @(posedge aximm.aclk) begin
     if (~aximm.aresetn) begin

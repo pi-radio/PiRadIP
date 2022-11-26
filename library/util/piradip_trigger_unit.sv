@@ -45,10 +45,10 @@ module piradip_trigger_unit #(
     output logic [N_TRIGGER-1:0] triggers
 );
 
-
-  localparam REGISTER_TRIGGER_MASK = 0;
-  localparam REGISTER_TRIGGER = 1;
-  localparam REGISTER_DELAY_BASE = 2;
+  localparam REGISTER_ID = 0;
+  localparam REGISTER_TRIGGER_MASK = 1;
+  localparam REGISTER_TRIGGER = 2;
+  localparam REGISTER_DELAY_BASE = 3;
 
   localparam DATA_WIDTH = $bits(axilite.rdata);
   localparam ADDR_WIDTH = $bits(axilite.araddr);
@@ -78,26 +78,27 @@ module piradip_trigger_unit #(
   assign triggers = trigger_raw & trigger_mask;
 
   always @(posedge axilite.aclk) begin
-    if (~axilite.aresetn) trigger_mask = {{N_TRIGGER} {1'b1}};
-    else if (reg_if.is_reg_write(REGISTER_TRIGGER_MASK)) trigger_mask = reg_if.wreg_data;
+    if (~axilite.aresetn) 
+      trigger_mask <= (1 << N_TRIGGER) - 1;
+    else if (reg_if.is_reg_write(REGISTER_TRIGGER_MASK)) 
+      trigger_mask <= reg_if.wreg_data;
   end
 
   always @(posedge axilite.aclk) begin
-    arm = 1'b0;
-
-    if (axilite.aresetn & reg_if.is_reg_write(REGISTER_TRIGGER)) arm = 1'b1;
+    arm <= (axilite.aresetn & reg_if.is_reg_write(REGISTER_TRIGGER));
   end
 
 
-  always @(*) begin
+  always_comb begin
     if (reg_if.rreg_no >= REGISTER_DELAY_BASE &&
             reg_if.rreg_no < REGISTER_DELAY_BASE + N_TRIGGER) begin
       reg_if.rreg_data = delay_reg[reg_if.rreg_no-REGISTER_DELAY_BASE];
-
     end else begin
       case (reg_if.rreg_no)
+	REGISTER_ID: reg_if.rreg_data 		= 32'h50545247;
         REGISTER_TRIGGER_MASK: reg_if.rreg_data = trigger_mask;
-        REGISTER_TRIGGER: reg_if.rreg_data = &armed;
+        REGISTER_TRIGGER: reg_if.rreg_data 	= &armed;
+	default: reg_if.rreg_data               = 32'h5052444F;
       endcase  // case (reg_if.rreg_no)
     end
   end
