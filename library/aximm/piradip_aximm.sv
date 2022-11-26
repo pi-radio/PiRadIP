@@ -86,11 +86,11 @@ interface axi4mm #(
   function integer addr_width();
     addr_width = ADDR_WIDTH;
   endfunction
-   
+
   modport MANAGER(
       import data_width,
       import addr_width,
-      output 
+      output
 	     awid, awaddr, awlen, awsize, awburst, awlock, awcache, awprot, awqos, awregion, awuser, awvalid,
 	     wdata, wstrb, wlast, wuser, wvalid,
 	     bready,

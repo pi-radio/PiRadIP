@@ -4,10 +4,10 @@ module piradspi_tb_engine();
     wire clk;
     piradip_tb_clkgen #(.HALF_PERIOD(10)) clk_gen(.clk(clk));
     reg rstn;
-    
+
     wire sclk, mosi;
     reg miso;
-    
+
     localparam SEL_WIDTH = 5;
     wire sel_active;
     wire [SEL_WIDTH-1:0] chip_selects;
@@ -65,7 +65,7 @@ module piradspi_tb_engine();
         .csn(~(sel_active && (chip_selects == 1))),
         .name("Slave 10")
     );
- 
+
     piradip_tb_spi_slave #(
         .WIDTH(64),
         .CPOL(0),
@@ -78,7 +78,7 @@ module piradspi_tb_engine();
         .miso(miso),
         .csn(~(sel_active && (chip_selects == 2))),
         .name("Slave 01")
-    ); 
+    );
 
     piradip_tb_spi_slave #(
         .WIDTH(64),
@@ -93,7 +93,7 @@ module piradspi_tb_engine();
         .csn(~(sel_active && (chip_selects == 3))),
         .name("Slave 11")
     );
-    
+
     piradip_tb_spi_slave #(
         .WIDTH(24),
         .CPOL(0),
@@ -106,12 +106,12 @@ module piradspi_tb_engine();
         .miso(miso),
         .csn(~(sel_active && (chip_selects == 4))),
         .name("Slave 00 24 bit")
-    ); 
-    
+    );
+
     int cmd_submitted;
     int cmd_completions;
     int cmd_pending = cmd_submitted - cmd_completions;
-    
+
     always @(posedge clk_gen.clk)
     begin
         if (~rstn) begin
@@ -127,34 +127,34 @@ module piradspi_tb_engine();
         task automatic send(
             input int dev,
             input int xfer_len,
-            input logic cpol, 
-            input logic cpha, 
+            input logic cpol,
+            input logic cpha,
             input int sclk_cycles=1,
             input int wait_start=1,
             input int csn_to_sclk_cycles = 5,
             input int sclk_to_csn_cycles = 5
             );
-            
+
             int id = cmd_count;
             cmd_count = cmd_count + 1;
-    
+
             cmd_in.send_one(support.build_command(dev, xfer_len, id, cpol, cpha, sclk_cycles,
-                wait_start, csn_to_sclk_cycles, sclk_to_csn_cycles));        
+                wait_start, csn_to_sclk_cycles, sclk_to_csn_cycles));
         endtask
     endmodule
 
     command_builder commands(engine.engine.support);
-        
-    initial 
+
+    initial
     begin
         $timeformat(-9, 2, " ns", 0);
         rstn <= 0;
         miso <= 0;
 
         clk_gen.sleep(5);
-        
+
         rstn <= 1;
- 
+
         clk_gen.sleep(5);
 
         commands.send(0, 64, 0, 0);
@@ -162,37 +162,37 @@ module piradspi_tb_engine();
         commands.send(2, 64, 0, 1);
         commands.send(3, 64, 1, 1);
         commands.send(4, 24, 0, 0);
-        commands.send(0, 64, 0, 0);    
-        
+        commands.send(0, 64, 0, 0);
+
         // Wait for the commands to all queue
         cmd_in.sync();
-        
-        mosi_in.send_one(32'hA5B6A5B6);        
+
+        mosi_in.send_one(32'hA5B6A5B6);
         mosi_in.send_one(32'hBCBCBCBC);
-        
+
         // Todo -- write send_event, send_delay, send_event_delay
         wait(cmd_completed == 1);
-       
+
         clk_gen.sleep(40);
 
-        // Make the second command wait for data        
-        mosi_in.send_one(32'hA5B6A5B6);        
-        mosi_in.send_one(32'hBCBCBCBC);       
-        mosi_in.send_one(32'hA5B6A5B6);        
-        mosi_in.send_one(32'hBCBCBCBC);            
-        mosi_in.send_one(32'hA5B6A5B6);        
-        mosi_in.send_one(32'hBCBCBCBC);    
+        // Make the second command wait for data
+        mosi_in.send_one(32'hA5B6A5B6);
+        mosi_in.send_one(32'hBCBCBCBC);
+        mosi_in.send_one(32'hA5B6A5B6);
+        mosi_in.send_one(32'hBCBCBCBC);
+        mosi_in.send_one(32'hA5B6A5B6);
+        mosi_in.send_one(32'hBCBCBCBC);
 
         // 24 bit client
-        mosi_in.send_one(32'h11223344);    
+        mosi_in.send_one(32'h11223344);
 
-        mosi_in.send_one(32'hA5B6A5B6);        
-        mosi_in.send_one(32'hBCBCBCBC);  
+        mosi_in.send_one(32'hA5B6A5B6);
+        mosi_in.send_one(32'hBCBCBCBC);
 
         wait(cmd_completed == 1);
-        
+
         wait(cmd_completions == 6);
-               
+
         clk_gen.sleep(10);
         $finish;
     end

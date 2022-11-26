@@ -18,12 +18,12 @@ module piradip_cdc_auto_word #(
   logic [WIDTH-1:0] dst_data_cdc;
   logic [WIDTH-1:0] src_data_r;
   logic [WIDTH-1:0] next_data_r;
-  
+
   logic src_rcv, dst_req;
   logic dirty;
   logic sending;
-   
-	    
+
+
   always @(posedge src_clk) begin
     if (src_rst) begin
       dirty 	  <= 1'b0;
@@ -42,7 +42,7 @@ module piradip_cdc_auto_word #(
       dirty 	 <= 1'b0;
     end
   end
-  
+
   always @(posedge dst_clk) begin
     if (dst_req) begin
       dst_data <= dst_data_cdc;

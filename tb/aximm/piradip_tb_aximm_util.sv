@@ -28,9 +28,9 @@ module piradip_tb_axilite_manager #(
         logic addr_ack;
         logic data_ack;
         axi_resp_t resp;
-                
+
         event e;
-        
+
         function new(input opcode_t opcode, input logic barrier, input addr_t addr = 0, input data_t data = 0);
             this.opcode = opcode;
             this.barrier = barrier;
@@ -44,34 +44,34 @@ module piradip_tb_axilite_manager #(
     semaphore read_sem;
     semaphore write_sem;
 
-    aximm_op awaddr_queue[$];    
-    aximm_op wdata_queue[$];    
-    aximm_op bresp_queue[$];    
+    aximm_op awaddr_queue[$];
+    aximm_op wdata_queue[$];
+    aximm_op bresp_queue[$];
 
     aximm_op araddr_queue[$];
     aximm_op rdata_queue[$];
-    
+
     /* Issued, but not completed, reads and writes */
     aximm_op issued_write_queue[$];
     aximm_op issued_read_queue[$];
-    
+
     localparam AWPROT=0;
 
     task awaddr_task;
         forever @(posedge aximm.aclk) begin
             automatic aximm_op op;
-            
+
             write_sem.get();
-            
+
             if (awaddr_queue.size() != 0) begin
                 op = awaddr_queue[0];
-                
+
                 if (aximm.awready & aximm.awvalid) begin
                     awaddr_queue.pop_front();
                     op.addr_ack = 1'b1;
                     op = awaddr_queue[0];
                 end
-    
+
                 if (op != null) begin
                     aximm.awvalid <= 1'b1;
                     aximm.awaddr <= op.addr;
@@ -86,7 +86,7 @@ module piradip_tb_axilite_manager #(
                 aximm.awaddr <= 0;
                 aximm.awprot <= AWPROT;
             end
-            write_sem.put();   
+            write_sem.put();
         end
     endtask
 
@@ -95,18 +95,18 @@ module piradip_tb_axilite_manager #(
 
         forever @(posedge aximm.aclk) begin
             automatic aximm_op op;
-            
+
             write_sem.get();
-            
+
             if (wdata_queue.size() != 0) begin
                 op = wdata_queue[0];
-                
+
                 if (aximm.awready & aximm.awvalid) begin
                     wdata_queue.pop_front();
                     op.data_ack = 1'b1;
                     op = wdata_queue[0];
                 end
-    
+
                 if (op != null) begin
                     aximm.wvalid <= 1'b1;
                     aximm.wdata <= op.data;
@@ -121,7 +121,7 @@ module piradip_tb_axilite_manager #(
                 aximm.wdata <= 0;
                 aximm.wstrb <= 0;
             end
-            write_sem.put();   
+            write_sem.put();
         end
     endtask
 
@@ -129,40 +129,40 @@ module piradip_tb_axilite_manager #(
         forever @(posedge aximm.aclk) begin
             automatic aximm_op op;
             aximm.bready <= 1;
-            
+
             while (bresp_queue.size() > 0 && bresp_queue[0].opcode == NOOP) begin
                 op = bresp_queue.pop_front();
-                ->op.e;            
+                ->op.e;
             end
-            
+
             if (aximm.bready & aximm.bvalid) begin
                 assert(bresp_queue.size() > 0);
-                
+
                 op = bresp_queue.pop_front();
-                
+
                 assert(op.addr_ack & op.data_ack);
-                
+
                 op.resp = aximm.bresp;
                 ->op.e;
             end
-        end            
-    endtask  
+        end
+    endtask
 
     task araddr_task;
         forever @(posedge aximm.aclk) begin
             automatic aximm_op op;
-            
+
             read_sem.get();
-            
+
             if (araddr_queue.size() != 0) begin
                 op = araddr_queue[0];
-                
+
                 if (aximm.arready & aximm.arvalid) begin
                     araddr_queue.pop_front();
                     op.addr_ack = 1'b1;
                     op = araddr_queue[0];
                 end
-    
+
                 if (op != null) begin
                     aximm.arvalid <= 1'b1;
                     aximm.araddr <= op.addr;
@@ -177,64 +177,64 @@ module piradip_tb_axilite_manager #(
                 aximm.araddr <= 0;
                 aximm.arprot <= AWPROT;
             end
-            
-            read_sem.put();   
+
+            read_sem.put();
         end
     endtask
-    
+
     task rready_task;
         forever @(posedge aximm.aclk) begin
             automatic aximm_op op;
-            
+
             aximm.rready <= 1'b1;
-    
+
             read_sem.get();
-    
+
             while (rdata_queue.size() > 0 && rdata_queue[0].opcode == NOOP) begin
                 op = rdata_queue.pop_front();
-                
+
                 ->op.e;
             end
-        
+
             if (aximm.rready & aximm.rvalid) begin
                 assert(rdata_queue.size() > 0);
-                
+
                 op = rdata_queue.pop_front();
-    
+
                 op.data = aximm.rdata;
                 op.resp = aximm.rresp;
-                
-                ->op.e;       
+
+                ->op.e;
             end
-    
-            read_sem.put();   
+
+            read_sem.put();
         end
-    endtask    
+    endtask
 
     task automatic issue_read(input aximm_op op);
         read_sem.get();
-    
-        if (op.opcode != NOOP) begin    
+
+        if (op.opcode != NOOP) begin
             araddr_queue.push_back(op);
         end
 
-        rdata_queue.push_back(op);    
-        
-        read_sem.put();   
+        rdata_queue.push_back(op);
+
+        read_sem.put();
     endtask
 
 
     task automatic issue_write(input aximm_op op);
         write_sem.get();
-        
-        if (op.opcode != NOOP) begin    
+
+        if (op.opcode != NOOP) begin
             awaddr_queue.push_back(op);
-            wdata_queue.push_back(op);    
+            wdata_queue.push_back(op);
         end
-        
+
         bresp_queue.push_back(op);
-        
-        write_sem.put();   
+
+        write_sem.put();
     endtask
 
     mailbox #(aximm_op) op_mbx = new();
@@ -244,18 +244,18 @@ module piradip_tb_axilite_manager #(
         begin
             automatic aximm_op op;
             automatic aximm_op barrier_op;
-            
+
             op_mbx.get(op);
-             
+
             if (~aximm.aresetn) begin
                 -> op.e;
             end else if (op.opcode == READ) begin
                 if (op.barrier) begin
                     automatic aximm_op barrier_op = new(NOOP, 1);
-                    
+
                     issue_read(op);
                     issue_write(barrier_op);
-                    
+
                     wait(op.e.triggered && barrier_op.e.triggered);
                 end else begin
                     issue_read(op);
@@ -263,10 +263,10 @@ module piradip_tb_axilite_manager #(
             end else if (op.opcode == WRITE) begin
                  if (op.barrier) begin
                     automatic aximm_op barrier_op = new(NOOP, 1);
-                    
+
                     issue_write(op);
                     issue_read(barrier_op);
-                    
+
                     wait(op.e.triggered && barrier_op.e.triggered);
                 end else begin
                     issue_write(op);
@@ -275,27 +275,27 @@ module piradip_tb_axilite_manager #(
                   if (op.barrier) begin
                     automatic aximm_op read_barrier = new(NOOP, 1);
                     automatic aximm_op write_barrier = new(NOOP, 1);
-                    
+
                     issue_write(write_barrier);
                     issue_read(read_barrier);
-                    
+
                     wait(write_barrier.e.triggered && read_barrier.e.triggered);
-                    
+
                     -> op.e;
                 end else begin
                     -> op.e;
-                end           
+                end
             end
         end
     endtask;
 
     task automatic read(input addr_t addr, ref data_t data);
         aximm_op op = new(READ, 0, addr);
-        
+
         op_mbx.put(op);
-        
+
         wait(op.e.triggered);
-        
+
         data = op.data;
         assert(op.resp == AXI_RESP_OKAY);
         if (DEBUG) $display("%s: Read %x complete: %x", name, addr, data);
@@ -303,11 +303,11 @@ module piradip_tb_axilite_manager #(
 
     task automatic read_resp(input addr_t addr, ref data_t data, ref axi_resp_t resp);
         aximm_op op = new(READ, 0, addr);
-        
+
         op_mbx.put(op);
-        
+
         wait(op.e.triggered);
-        
+
         data = op.data;
         resp = op.resp;
         if (DEBUG) $display("%s: Read %x complete: %x", name, addr, data);
@@ -315,23 +315,23 @@ module piradip_tb_axilite_manager #(
 
     task automatic write(input addr_t addr, input data_t data);
         aximm_op op = new(WRITE, 0, addr, data);
-        
+
         op_mbx.put(op);
-        
+
         wait(op.e.triggered);
-        
+
         data = op.data;
         assert(op.resp == AXI_RESP_OKAY);
         if (DEBUG) $display("%s: Write %x complete: %x", name, addr, data);
     endtask
- 
+
      task automatic write_resp(input addr_t addr, input data_t data, ref axi_resp_t resp);
         aximm_op op = new(WRITE, 0, addr, data);
-        
+
         op_mbx.put(op);
-        
+
         wait(op.e.triggered);
-        
+
         resp = op.resp;
         if (DEBUG) $display("%s: Write %x complete: %x", name, addr, data);
     endtask

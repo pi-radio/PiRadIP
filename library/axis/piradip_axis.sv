@@ -15,7 +15,7 @@ interface axis_simple #(
   function data_width();
      data_width = WIDTH;
   endfunction
-   
+
   logic aclk, aresetn;
   logic tready, tvalid, tlast;
   data_t tdata;
@@ -49,7 +49,7 @@ interface axi4s #(
      return WIDTH;
   endfunction
 
-  
+
   logic aclk, aresetn;
   logic tready, tvalid, tlast;
   data_t tdata;
@@ -61,7 +61,7 @@ interface axi4s #(
 
   assign aclk = clk;
   assign aresetn = resetn;
-  
+
   modport SUBORDINATE(
       import data_width,
       input  tvalid, tlast, tdata, tstrb, tkeep, tid, tdest, tuser, aclk, aresetn,

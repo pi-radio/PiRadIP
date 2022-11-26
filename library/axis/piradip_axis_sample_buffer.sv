@@ -14,7 +14,7 @@ package piradip_sample_buffer;
 endpackage
 
 module piradip_axis_sample_buffer_csr #(
-    parameter BUFFER_BYTES = (1 << 16),				
+    parameter BUFFER_BYTES = (1 << 16),
     parameter STREAM_OFFSET_WIDTH = 5,
     parameter DEBUG = 1
 ) (
@@ -76,7 +76,7 @@ module piradip_axis_sample_buffer_csr #(
 
   always @(posedge aximm.aclk)
     initialized <= ~aximm.aresetn ? 1'b0 : 1'b1;
-  
+
   always_comb
     ctrl_stat_write = (reg_if.wren &&
 		       (reg_if.wreg_no == REGISTER_CTRLSTAT));
@@ -88,11 +88,11 @@ module piradip_axis_sample_buffer_csr #(
   always @(posedge aximm.aclk)
     mm_one_shot <= aximm.aresetn && (ctrl_stat_write &&
 				     (reg_if.wreg_data[CTRLSTAT_ONE_SHOT]));
-  
+
   always @(posedge aximm.aclk)
     mm_update <= aximm.aresetn && (trigger | reg_if.wren | ~initialized);
-  
-		   
+
+
   always @(posedge aximm.aclk) begin
     if (~aximm.aresetn) begin
       mm_start_offset <= 0;
@@ -112,7 +112,7 @@ module piradip_axis_sample_buffer_csr #(
       case (reg_if.rreg_no)
 	REGISTER_ID: begin
 	  reg_if.rreg_data = 32'h5053424F;
-	end			
+	end
 	REGISTER_CTRLSTAT: begin
 	  reg_if.rreg_data = mm_active | (mm_one_shot << CTRLSTAT_ONE_SHOT);
 	end
@@ -123,10 +123,10 @@ module piradip_axis_sample_buffer_csr #(
 	  reg_if.rreg_data = mm_end_offset;
 	end
 	REGISTER_STREAM_DEPTH: begin
-	  reg_if.rreg_data = (1 << STREAM_OFFSET_WIDTH);	    
+	  reg_if.rreg_data = (1 << STREAM_OFFSET_WIDTH);
 	end
 	REGISTER_SIZE_BYTES: begin
-	  reg_if.rreg_data = BUFFER_BYTES;	    
+	  reg_if.rreg_data = BUFFER_BYTES;
 	end
 	default: begin
 	  reg_if.rreg_data = 32'h5052444F;

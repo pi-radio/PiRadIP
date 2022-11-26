@@ -75,13 +75,13 @@ module piradip_sync_fifo #(
 
   function bit[7:0] hex_to_str(x);
     return ((x == 0) ? "0"  : (x == 1) ? "1"  : (x == 2) ? "2"  : (x == 3) ? "3" :
-	    (x == 4) ? "4"  : (x == 5) ? "5"  : (x == 6) ? "6"  : (x == 7) ? "7" : 
-	    (x == 8) ? "8"  : (x == 9) ? "9"  : (x == 10) ? "A" : (x == 11) ? "B" : 
+	    (x == 4) ? "4"  : (x == 5) ? "5"  : (x == 6) ? "6"  : (x == 7) ? "7" :
+	    (x == 8) ? "8"  : (x == 9) ? "9"  : (x == 10) ? "A" : (x == 11) ? "B" :
 	    (x == 12) ? "C" : (x == 13) ? "D" : (x == 14) ? "E" : (x == 15) ? "F" :
 	    "?" );
-  endfunction  
+  endfunction
 
-  
+
   localparam logic [15:0] feature_bits = {
     3'b0,
     `TEST_BO(DATA_VALID),
@@ -112,7 +112,7 @@ module piradip_sync_fifo #(
       .SIM_ASSERT_CHK(1),
       .USE_ADV_FEATURES({hex_to_str(feature_bits[15:12]),
 			 hex_to_str(feature_bits[11:8]),
-			 hex_to_str(feature_bits[7:4]), 
+			 hex_to_str(feature_bits[7:4]),
 			 hex_to_str(feature_bits[3:0]) }),
       .WAKEUP_TIME(0),
       .WRITE_DATA_WIDTH(WIDTH),

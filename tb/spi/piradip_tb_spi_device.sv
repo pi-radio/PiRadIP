@@ -17,13 +17,13 @@ module piradip_tb_spi_device #(
    logic [WIDTH-1:0]                          data;
 
    logic                                      clk_raw;
-   
+
    assign clk_raw = sclk ^ CPOL;
    assign nclk_raw = ~clk_raw;
-   
+
    integer                                    shift_count, latch_count;
 
-   
+
    generate
       /* CPHA == 0 means that data is sampled on the first clock edge */
       if (CPHA == 0) begin
@@ -38,7 +38,7 @@ module piradip_tb_spi_device #(
                  if (clk_raw) begin
                     if (DEBUG) $display("%s: %1d %1d %1d: LATCH %1d %1d %x", name, sclk, CPOL, CPHA, miso, mosi, data);
                     latch_count = latch_count + 1;
-                    mosi_r = mosi;                 
+                    mosi_r = mosi;
                  end else if (nclk_raw) begin
                     if (DEBUG) $display("%s: %1d %1d %1d: SHIFT (%d) %1d %1d %x", name, sclk, CPOL, CPHA, shift_count, miso, mosi, data);
                     shift_count = shift_count + 1;
@@ -55,8 +55,8 @@ module piradip_tb_spi_device #(
            end
       end else begin
          logic miso_r;
-         assign miso = (~csn) ? miso_r : 1'bZ;        
-         
+         assign miso = (~csn) ? miso_r : 1'bZ;
+
          always @(posedge clk_raw or posedge nclk_raw or negedge rstn or csn)
            begin
               if (~rstn) begin
@@ -84,6 +84,6 @@ module piradip_tb_spi_device #(
    always @(posedge csn) $display("%s: SPI Transaction end: %x shift_count: %d latch_count: %d", name, data, shift_count, latch_count);
 
 
-   
+
 
 endmodule

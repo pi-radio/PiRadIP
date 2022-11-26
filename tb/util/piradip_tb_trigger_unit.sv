@@ -2,11 +2,11 @@
 module piradip_tb_trigger_unit();
    wire clk;
    reg  rstn;
-   
-   localparam SEL_WIDTH=5;
-   
 
-   
+   localparam SEL_WIDTH=5;
+
+
+
 
    piradip_tb_clkgen #(.HALF_PERIOD(10)) clk_gen(.clk(clk));
 
@@ -15,7 +15,7 @@ module piradip_tb_trigger_unit();
    piradip_tb_axilite_manager manager(.aximm(axilite_bus));
 
    logic [31:0]          triggers;
-   
+
    piradip_trigger_unit trigger_unit(.axilite(axilite_bus.SUBORDINATE),
                                      .triggers(triggers));
 
@@ -24,11 +24,11 @@ module piradip_tb_trigger_unit();
         integer               i;
 
         $timeformat(-9, 2, " ns", 0);
-        
-        rstn <= 0;                                                                           
+
+        rstn <= 0;
 
         clk_gen.sleep(5);
-        
+
         rstn <= 1;
 
         clk_gen.sleep(5);
@@ -42,8 +42,8 @@ module piradip_tb_trigger_unit();
         clk_gen.sleep(40);
 
         $finish;
-        
+
      end
-   
-   
+
+
 endmodule

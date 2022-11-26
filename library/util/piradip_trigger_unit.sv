@@ -78,9 +78,9 @@ module piradip_trigger_unit #(
   assign triggers = trigger_raw & trigger_mask;
 
   always @(posedge axilite.aclk) begin
-    if (~axilite.aresetn) 
+    if (~axilite.aresetn)
       trigger_mask <= (1 << N_TRIGGER) - 1;
-    else if (reg_if.is_reg_write(REGISTER_TRIGGER_MASK)) 
+    else if (reg_if.is_reg_write(REGISTER_TRIGGER_MASK))
       trigger_mask <= reg_if.wreg_data;
   end
 

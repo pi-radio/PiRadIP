@@ -104,7 +104,7 @@ module piradip_axis_sample_buffer_out (
   );
 
   always_comb stream_stopped = ~enable_stream;
-  
+
   always @(posedge stream_out.aclk) begin
     if (~stream_out.aresetn) begin
       enable_stream  <= 1'b0;

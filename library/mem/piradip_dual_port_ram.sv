@@ -21,16 +21,16 @@ interface piradip_ram_if #(
 
   function integer data_width();
     return DATA_WIDTH;
-  endfunction			
+  endfunction
 
   function integer addr_width();
     return ADDR_WIDTH;
-  endfunction			
+  endfunction
 
   function integer memory_size();
     return DATA_WIDTH << ADDR_WIDTH;
-  endfunction		      
-  
+  endfunction
+
   modport CLIENT(import data_width, import addr_width, import memory_size,
 		 input clk, rst, rdata, output en, we, addr, wdata);
 
@@ -121,5 +121,5 @@ module piradip_tdp_ram #(
       .doutb(b.rdata),
       .regceb(1'b1)
   );
-  
+
 endmodule

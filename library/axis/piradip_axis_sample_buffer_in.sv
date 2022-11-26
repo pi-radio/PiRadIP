@@ -12,7 +12,7 @@ module piradip_axis_sample_buffer_in (
 
   localparam MEMORY_BIT_WIDTH = AXIMM_ADDR_WIDTH + 3;
 
-  localparam STREAM_DATA_WIDTH = stream_in.data_width(); 
+  localparam STREAM_DATA_WIDTH = stream_in.data_width();
   localparam STREAM_ADDR_WIDTH = MEMORY_BIT_WIDTH - $clog2(STREAM_DATA_WIDTH);
 
   localparam READ_LATENCY_A = 1;
