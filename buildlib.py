@@ -38,6 +38,7 @@ Library("piradlib",
             "library/axis/piradip_axis_sample_buffer.sv",
             "library/axis/piradip_axis_sample_buffer_out.sv",
             "library/axis/piradip_axis_sample_buffer_in.sv",
+            "library/axis/piradip_axis_sample_interleaver.sv",
 
             "library/util/piradip_trigger_unit.sv",
             
@@ -184,6 +185,16 @@ ModuleDesc(name="piradip_axis_sample_buffer_in",
            display_name="AXI Sample Buffer In",
            ipxact_name="axis_sample_buffer_in"
 )
+
+ModuleDesc(name="piradip_axis_sample_interleaver",
+           version="1.0",
+           file="library/axis/piradip_axis_sample_interleaver.sv",
+           wrapper_name="AXIS_SampleInterleaver",
+           description="A memory mapped sample buffer to capture streamed data",
+           display_name="AXI Sample Interleaver",
+           ipxact_name="axis_sample_interleaver"
+)
+
 
 ModuleDesc(name="piradip_trigger_unit",
            version="1.0",

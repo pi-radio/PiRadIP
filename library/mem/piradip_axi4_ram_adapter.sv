@@ -177,9 +177,9 @@ module piradip_axi4_ram_adapter #(
   logic read_active;
   logic last_ram_read;
 
-  assign last_ram_read = ((read_len_cntr + 1) == read_len);
-  assign read_active   = (mem_if_state == READ) && ~rd_fifo_prog_full;
-  assign rd_fifo_sleep = ~aximm.aresetn || rd_fifo_rd_rst_busy || rd_fifo_wr_rst_busy;
+  always_comb last_ram_read = (read_len_cntr == read_len);
+  always_comb read_active   = (mem_if_state == READ) && ~rd_fifo_prog_full;
+  always_comb rd_fifo_sleep = ~aximm.aresetn || rd_fifo_rd_rst_busy || rd_fifo_wr_rst_busy;
 
   generate
     if (READ_LATENCY > 1) begin

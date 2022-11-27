@@ -12,6 +12,7 @@ piradspi_ip/
 .Xil/Vivado-43940-Zapman/.lpr
 AXIS_SampleBufferOut/
 AXIS_SampleBufferIn/
+AXIS_SampleInterleaver/
 piradip_slice8_ip/
 piradip_slice16_ip/
 piradip_slice32_ip/

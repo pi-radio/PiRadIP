@@ -53,7 +53,10 @@ module piradip_axis_sample_buffer_out (
   );
 
 
-  piradip_tdp_ram ram (
+  piradip_tdp_ram #(
+      .READ_LATENCY_A(READ_LATENCY_A),
+      .READ_LATENCY_B(READ_LATENCY_B)     
+  ) ram (
       .a(mem_mm.RAM_PORT),
       .b(mem_stream.RAM_PORT)
   );
