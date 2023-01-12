@@ -13,6 +13,8 @@ import sys
 import os
 from pathlib import Path
 
+from .vivado import TCLVivadoWrapper, create_project
+
 import pexpect
 
 def build_interfaces():
@@ -64,22 +66,6 @@ class TCLFileWrapper:
     def write(self, line):
         self.f.write(line)
 
-class TCLVivadoWrapper:
-    def __init__(self):
-        INFO("Launching background Vivado process")
-        kwargs = {}
-
-        if log_vivado:
-           kwargs["logfile"] = sys.stdout
-            
-        self.p = pexpect.spawnu("vivado -nolog -nojournal -mode tcl", **kwargs)
-        self.p.expect("Vivado%")
-
-    def write(self, line):
-        if line[0] == '#':
-            return
-        self.p.send(line)
-        self.p.expect("Vivado%")
         
 def wrap_modules():
     vivado = None
