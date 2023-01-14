@@ -1,10 +1,23 @@
 from functools import cached_property, wraps
+import re
+
+suffix_re = re.compile(r'[0-9]+$')
+
+def suffixize(s):
+    m = suffix_re.match(s)
+
+    if m is None:
+        return s + "_1"
+
+    s[slice(*m.span)] = str(int(m.group()) + 1)
+
+    return s
 
 def bdactive(f):
     @wraps(f)
     def wrapper(self, *args, **kwargs):
         self.make_active()
-        f(self, *args, **kwargs)
+        return f(self, *args, **kwargs)
     return wrapper
 
 def get_property_list(l):
@@ -18,20 +31,27 @@ def get_property_dict(d):
         return get_property_list(d)
     return get_property_list([(k, v) for k, v in d.items()])
 
-
-
 class BDObj:
+    root = False
+    hier = False
+    intf = False
+    net = False
+    pin = False
+    port = False
+    ip = False
+    
     def __init__(self, parent, name):
-        self.parent = parent
+        assert(name is not None)
+        if parent is not None:
+            self.parent = parent
         self.name = name
-        self.cells = dict()
 
     @cached_property
     def vivado(self):
         return self.parent.vivado
 
-    def cmd(self, s):
-        return self.vivado.cmd(s)
+    def cmd(self, s, **kwargs):
+        return self.vivado.cmd(s, **kwargs)
     
     @cached_property
     def bd(self):
@@ -71,7 +91,22 @@ class BDObj:
         return self.cmd(f"get_property {prop} {self.obj}")
 
     def list_properties(self):
-        return self.cmd(f"list_property {self.obj}")
+        return self.cmd(f"list_property {self.obj}").split()
+
+    def get_properties_dict(self):
+        return { k:self.get_property(k) for k in self.list_properties() }
+    
+    def dump_properties(self):
+        lp = self.list_properties()
+
+        for name in lp:
+            print(f"{self.name}: {name}: {self.get_property(name)}")
+
+    def get_active(self):
+        return self.bd.get_current()
         
     def make_active(self):
         self.bd.set_current(self)
+
+    def clear_active(self):
+        self.bd.set_current(None)
