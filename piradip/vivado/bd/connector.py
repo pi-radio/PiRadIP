@@ -5,7 +5,7 @@ from .obj import bdactive, suffixize
 from .net import BDNet, BDIntfNet
 from .pin import create_pin
 from .port import create_port
-
+from .buffer import IOBUF
 
 
 class BDConnector:
@@ -38,14 +38,14 @@ class BDConnector:
         
     
     @bdactive
-    def connect_non_intf_net(self, net, *pins):
+    def connect_non_intf_net(self, net, *pins, accept=[]):
         for p in pins:
             self.assign_pin(p, net)
 
-        self.cmd(f"connect_bd_net -net {net.path} " + " ".join(p.obj for p in pins))
+        self.cmd(f"connect_bd_net -net {net.path} " + " ".join(p.obj for p in pins), accept=accept)
 
     @bdactive
-    def connect_intf_net(self, net, *pins):
+    def connect_intf_net(self, net, *pins, accept=[]):
         assert len(net.pins) + len(pins) <= 2, f"{net.name}: Too many pins for an interface connection pins: {net.pins} args: {pins}"
 
         if len(pins) == 0:
@@ -62,13 +62,13 @@ class BDConnector:
         self.cmd(f"connect_bd_intf_net -intf_net {net.name} " + " ".join([p.obj for p in net.pins]))
         
     
-    def connect_net(self, net, *pins):
+    def connect_net(self, net, *pins, accept=[]):
         if net.intf:
-            return self.connect_intf_net(net, *pins)
+            return self.connect_intf_net(net, *pins, accept=accept)
         else:
-            return self.connect_non_intf_net(net, *pins)        
+            return self.connect_non_intf_net(net, *pins, accept=accept)        
     
-    def connect(self, *pins, name=None, debug=False):        
+    def connect(self, *pins, name=None, debug=False, accept=[]):
         intf = list(set([ p.intf for p in pins ]))
 
         assert len(intf) == 1, "Mix of interfaces and non-interface pins"
@@ -110,7 +110,7 @@ class BDConnector:
                 
             net = self.create_net(intf, name)
             
-        return self.connect_net(net, *pins)
+        return self.connect_net(net, *pins, accept=accept)
                 
     @bdactive
     def reexport(self, pin, name=None, debug=False):
@@ -121,18 +121,29 @@ class BDConnector:
         if name is not None:
             desc["name"] = name
         
-        if self.parent == None:
+        if self.root:
             # These should be ports
-            new_pin = create_port(self, **desc)
+            if hasattr(pin, "export_as_port"):
+                return pin.export_as_port(self)
+            else:
+                new_pin = create_port(self, **desc)
         else:
             new_pin = create_pin(self, **desc)
 
         new_pin.create()
 
         if debug:
-            print(f"REXEPORT: {self.path}: {pin}({pin.parent.path})<=>{new_pin}({new_pin.parent.path})")
+            print(f"REEXPORT: {self.path}: {pin}({pin.parent.path})<=>{new_pin}({new_pin.parent.path})")
             
         self.connect(pin, new_pin)
 
         return new_pin
-        
+
+    
+    @property
+    def hier_cells(self):
+        return filter(lambda x: x.hier, self.cells.values())
+
+    @property
+    def ip_cells(self):
+        return filter(lambda x: x.ip, self.cells.values())

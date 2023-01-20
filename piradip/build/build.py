@@ -13,8 +13,7 @@ import sys
 import os
 from pathlib import Path
 
-from .vivado import TCLVivadoWrapper, create_project
-
+from piradip.vivado import TCLVivadoWrapper
 import pexpect
 
 def build_interfaces():

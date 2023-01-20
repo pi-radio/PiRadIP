@@ -81,20 +81,43 @@ class BDPin(BDPinBase):
             
     @property
     def obj(self):
-        if self.subpin:
-            return f"[get_bd_pin {self.parent.parent.path}/{self.parent.name}_{self.name}]"
-        else:
-            return f"[get_bd_pin {self.path}]"
+        return f"[get_bd_pin {self.path}]"
     
 class BDIntfPin(BDPinBase, VLNVRegistry):
     intf = True
     
-    def __init__(self, parent, name, mode='Slave'):
+    def __init__(self, parent, name, mode='Slave', enum_pins=False):
         super().__init__(parent, name)
         self.mode = mode
         self.pins = dict()
         self.pin_type = "intf"
 
+        if enum_pins:
+            q = f"[get_bd_pins -of_object {self.obj}]"
+
+            def vb(x):
+                if x == "TRUE":
+                    return True
+                return False
+            
+            def vr(x):
+                if x == "{}":
+                    return 0
+                return int(x)
+
+            
+            attrs = {
+                'name': self.cmd(f"get_property NAME {q}").split(),
+                'intf': map(vb, self.cmd(f"get_property INTF {q}").split()),
+                'direction': self.cmd(f"get_property DIR {q}").split(),
+                'pin_type': self.cmd(f"get_property TYPE {q}").split(),
+                'left': map(vr, self.cmd(f"get_property LEFT {q}").split()),
+                'right': map(vr, self.cmd(f"get_property RIGHT {q}").split())
+            }
+
+            for i in [ dict(zip(attrs, t)) for t in zip(*attrs.values()) ]:
+                self.pins[i["name"]] = create_pin(self.parent, **i)
+            
     @property
     def desc(self):
         return { i: getattr(self, i) for i in [ 'name', 'vlnv', 'mode' ] }
@@ -106,20 +129,47 @@ class BDIntfPin(BDPinBase, VLNVRegistry):
     def create(self):
         self.cmd(f"create_bd_intf_pin -mode {self.mode} -vlnv {self.vlnv} {self.name}")
         return self
-    
+
+    @property
+    def other(self):
+        assert self.outer_net is not None, f"Interface is not connected {self.name}"
+        assert len(self.outer_net.pins) == 2
+        assert not self.parent.hier
+
+        l = self
+        p = list(filter(lambda x: x != self, self.outer_net.pins))[0]
+
+        while not p.parent.ip:
+            if l in p.outer_net.pins:
+                l = p
+                p = list(filter(lambda x: x != self, p.inner_net.pins))[0]
+            else:
+                l = p
+                p = list(filter(lambda x: x != self, p.outer_net.pins))[0]
+
+        return p
             
     @property
     def obj(self):
         return f"[get_bd_intf_pin {self.path}]"
 
+    def dump_pins(self):
+        pins = self.cmd(f"get_bd_pins -of_object {self.obj}").split()
+
+        for p in pins:
+            print(p)
 
 def register_intf_pin(name, vlnv):
     return BDIntfPin.create_class(name, vlnv)
 
+allowed_intf_args = { "vlnv", "mode", "enum_pins" }
+
 def create_pin(parent, name, **kwargs):
     if "vlnv" in kwargs:
-        assert kwargs.keys() == { "vlnv", "mode" }
-        return BDIntfPin.construct(kwargs["vlnv"], parent, name, kwargs["mode"])
+        vlnv = kwargs.pop("vlnv")        
+        assert len(kwargs.keys() - allowed_intf_args) == 0
+        
+        return BDIntfPin.construct(vlnv, parent, name, **kwargs)
     else:
         assert "mode" not in kwargs
         return BDPin(parent, name, **kwargs)

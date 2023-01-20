@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from build import *
+from piradip import *
 
 import click
 

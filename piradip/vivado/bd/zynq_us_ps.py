@@ -74,8 +74,17 @@ class Zynq_US_PS(BDIP):
 
 
         AXIMMWrapper(self)
-            
 
+    def setup_memory_map(self):
+        self.base_addr = 0xA0000000
+        self.end_addr = 0xB0000000
+        self.cur_addr = 0xA0000000
+
+    def assign_addresses(self, mmap):
+        print("ZYNQ Address: saw self")
+        pass
+        
+        
 
 """        
     default_props = [

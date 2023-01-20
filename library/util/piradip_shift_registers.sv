@@ -21,7 +21,7 @@ module piradip_stream_to_bit #(
 ) (
     input wire align,
     output wire empty,
-    axis_simple.SUBORDINATE words_in,
+    axi4s.SUBORDINATE words_in,
     piradip_bit_stream.MANAGER bits_out
 );
   localparam BIT_COUNT_WIDTH = $clog2(WIDTH + 1);
@@ -66,7 +66,7 @@ module piradip_bit_to_stream #(
     input logic align,
     output logic full,
     piradip_bit_stream.SUBORDINATE bits_in,
-    axis_simple.MANAGER words_out
+    axi4s.MANAGER words_out
 );
   localparam BIT_COUNT_WIDTH = $clog2(WIDTH + 1);
 

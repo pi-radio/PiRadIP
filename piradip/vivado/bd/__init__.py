@@ -9,5 +9,5 @@ from .rfdc import RFDC
 from .piradio import *
 from .sample_capture import SampleCapture
 from .zynq_us_ps import Zynq_US_PS
-
+from .rfmc import RFMC
 from .axi import AXIMMWrapper

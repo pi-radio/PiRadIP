@@ -85,8 +85,6 @@ module piradspi_fifo_engine #(
       .axis_mosi(f2e_mosi.SUBORDINATE),
       .axis_miso2(e2f_miso.MANAGER)
   );
-
-
 endmodule
 
 module piradspi_engine #(
@@ -110,10 +108,7 @@ module piradspi_engine #(
 );
   import piradspi_pkg::*;
 
-  generate
-    localparam DATA_FIFO_WIDTH = $bits(axis_miso2.tdata);
-  endgenerate
-
+  localparam DATA_FIFO_WIDTH = axis_miso2.data_width();
   localparam RESPONSE_PAD_WIDTH = DATA_FIFO_WIDTH - $bits(response_t);
 
 

@@ -3,7 +3,7 @@ from .structure import module_map
 from .sv import parse, get_modules, dump_node
 from .svbase import *
 from .expr import svlogicvector
-from .ipxact import IPXACTModule
+#from .ipxact import IPXACTModule
 from .port import svport
 
 import io

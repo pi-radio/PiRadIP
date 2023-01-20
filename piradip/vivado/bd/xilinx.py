@@ -2,6 +2,8 @@ from .pin import register_intf_pin
 from .port import register_intf_port
 from .ip import BDIP
 from .axi import AXIInterconnect
+from .buffer import UtilityBuffer, IOBUF
+from .i2c import BDI2CPin, BDI2CPort, BDI2C
 
 _xilinx_vlnv_defs = {
     "BDDiffIO": "xilinx.com:interface:diff_analog_io_rtl:1.0",
@@ -10,7 +12,6 @@ _xilinx_vlnv_defs = {
     "BDAXIS": "xilinx.com:interface:axis_rtl:1.0",
     "BDAXIMM": "xilinx.com:interface:aximm_rtl:1.0",
     "BDUART": "xilinx.com:interface:uart_rtl:1.0",
-    "BDI2C": "xilinx.com:interface:iic_rtl:1.0",
 }
 
 _xilinx_intf_pin_defs = { k+"Pin":v for k,v in _xilinx_vlnv_defs.items() }
@@ -19,7 +20,7 @@ _xilinx_intf_port_defs = { k+"Port":v for k,v in _xilinx_vlnv_defs.items() }
 _xilinx_ip_defs = {
     "ClockWizard": "xilinx.com:ip:clk_wiz:6.0",
     "BDPSReset": "xilinx.com:ip:proc_sys_reset:5.0",
-    "BDI2C": "xilinx.com:ip:axi_iic:2.1",
+    "BDVectorLogic": "xilinx.com:ip:util_vector_logic:2.0",
 }
 
 for name, vlnv in _xilinx_intf_pin_defs.items():

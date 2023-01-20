@@ -39,8 +39,14 @@ class SampleCapture(BDHier):
 
         self.trigger = TriggerUnit(self, "trigger", None)
         self.slice32 = Slice32(self, "trigger_slice", None)
+
+        # Clock and reset inputs
+        self.axi_aclk = create_pin(self, "s_axi_aclk", pin_type="clk").create()
+        self.axi_rstn = create_pin(self, "s_axi_aresetn", pin_type="rst").create()
         
-        self.axi_interconnect = AXIInterconnect(self, "axi_fabric", num_masters=34)            
+        self.axi_interconnect = AXIInterconnect(self, "axi_fabric", num_masters=34,
+                                                global_clock=self.pins["s_axi_aclk"],
+                                                global_reset=self.pins["s_axi_aresetn"])            
 
         
         #
@@ -61,17 +67,48 @@ class SampleCapture(BDHier):
 
         self.ext_reset_in = create_pin(self, "ext_reset_in", pin_type="rst").create()
         self.irq = create_pin(self, "irq", direction="O", pin_type="intr").create()
-        self.axi_aclk = create_pin(self, "s_axi_aclk", pin_type="clk").create()
-        self.axi_rstn = create_pin(self, "s_axi_aresetn", pin_type="rst").create()
 
         self.aximm_overrides = { "S00_AXI": { "clk": self.pins["s_axi_aclk"], "rst": self.pins["s_axi_aresetn"] } }
-        
-        self.reexport(self.axi_interconnect.pins["S00_AXI"])
 
+        print("Exporting AXI...")
+        self.reexport(self.axi_interconnect.pins["S00_AXI"])
         
         #
         # Make internal connections
         #
+
+        self.axi_aclk.connect(self.axi_interconnect.pins["ACLK"])
+        self.axi_rstn.connect(self.axi_interconnect.pins["ARESETN"])
+        
+        #
+        # Make external async reset connections
+        #
+        print("Connecting async resets...")
+        self.rfdc.ext_reset_in.connect(self.ext_reset_in)
+
+        self.not_resetn = BDVectorLogic(self, "not_resetn", { "CONFIG.C_OPERATION": "not", "CONFIG.C_SIZE": "1" })
+
+        self.not_resetn.pins["Op1"].connect(self.pins["ext_reset_in"])
+
+        for c in self.rfdc.adc_axis_clocks:
+            c.pins["reset"].connect(self.not_resetn.pins["Res"])
+
+        #
+        # Make AXI connections
+        #
+        print("Connecting internal AXI busses...")
+        self.axi_interconnect.aximm.connect(self.rfdc.pins["s_axi"])
+        self.axi_interconnect.aximm.connect(self.trigger.pins["AXILITE"])
+
+        for i in self.sample_in:
+            self.axi_interconnect.aximm.connect(i.pins["AXILITE"])
+            self.axi_interconnect.aximm.connect(i.pins["AXIMM"])
+        
+        for i in self.sample_out:
+            self.axi_interconnect.aximm.connect(i.pins["AXILITE"])
+            self.axi_interconnect.aximm.connect(i.pins["AXIMM"])
+
+
         print("Connecting trigger...")
         self.connect(self.trigger.pins["triggers"], self.slice32.pins["din"])
 
@@ -104,8 +141,10 @@ class SampleCapture(BDHier):
             
 
 
-        self.rfdc.ext_reset_in.connect(self.ext_reset_in)
 
+
+        
+        """
         self.connect(self.axi_aclk,
                      *self.axi_interconnect.clk_pins,
                      *all_pins(self.sample_out, "aximm_clk"),
@@ -123,3 +162,4 @@ class SampleCapture(BDHier):
                      *all_pins(self.sample_in, "axilite_resetn"),
                      self.trigger.pins["axilite_resetn"],
                      self.rfdc.pins["s_axi_aresetn"])
+        """

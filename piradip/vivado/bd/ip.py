@@ -17,6 +17,8 @@ class BDIP(BDCell, VLNVRegistry):
 
         self.enumerate_pins()
 
+        parent.cells[self.name]=self
+
     def apply_board_preset(self):
         self.cmd(f"apply_bd_automation -rule {self.bd_automation} -config {{ apply_board_preset \"1\" }}  {self.obj}")
         self.enumerate_pins()
@@ -34,9 +36,9 @@ class BDIP(BDCell, VLNVRegistry):
             vlnvs = self.cmd(f"get_property VLNV [get_bd_intf_pins -of {self.obj}]").split()
 
             for name, mode, vlnv in zip(names, modes, vlnvs):
-                create_pin(self, name, mode=mode, vlnv=vlnv)
+                create_pin(self, name, mode=mode, vlnv=vlnv, enum_pins=True)
 
-        pins = self.cmd(f"get_bd_pins -quiet -of {self.obj}").split()
+        pins = self.cmd(f"get_bd_pins -quiet -filter {{INTF==\"\"}} -of {self.obj}").split()
 
         if len(pins):
             def vb(x):

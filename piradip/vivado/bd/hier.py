@@ -8,3 +8,5 @@ class BDHier(BDConnector, BDCell):
         super().__init__(parent, name)
         parent.make_active()
         self.cmd(f"create_bd_cell -type hier \"{name}\"")
+        parent.cells[self.name]=self
+        

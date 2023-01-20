@@ -24,8 +24,6 @@ class AXIMMIface:
                 try:
                     ovr = other.parent.aximm_overrides[other.name]
 
-                    print("Found override!")
-                    
                     return AXIMMIface(other, clk=other.pins[ovr["clk"]], rst=other.pins[ovr["rst"]])
                 except AttributeError:
                     pass
@@ -76,8 +74,6 @@ class AXIMMIface:
 
         self.clk = get_param("clk")
         self.rst = get_param("rst")
-        
-        print(f"AXIMMIface: {self.iface} {self.rst} {self.clk} {self.seq}")
 
     @property
     def mode(self):
@@ -88,10 +84,6 @@ class AXIMMIface:
 
         other = self.wrap(other)
 
-        print(f"{self.rst}<=>{other.rst}")
-        print(f"{self.clk}<=>{other.clk}")
-        print(f"{self.iface}<=> {other.iface}")
-        
         self.rst.connect(other.rst)
         self.clk.connect(other.clk)
         self.iface.connect(other.iface)
