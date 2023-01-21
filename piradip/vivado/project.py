@@ -7,15 +7,21 @@ import pexpect
 import functools
 import sys
 import re
+import time
+
 from functools import cached_property
 
 from piradip.boards.SDRv2 import *
 
 from .process import TCLVivadoWrapper
+from .build import BDBuildStep, GenerateBuildStep, WrapperBuildStep
+from .build import SynthesizeBuildStep, OptimizationBuildStep
+from .build import PlaceBuildStep, RouteBuildStep
+from .build import WriteBitstreamBuildStep, XSABuildStep
 
 from .obj import VivadoObj
 from .bd import *
-
+from .npm import NPM
 
 
 class BoardComponent(VivadoObj):
@@ -147,9 +153,9 @@ class Project(VivadoObj):
         self.sources_dir.mkdir(exist_ok=True)
         self.constraints_dir.mkdir(exist_ok=True)
 
-        self.constraints_filename = self.constraints_dir / f"{name}.xdc"
+        self.constraints_filename = self.constraints_dir / f"{self.name}.xdc"
 
-        self.constrints_file = open(self.constraints_filename, "w+")
+        self.constraints_file = open(self.constraints_filename, "w+")
 
 
         piradip_root = Path(__file__).parent.parent.parent
@@ -356,151 +362,6 @@ class ZCU111Project(Project):
     def __init__(self, vivado, name):
         super().__init__(vivado, name)
 
-class NPM:
-    def __init__(self, prj):
-        self.prj = prj
-        
-        self.cmd(f"set_part {prj.board.fpga}")
-        self.cmd(f"set_property TARGET_LANGUAGE Verilog [current_project]")
-        self.cmd(f"set_property BOARD_PART {prj.board.part} [current_project]")
-        self.cmd(f"set_property DEFAULT_LIB xil_defaultlib [current_project]")
-        self.cmd(f"set_property IP_REPO_PATHS \"../PiRadIP\" [current_fileset]")
-
-        Path("reports").mkdir()
-        Path("checkpoints").mkdir()
-        
-    @cached_property
-    def vivado(self):
-        return self.prj.vivado
-
-    def cmd(self, cmd, **kwargs):
-        return self.vivado.cmd(cmd, **kwargs)
-
-    def read_bd(self):
-        self.cmd(f"read_bd {self.prj.bd_path}")
-
-    @property
-    def ips(self):
-        return self.cmd(f"get_ips").split()
-
-    def ip_locked(self, ip):
-        return int(self.cmd(f"get_property IS_LOCKED [get_ips {ip}]")) == 1
-    
-    def check_ips(self):
-        locked = []
-        need_save = False
-        
-        for ip in self.ips:
-            if not self.ip_locked(ip):
-                continue
-            
-            details = self.cmd(f"get_property LOCK_DETAILS [get_ips {ip}]")
-            print(f"IP {ip} is locked: {details}")    
-
-            self.cmd(f"upgrade_ips [get_ips {ip}]")
-            need_save = True
-            
-            if self.ip_locked(ip):
-                details = self.cmd(f"get_property LOCK_DETAILS [get_ips {ip}]")
-                locked.append((ip, details))
-
-        if need_save:
-            self.cmd("save_bd_design")
-                
-        return locked
-
-    def load_bd(self):
-        self.read_bd()
-        locked = self.check_ips()
-
-        if len(locked):
-            raise RuntimeError(f"Some IP still locked: {locked}")
-        
-    def generate(self):
-        self.load_bd()
-        self.cmd(f"set_property synth_checkpoint_mode None [get_files {self.prj.bd_path}]")
-        self.cmd(f"generate_target all [get_files {self.prj.bd_path}]")
-
-    def read_constraints(self):
-        self.cmd(f"read_xdc {self.prj.constraints_path}")
-
-    def make_and_read_wrapper(self):
-        self.generate()
-        self.cmd(f"make_wrapper -files [get_files {self.prj.bd_path}] -top")
-        self.cmd(f"read_verilog {self.prj.bd_wrapper}")
-        self.cmd(f"update_compile_order -fileset sources_1")
-
-    @property
-    def top(self):
-        return self.cmd("lindex [find_top] 0")
-    
-    def read_checkpoint(self, f):
-        print(f"Reading checkpoint \"{f}\"...")
-        print(self.cmd(f"open_checkpoint \"{f}\""))
-    
-    def synthesize(self):
-        self.make_and_read_wrapper()
-
-        self.cmd(f"set_property top {self.top} [current_fileset]")
-        self.cmd(f"set_property XPM_LIBRARIES {{XPM_CDC XPM_MEMORY XPM_FIFO}} [current_project]")
-        self.cmd(f"synth_design -top {self.top} -flatten_hierarchy none", timeout=12*60*60)
-
-        self.cmd(f"write_checkpoint checkpoints/synthesis.dcp")
-
-        
-        self.cmd(f"report_timing_summary -file reports/synthesis_timing.rpt")
-        
-    def optimize(self, checkpoint=None):
-        if checkpoint is not None:
-            self.read_checkpoint(checkpoint)
-        else:
-            self.synthesize()
-
-        self.cmd(f"opt_design")
-
-        self.cmd(f"write_checkpoint checkpoints/optimized.dcp")
-        self.cmd(f"report_timing_summary -file reports/opt_timing.rpt")
-
-        
-    def place(self, checkpoint=None):
-        if checkpoint is not None:
-            self.read_checkpoint(checkpoint)
-        else:
-            self.optimize()
-
-        self.cmd(f"place_design")
-        self.cmd(f"write_checkpoint checkpoints/placed.dcp")
-        self.cmd(f"phys_opt_design")
-        self.cmd(f"write_checkpoint checkpoints/popt.dcp")
-
-        self.cmd(f"report_timing_summary -file reports/placed_timing.rpt")
-
-    def route(self, checkpoint=None):
-        if checkpoint is not None:
-            self.read_checkpoint(checkpoint)
-        else:
-            self.place()
-
-        self.cmd(f"route_design")
-        self.cmd(f"write_checkpoint checkpoints/routed.dcp")
-        self.cmd(f"report_timing_summary -file reports/routed_timing.rpt")
-    
-    def write_bitstream(self, checkpoint=None):
-        if checkpoint is not None:
-            self.read_checkpoint(checkpoint)
-        else:
-            self.route()
-
-        #self.cmd(f"opt_design")
-
-    def write_xsa(self, checkpoint=None):
-        if checkpoint is not None:
-            self.read_checkpoint(checkpoint)
-        else:
-            self.route()
-
-        #self.cmd(f"opt_design")
-        
 
             
 class PiRadioProject:

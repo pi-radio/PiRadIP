@@ -53,3 +53,6 @@ class TristatePort(BDPortBase):
     @property
     def obj(self):
         return self.io.obj
+
+    def set_phys(self, ball, iostd="LVCMOS18"):
+        self.parent.port_phys[self.io_pin.name] = (ball, iostd)
