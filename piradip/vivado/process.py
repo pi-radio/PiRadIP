@@ -30,22 +30,29 @@ class VivadoMessage:
         n = s.find(":")
         
         self.level = s[:n]
+        self.facility = None
+        self.major = None
+        self.minor = None
+
         s = s[n+2:]
 
         if s[0] == "[":
             n = s.find("]")
             mn = s[1:n]
-            s = s[n+1:]
 
-            self.facility, mn = mn.split()
-            self.major, self.minor = mn.split("-")
             try:
-                self.major = int(self.major)
-                self.minor = int(self.minor)
+                self.facility, mn = mn.split()
+                s = s[n+1:]
+                self.major, self.minor = mn.split("-")
+                try:
+                    self.major = int(self.major)
+                    self.minor = int(self.minor)
+                except:
+                    print(f"Unhandled message number: {mn} {self.facility}")
             except:
-                print(f"Unhandled message number: {mn} {self.facility}")
-
-            
+                self.facility, self.major = mn.split("-")
+                self.minor = None
+                
         self.msg = s.strip()
             
         if self.msg[-1] == "]":
@@ -66,10 +73,16 @@ class VivadoMessage:
 
 
     def __repr__(self):
-        s = f"{self.facility}: {self.level}: "
+        s = ""
+        if self.facility is not None:
+            s += f"{self.facility}: "
+        s += f"{self.level}: "
         if self.filename is not None:
             s += f"{self.filename}:{self.line}: "
-        s += f"{self.major}-{self.minor}: {self.msg}"
+        if self.major is not None:
+            if self.minor is not None:
+                s += f"{self.major}-{self.minor}: "
+        s += self.msg
 
         return s
 

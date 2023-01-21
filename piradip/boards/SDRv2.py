@@ -88,3 +88,5 @@ class SDRv2_Capture(BD):
 
         self.axi_interconnect.aximm.connect(self.capture.pins["S00_AXI"])
         self.ps.pl_resetn[0].connect(self.capture.pins["ext_reset_in"])
+
+        self.ps.connect_interrupts()

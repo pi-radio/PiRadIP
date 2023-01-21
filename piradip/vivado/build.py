@@ -10,6 +10,7 @@ from .synthesis import SynthesisMessageHandler
 class BuildStep:
     def __init__(self, ctx):
         self.ctx = ctx
+        self.ready = False
         
         if self.predecessor_name is not None:
             self.predecessor = getattr(self.ctx, self.predecessor_name)
@@ -18,23 +19,46 @@ class BuildStep:
             
         setattr(self.ctx, self.name, self)
 
+        
     def __call__(self, **kwargs):
-        if self.uptodate(**kwargs):
+        print(f"Begin build {self.name}")
+
+        if self.predecessor is None:
+            self.build(**kwargs)
+            self.save(**kwargs)
+            self.ready = True
             return
 
-        if self.predecessor is not None:
-            if self.predecessor.uptodate(**kwargs):
-                self.predecessor.load()
-            else:
-                self.predecessor(**kwargs)
+        self.predecessor(**kwargs)
+        
+        if not self.uptodate(**kwargs):
+            self.predecessor.load(**kwargs)            
                 
+            self.build_and_save(**kwargs)
+            self.ready = True
+
+        print(f"End build {self.name}")
+
+    def load(self, **kwargs):
+        if self.ready:
+            return
+        self.do_load(**kwargs)
+        self.ready = True
+        
+    def do_load(self, **kwargs):
+        self.build(**kwargs)
+
+    def starting_from(self, **kwargs):
+        print("Starting from {self.name}")
+    
+    def build_and_save(self, **kwargs):
+        print(f"Executing build {self.name}")
         if self.build(**kwargs):
             self.save(**kwargs)
-
-    def load(self):
-        pass
-
-    def save(self):
+        self.ready = True
+        print(f"End build {self.name}")
+    
+    def save(self, **kwargs):
         pass
             
     def cmd(self, t, **kwargs):
@@ -53,40 +77,19 @@ class BuildStep:
         if self.predecessor is None:
             return True
         
-        if not self.predecessor.uptodate(**kwargs):
-            print(f"{self.predecessor.name} is not up to date")
-            return False
-
         if self.mtime() < self.predecessor.mtime():
             print(f"{self.name} is older than {self.predecessor.name}")
             return False
 
         return True
     
-class BDBuildStep(BuildStep):
-    name = "build_bd"
-    predecessor_name = None
-
-    def __call__(self, **kwargs):        
-        pass
-
-    @property
-    def path(self):
-        return Path(self.ctx.prj.bd_path)
-    
-    @property
-    def exists(self):
-        return self.path.exists()
-    
-    def mtime(self):
-        return self.path.stat().st_mtime
-
 class CheckpointBuildStep(BuildStep):
     @property
     def checkpoint(self):
         return Path(f"{self.ctx.checkpoint_dir}/{self.name}.dcp")
 
-    def load(self):
+    
+    def do_load(self, **kwargs):
         print(f"Loading checkpoint for {self.name}...")
         self.cmd(f"open_checkpoint {self.checkpoint}")
         
@@ -103,17 +106,36 @@ class CheckpointBuildStep(BuildStep):
             return self.checkpoint.stat().st_mtime
         except:
             return time.time()
+
+class FileBuildStep(BuildStep):
+    @property
+    def exists(self):
+        return self.path.exists()
+
+    def mtime(self):
+        return self.path.stat().st_mtime
+        
+class BDBuildStep(FileBuildStep):
+    name = "build_bd"
+    predecessor_name = None
+
+    def __call__(self):
+        self.cmd(f"read_bd {self.ctx.prj.bd_path}")
+        return self.starting_from
+        
+    @property
+    def path(self):
+        return Path(self.ctx.prj.bd_path)
+        
         
 class GenerateBuildStep(BuildStep):
     name = "generate"
     predecessor_name = "build_bd"
 
-    def __call__(self, **kwargs):
-        self.cmd(f"read_bd {self.ctx.prj.bd_path}")
-        
+    def build(self, **kwargs):
         self.cmd(f"set_property synth_checkpoint_mode None [get_files {self.ctx.prj.bd_path}]")
         self.cmd(f"generate_target all [get_files {self.ctx.prj.bd_path}]")
-
+        
     @property
     def bd_dir(self):
         return Path("block-design") / self.ctx.prj.project_name
@@ -123,43 +145,21 @@ class GenerateBuildStep(BuildStep):
         return (self.bd_dir / "ip").exists()
     
     def mtime(self):
-        self()
         return self.predecessor.mtime()
-
-    
-        bd_files = list((self.bd_dir / "ip").rglob("*"))
-        
-        bd_mtime = 0
-        max_file = None
-
-        for f in bd_files:
-            t = f.stat().st_mtime
-            if t > bd_mtime:
-                bd_mtime = t
-                max_file = f
-
-        print(f"Max file: {max_file}")
-
-        print(list(sorted(bd_files, key=lambda f: f.stat().st_mtime))[-10:])
-
-        return bd_mtime
     
 class WrapperBuildStep(BuildStep):
     name = "make_and_read_wrapper"
     predecessor_name = "generate"
     pretty_name = "Make wrapper"
     
-    def __call__(self, **kwargs):
-        self.ctx.generate()
+    def build(self, **kwargs):
         self.cmd(f"make_wrapper -files [get_files {self.ctx.prj.bd_path}] -top")
         self.cmd(f"read_verilog {self.ctx.prj.bd_wrapper}")
         self.cmd(f"update_compile_order -fileset sources_1")
-        return True
 
     @property
     def wrapper(self):
         return Path(self.ctx.prj.bd_wrapper)
-
     
     @property
     def exists(self):
@@ -176,7 +176,6 @@ class SynthesizeBuildStep(CheckpointBuildStep):
     pretty_name = "Synthesis"
     
     def build(self, **kwargs):
-        sys.exit(0)
         syn_msgs = SynthesisMessageHandler(self.ctx.vivado)
 
         top = self.cmd("lindex [find_top] 0")
@@ -236,13 +235,6 @@ class RouteBuildStep(CheckpointBuildStep):
         self.cmd(f"report_timing_summary -file reports/routed_timing.rpt")
         return True
 
-class FileBuildStep(BuildStep):
-    @property
-    def exists(self):
-        return self.path.exists()
-
-    def mtime(self):
-        return self.path.stat().st_mtime
     
 class WriteBitstreamBuildStep(FileBuildStep):
     name = "write_bitstream"
@@ -272,21 +264,6 @@ class XSABuildStep(FileBuildStep):
         print(f"Writing XSA at {self.path}...")
         print(self.cmd(f"write_hw_platform -fixed -force -include_bit {self.path}"))
 
-class XSCT:
-    def __init__(self):
-        self.p = pexpect.spawnu("xsct -norlwrap -interactive", env = os.environ | { 'TERM': 'dumb' })
-        self.p.logfile = sys.stdout
-        self.p.expect("xsct% ")
-        self.p.setecho(False)
-        print(f"Before {self.p.before}")
-        
-    def cmd(self, l):
-        self.p.sendline(f"{l}")
-        while self.p.expect(["xsct% ", "invalid command name"]) != 0:
-            print(f"Non-zero: {self.p.before}")
-        print(f"Before {self.p.before}")
-        time.sleep(2)
-        #sys.stdout.flush()
         
 class DTBO(FileBuildStep):
     name = "dtbo"

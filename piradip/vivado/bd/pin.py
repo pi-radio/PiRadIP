@@ -72,6 +72,8 @@ class BDPin(BDPinBase):
         return { i: getattr(self, i) for i in [ 'name', 'direction', 'pin_type', 'left', 'right', 'intf' ] }
         
     def __repr__(self):
+        if self.left != self.right:
+            return f"<|PIN: {self.name}[{self.right}:{self.left}] {self.pin_type}|>"
         return f"<|PIN: {self.name} {self.pin_type}|>"
         
     def create(self):

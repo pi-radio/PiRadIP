@@ -21,6 +21,8 @@ _xilinx_ip_defs = {
     "ClockWizard": "xilinx.com:ip:clk_wiz:6.0",
     "BDPSReset": "xilinx.com:ip:proc_sys_reset:5.0",
     "BDVectorLogic": "xilinx.com:ip:util_vector_logic:2.0",
+    "BDVectorLogic": "xilinx.com:ip:util_vector_logic:2.0",
+    "BDConcat": "xilinx.com:ip:xlconcat:2.1"
 }
 
 for name, vlnv in _xilinx_intf_pin_defs.items():

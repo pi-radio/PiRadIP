@@ -1,6 +1,6 @@
 from .ip import BDIP
 from .pin import BDIntfPin
-from .xilinx import BDPSReset
+from .xilinx import BDPSReset, BDConcat
 from .axi import AXIMMWrapper, is_aximm
 
 
@@ -75,6 +75,19 @@ class Zynq_US_PS(BDIP):
 
         AXIMMWrapper(self)
 
+    def connect_interrupts(self):
+        interrupts = [ p for c in self.parent.cells.values() for p in c.pins.values() if not p.intf and p.pin_type == "intr" and p.parent != self ]
+
+        intr_in = [ p for p in self.pins.values() if not p.intf and p.pin_type == "intr" ][0]
+                
+        self.intr_concat = BDConcat(self.parent, "interrupt_concat", { "CONFIG.NUM_PORTS": len(interrupts) })
+
+        for i, intr in enumerate(interrupts):
+            self.parent.connect(intr, self.intr_concat.pins[f"In{i}"])
+
+        self.parent.connect(intr_in, self.intr_concat.pins["dout"])
+        
+        
     def setup_memory_map(self):
         self.base_addr = 0xA0000000
         self.end_addr = 0xB0000000
