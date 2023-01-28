@@ -51,6 +51,17 @@ class BDObj(VivadoObj):
         if pp[-1] == "_":
             return pp + self.name
         return pp + "_" + self.name        
+
+    @property
+    def children(self):
+        if hasattr(self, "cells"):
+            yield from self.cells
+
+        if hasattr(self, "pins"):
+            yield from self.pins
+
+        if hasattr(self, "ports"):
+            yield from self.ports
     
     @property
     def obj(self):

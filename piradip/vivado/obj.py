@@ -1,4 +1,6 @@
 from functools import cached_property
+import inspect
+from pathlib import Path
 
 def get_property_list(l):
     if len(l) > 1:
@@ -17,6 +19,33 @@ class VivadoObj:
         self.parent = parent
         self.name = name
 
+    @property
+    def children(self):
+        yield from ()
+
+
+    @property
+    def code_deps(self):
+        deps = set([self.classdef_file])
+
+        for c in self.children:
+            deps |= c.code_deps
+
+        return deps
+
+    @property
+    def classdef_file(self):
+        return inspect.getfile(self.__class__)
+                    
+    @cached_property
+    def mtime(self):
+         mtime =  Path().stat().st_mtime
+
+         for c in children:
+             mtime = max(mtime, c.mtime)
+         
+         return mtime
+         
     @cached_property
     def vivado(self):
         return self.parent.vivado

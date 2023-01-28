@@ -27,7 +27,6 @@ class BD(BDConnector, BDObj):
     def __init__(self, project, name):
         super().__init__(project, name)
         self.cmd(f"create_bd_design -dir block-design -verbose {name}")
-
         
         self._current = self
         self.name = name
@@ -37,6 +36,13 @@ class BD(BDConnector, BDObj):
         self._output_dir = self.get_property("BD_OUTPUT_DIR")
 
         self.port_phys = dict()
+        self.phys_map = dict()
+        
+        self.logs.mkdir(exist_ok=True)
+        
+    @property
+    def logs(self):
+        return self.parent.logs / "bd"
         
     @property
     def filename(self):
@@ -114,4 +120,4 @@ class BD(BDConnector, BDObj):
             assert len(l) == 1
             root = l[0]
 
-        self.mmap = BDMemoryMapper(root)
+        self.mmap = BDMemoryMapper(self, root)

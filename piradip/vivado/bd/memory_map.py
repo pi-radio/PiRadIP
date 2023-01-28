@@ -3,7 +3,8 @@ from functools import cached_property
 from .axi import AXIInterconnect
 
 class BDAddressSpace:
-    def __init__(self, iface):
+    def __init__(self, mapper, iface):
+        self.mapper = mapper
         self.iface = iface
         self.children = list()
 
@@ -28,7 +29,7 @@ class BDAddressSpace:
             for m in master_ifaces:
                 if hasattr(m, "address_space"):
                     continue
-                self.children.append(BDAddressSpace(m))
+                self.children.append(BDAddressSpace(self.mapper, m))
 
     def map(self, base_addr):
         if self.dest_block.vlnv == AXIInterconnect.vlnv:
@@ -43,7 +44,7 @@ class BDAddressSpace:
             addr_seg = self.iface.cmd(f"get_bd_addr_segs {self.dest_iface.path}/*").split()
 
             for seg in addr_seg:
-                print(f"Mapping {seg} to 0x{base_addr:08x}")
+                self.log(f"Mapping {seg} to 0x{base_addr:08x}")
             
                 self.base_addr = base_addr
 
@@ -67,11 +68,17 @@ class BDAddressSpace:
             required += c.required 
 
         return required
+
+    def log(self, s):
+        print(s)
+        print(s, file=self.mapper.logfile)
     
 class BDMemoryMapper:
-    def __init__(self, root):
+    def __init__(self, bd, root):
+        self.bd = bd
         self.root = root
-
+        self.logfile = open(self.bd.logs / "memory_map", "w")
+        
         self.root_spaces = list()
                  
         ifaces = filter(lambda x: x.vlnv == "xilinx.com:interface:aximm_rtl:1.0", self.root.intf_pins)
@@ -79,7 +86,7 @@ class BDMemoryMapper:
         for i in ifaces:
             print(f"Inspecting {i.path}")
             if i.mode == "Master":
-                self.root_spaces.append(BDAddressSpace(i))
+                self.root_spaces.append(BDAddressSpace(self, i))
             elif i.mode == "Slave":
                 print("Whistling and ignoring slave space.  Don't mind us...")
             else:

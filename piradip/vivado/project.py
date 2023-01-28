@@ -14,10 +14,6 @@ from functools import cached_property
 from piradip.boards.SDRv2 import *
 
 from .process import TCLVivadoWrapper
-from .build import BDBuildStep, GenerateBuildStep, WrapperBuildStep
-from .build import SynthesizeBuildStep, OptimizationBuildStep
-from .build import PlaceBuildStep, RouteBuildStep
-from .build import WriteBitstreamBuildStep, XSABuildStep
 
 from .obj import VivadoObj
 from .bd import *
@@ -140,6 +136,14 @@ class Project(VivadoObj):
         self.constraint_fileset =  Fileset(self, "constraints", "constrset")
         self.simulation_fileset = Fileset(self, "simulations", "simset")
 
+        self.log_path = Path.cwd() / "logs"
+
+        self.log_path.mkdir(exist_ok=True)
+        
+    @property
+    def logs(self):
+        return self.log_path
+        
     def build_project(self):
         self.set_default_properties()
 

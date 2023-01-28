@@ -4,7 +4,8 @@ from pathlib import Path
 from .build import BDBuildStep, GenerateBuildStep, WrapperBuildStep
 from .build import SynthesizeBuildStep, OptimizationBuildStep
 from .build import PlaceBuildStep, RouteBuildStep
-from .build import WriteBitstreamBuildStep, XSABuildStep, DTBO
+from .build import XSABuildStep, BitFileBuildStep
+from .build import BinFileBuildStep, DTBO
 
 
 class NPM:
@@ -31,8 +32,9 @@ class NPM:
         OptimizationBuildStep(self)
         PlaceBuildStep(self)
         RouteBuildStep(self)
-        WriteBitstreamBuildStep(self)
         XSABuildStep(self)
+        BitFileBuildStep(self)
+        BinFileBuildStep(self)
         DTBO(self)
         
     @cached_property

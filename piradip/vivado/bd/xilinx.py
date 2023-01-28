@@ -12,6 +12,8 @@ _xilinx_vlnv_defs = {
     "BDAXIS": "xilinx.com:interface:axis_rtl:1.0",
     "BDAXIMM": "xilinx.com:interface:aximm_rtl:1.0",
     "BDUART": "xilinx.com:interface:uart_rtl:1.0",
+    "BDGPIO": "xilinx.com:interface:gpio_rtl:1.0",
+    "BDSPI": "xilinx.com:interface:spi_rtl:1.0"
 }
 
 _xilinx_intf_pin_defs = { k+"Pin":v for k,v in _xilinx_vlnv_defs.items() }

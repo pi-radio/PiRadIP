@@ -23,14 +23,19 @@ class BDPortBase(BDObj):
                 return True
         return False
 
+    @property
+    def phys_name(self):
+        return self.name    
+
     def set_phys(self, ball, iostd="LVCMOS18"):
-        self.parent.port_phys[self.name] = (ball, iostd)
+        assert ball not in self.parent.phys_map, f"Ball {ball} previously assigned to {self.parent.phys_map[ball].name}"
+        self.ball = ball
+        self.iostd = iostd
+        self.parent.phys_map[ball] = self
+        self.parent.port_phys[self.phys_name] = (ball, iostd)
     
     
-class BDPort(BDPortBase):
-    iostd = VivadoProperty("IOSTANDARD")
-    pkg_pin = VivadoProperty("PACKAGE_PIN")
-    
+class BDPort(BDPortBase):    
     def __init__(self, parent, name, direction="I", pin_type="io", left=0, right=0, intf=False):
         super().__init__(parent, name)
         self.direction = direction

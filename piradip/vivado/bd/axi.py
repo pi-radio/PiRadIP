@@ -96,7 +96,7 @@ class AXIMMWrapper:
         
         self.all_pins = [ AXIMMIface(p) for p in obj.pins.values() if is_aximm(p) ]
         
-        self.obj.aximm = self                        
+        self.obj.aximm = self
 
         self.m = { p.iface.name: p for p in filter(lambda p: p.iface.mode == 'Master', self.all_pins) }
         self.s = { p.iface.name: p for p in filter(lambda p: p.iface.mode == 'Slave', self.all_pins) }
