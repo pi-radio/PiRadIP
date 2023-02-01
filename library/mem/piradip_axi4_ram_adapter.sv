@@ -72,7 +72,8 @@ module piradip_axi4_ram_adapter #(
   logic [$bits(aximm.aruser)-1:0] read_user;
 
   logic last_write_cycle;
-
+  logic write_done;
+  
   logic pending_write, pending_read;
 
   assign aw_wrap_size = (DATA_WIDTH / 8 * (write_len));
@@ -92,13 +93,16 @@ module piradip_axi4_ram_adapter #(
   assign aximm.awready = unit_ready & ~write_cmd_valid;
   assign aximm.wready = (mem_if_state == WRITE);
 
+  always_comb write_done = aximm.wready & aximm.wvalid & aximm.wlast;
 
+
+  
   always @(posedge aximm.aclk) begin
     if (~aximm.aresetn) begin
       write_cmd_valid <= 1'b0;
-    end else if (~write_cmd_valid & aximm.awvalid) begin
+    end else if (aximm.awready & aximm.awvalid) begin
       write_cmd_valid <= 1'b1;
-    end else if (aximm.wlast) begin
+    end else if (write_done) begin
       write_cmd_valid <= 1'b0;
     end else begin
       write_cmd_valid <= write_cmd_valid;
@@ -139,7 +143,7 @@ module piradip_axi4_ram_adapter #(
       aximm.bvalid <= 1'b0;
       aximm.bresp  <= AXI_RESP_SLVERR;
       aximm.buser  <= 0;
-    end else if (aximm.wready & aximm.wvalid & aximm.wlast) begin
+    end else if (write_done) begin
       aximm.bvalid <= 1'b1;
       aximm.bresp  <= AXI_RESP_OKAY;
       aximm.buser  <= 0;
@@ -315,7 +319,7 @@ module piradip_axi4_ram_adapter #(
           else mem_if_state <= READ;
         end
         WRITE: begin
-          if (aximm.wlast) mem_if_state <= pending_read ? READ : IDLE;
+          if (write_done) mem_if_state <= pending_read ? READ : IDLE;
           else mem_if_state <= WRITE;
         end
       endcase

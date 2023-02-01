@@ -114,7 +114,7 @@ module piradip_tb_aximm_manager #(
     endtask
 
     task wdata_task;
-        static integer WSTRB={{aximm.STRB_WIDTH}{1'b1}};
+        static integer WSTRB={{aximm.data_width()/8}{1'b1}};
 
         aximm.wvalid <= 1'b0;
         aximm.wdata <= 0;
@@ -127,9 +127,10 @@ module piradip_tb_aximm_manager #(
             while (wdata_mbx.num() == 0) @(posedge aximm.aclk);
 
             wdata_mbx.get(op);
-            aximm.wvalid <= 1'b1;
-            aximm.wdata <= op.data;
-            aximm.wstrb <= WSTRB;
+          aximm.wvalid <= 1'b1;
+          aximm.wdata  <= op.data;
+          aximm.wstrb  <= WSTRB;
+	  aximm.wlast  <= 1'b1;
 
             #1step while (~aximm.wready) @(posedge aximm.aclk);
             @(posedge aximm.aclk);

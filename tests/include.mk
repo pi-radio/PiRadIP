@@ -7,11 +7,11 @@ VSOURCES=$(addprefix $(ROOT_DIR), $(SOURCES))
 all: elaborate
 	echo $(ROOT_DIR)
 
-../glbl.v: ${RDI_APPROOT}/data/verilog/src/glbl.v
+../glbl.v: ${XILINX_VIVADO}/data/verilog/src/glbl.v
 	cp $< $@
 
-xvlog.pb: $(VSOURCES) glbl.v Makefile ../include.mk
-	xvlog --work work --sv $(VSOURCES) ../glbl.v
+xvlog.pb: $(VSOURCES) ../glbl.v Makefile ../include.mk
+	xvlog --work work --include ../../library/axi --sv $(VSOURCES) ../glbl.v
 
 compile: xvlog.pb
 
