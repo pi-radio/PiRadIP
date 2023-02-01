@@ -6,40 +6,8 @@ import pexpect
 import struct
 from multiprocessing import Process
 
-class Artifact:
-    dependents = []
-    generator = None
-
-    @classmethod
-    def build(self, ctx):
-        print("Build")
-        
-class File(Artifact):
-    @property
-    def mtime(self):
-        return self.path.stat().st_mtime
-    
-class VivadoCheckpoint(File):
-    pass
-    
-class BuildStepMetaclass(type):
-    def __new__(cls, name, bases, dct):
-        dct["name"] = name.tolower()
-
-        for a in inputs:
-            a.dependents.append(self)
-
-        for a in outputs:
-            assert a.generator is None
-            a.generator = self
-        
-        x = super().__new__(cls, name, bases, dct)
-        
-    pass
-    
-class BuildStep(BuildStepMetaclass):
-    def __init__(self, ctx):
-        self.ctx = ctx        
+from .artifact import Artifact, File, VivadoCheckpoint
+from .step import BuildStep    
         
 
 class VivadoStep(BuildStep):
@@ -47,7 +15,7 @@ class VivadoStep(BuildStep):
     pass
 
 class ShellStep(BuildStep):
-    # This one will do the load.
+    # This will do the command
     pass
 
 
@@ -57,8 +25,8 @@ class BD(File):
         return Path(self.ctx.bd_path)
 
 class InMemoryBD(VivadoCheckpoint):
+    path = Path("dookie.bd")
     pass
-
     
 class LoadBD(VivadoStep):
     inputs = [ BD ]
@@ -70,11 +38,3 @@ class LoadBD(VivadoStep):
     
 
 
-class Context:
-    @property
-    def bd_path(self):
-        return "dookie.bd"
-
-c = Context()
-
-InMemoryBD.build(c)

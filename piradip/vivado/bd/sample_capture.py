@@ -102,12 +102,16 @@ class SampleCapture(BDHier):
 
         for i in self.sample_in:
             self.axi_interconnect.aximm.connect(i.pins["AXILITE"])
-            self.axi_interconnect.aximm.connect(i.pins["AXIMM"])
+            v = self.axi_interconnect.aximm.connect(i.pins["AXIMM"])
+
+            if i == self.sample_in[2]:
+                v.debug()
         
         for i in self.sample_out:
             self.axi_interconnect.aximm.connect(i.pins["AXILITE"])
             self.axi_interconnect.aximm.connect(i.pins["AXIMM"])
 
+        
 
         print("Connecting trigger...")
         self.connect(self.trigger.pins["triggers"], self.slice32.pins["din"])

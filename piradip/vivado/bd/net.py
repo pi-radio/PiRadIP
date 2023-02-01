@@ -27,5 +27,7 @@ class BDIntfNet(BDNet):
 
     def __init__(self, parent, name):
         super().__init__(parent, name)
-        
-        
+
+    @property
+    def obj(self):
+        return f"[get_bd_intf_nets {{{self.path}}}]"

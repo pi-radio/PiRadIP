@@ -35,7 +35,6 @@ class BDPinBase(BDObj):
             if len(self.outer_net.pins) > 1:
                 return True
         return False
-            
         
     def connect(self, other, **kwargs):
         if self.parent.hier:           
@@ -55,7 +54,6 @@ class BDPinBase(BDObj):
         net.connect(self)
 
         return net
-
             
 class BDPin(BDPinBase):
     def __init__(self, parent, name, direction="I", pin_type="io", left=0, right=0, intf=False):

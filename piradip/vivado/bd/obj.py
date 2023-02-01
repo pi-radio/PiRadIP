@@ -2,6 +2,7 @@ from piradip.vivado.obj import VivadoObj
 
 from functools import cached_property, wraps
 import re
+import inspect
 
 suffix_re = re.compile(r'[0-9]+$')
 
@@ -75,3 +76,10 @@ class BDObj(VivadoObj):
 
     def clear_active(self):
         self.bd.set_current(None)
+
+    @property
+    def dependencies(self):
+        retval = set([ inspect.getfile(self.__class__) ])
+
+        for c in self.children:
+            retval |= c.dependencies

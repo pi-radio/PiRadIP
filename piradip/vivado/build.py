@@ -103,7 +103,7 @@ class CheckpointBuildStep(BuildStep):
         
     def save(self):
         print(f"Saving checkpoint for {self.name}...")
-        self.cmd(f"write_checkpoint -force {self.checkpoint}")
+        self.cmd(f"write_checkpoint -force {self.checkpoint}", timeout=15*60)
     
     @property
     def exists(self):

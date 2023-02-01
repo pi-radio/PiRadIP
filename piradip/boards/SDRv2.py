@@ -58,7 +58,7 @@ class SDRv2_Capture(BD):
         print("Creating AXI Interconnect...")
 
         self.axi_interconnect = AXIInterconnect(self, "axi_interconnect",
-                                                num_subordinates=2, num_managers=4,
+                                                num_subordinates=3, num_managers=4,
                                                 global_clock=self.ps.aximm_clocks[0],
                                                 global_reset=self.ps.aximm_clocks[0].assoc_resetn)
 
@@ -67,6 +67,17 @@ class SDRv2_Capture(BD):
         
         self.axi_interconnect.pins["S00_AXI"].connect(self.ps.pins["M_AXI_HPM0_FPD"])
         self.axi_interconnect.pins["S01_AXI"].connect(self.ps.pins["M_AXI_HPM1_FPD"])
+
+        self.jtag_to_axi = JTAGtoAXI(self, "jtag_to_axi", None)
+
+        self.jtag_to_axi.pins["aclk"].connect(self.ps.pins["pl_clk0"])
+        self.jtag_to_axi.pins["aresetn"].connect(self.ps.pins["pl_resetn0"])
+
+        self.jtag_to_axi.aximm_overrides = { "clk": "aclk", "rst": "aresetn" }
+        
+        self.axi_interconnect.pins["S02_AXI"].connect(self.jtag_to_axi.pins["M_AXI"])
+        
+
         
         print("Creating i2c for clock tree...")
                 
@@ -154,6 +165,7 @@ class SDRv2_Capture(BD):
             if p in self.capture.external_clocks:
                 port.set_property_list([("CONFIG.FREQ_HZ", "4000000000.0")])
 
+                
         #self.capture.dump_pins()
 
         self.axi_interconnect.aximm.connect(self.capture.pins["S00_AXI"])

@@ -24,7 +24,8 @@ _xilinx_ip_defs = {
     "BDPSReset": "xilinx.com:ip:proc_sys_reset:5.0",
     "BDVectorLogic": "xilinx.com:ip:util_vector_logic:2.0",
     "BDVectorLogic": "xilinx.com:ip:util_vector_logic:2.0",
-    "BDConcat": "xilinx.com:ip:xlconcat:2.1"
+    "BDConcat": "xilinx.com:ip:xlconcat:2.1",
+    "JTAGtoAXI": "xilinx.com:ip:jtag_axi:1.2",
 }
 
 for name, vlnv in _xilinx_intf_pin_defs.items():

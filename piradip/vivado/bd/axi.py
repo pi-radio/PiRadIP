@@ -88,7 +88,33 @@ class AXIMMIface:
         self.clk.connect(other.clk)
         self.iface.connect(other.iface)
 
-            
+        return self
+
+    def debug(self):
+        debug_args = {
+            "AXI_R_ADDRESS": "Data and Trigger",
+            "AXI_R_DATA": "Data and Trigger",
+            "AXI_W_ADDRESS": "Data and Trigger",
+            "AXI_W_DATA": "Data and Trigger",
+            "AXI_W_RESPONSE": "Data and Trigger",
+            "CLK_SRC": "/ps/pl_clk0",
+            "SYSTEM_ILA": "Auto",
+            "APC_EN": "1"
+        }
+        
+        print(self.iface.net)
+        self.iface.cmd(f"set_property HDL_ATTRIBUTE.DEBUG true {self.iface.outer_net.obj}")
+        self.iface.cmd(f"apply_bd_automation -rule xilinx.com:bd_rule:debug" +
+                       f" -dict [list {self.iface.outer_net.obj}" +
+                       f' {{AXI_R_ADDRESS "Data and Trigger"' +
+                       f' AXI_R_DATA "Data and Trigger"' +
+                       f' AXI_W_ADDRESS "Data and Trigger"' +
+                       f' AXI_W_DATA "Data and Trigger"' +
+                       f' AXI_W_RESPONSE "Data and Trigger"' +
+                       f' CLK_SRC "/ps/pl_clk0"' +
+                       f' SYSTEM_ILA "Auto"' +
+                       f' APC_EN "1" }} ]')
+        
         
 class AXIMMWrapper:
     def __init__(self, obj):
@@ -113,7 +139,7 @@ class AXIMMWrapper:
         elif other.iface.mode == 'Slave':
             i = next(self.miter)
 
-        i.connect(other)
+        return i.connect(other)
             
         
 @BDIP.register
