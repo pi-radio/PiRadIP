@@ -97,7 +97,7 @@ module piradip_trigger_unit #(
       case (reg_if.rreg_no)
 	REGISTER_ID: reg_if.rreg_data 		= 32'h50545247;
         REGISTER_TRIGGER_MASK: reg_if.rreg_data = trigger_mask;
-        REGISTER_TRIGGER: reg_if.rreg_data 	= &armed;
+        REGISTER_TRIGGER: reg_if.rreg_data 	= armed;
 	default: reg_if.rreg_data               = 32'h5052444F;
       endcase  // case (reg_if.rreg_no)
     end
@@ -125,7 +125,12 @@ module piradip_trigger_unit #(
           delay_reg[i] = reg_if.wreg_data;
         end
       end
+    end // for (i = 0; i < N_TRIGGER; i++)
+
+    for (i = N_TRIGGER; i < DATA_WIDTH; i++) begin
+      always_comb armed[i] = 0;
     end
   endgenerate
+
 
 endmodule

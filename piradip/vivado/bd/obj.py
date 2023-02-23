@@ -32,6 +32,8 @@ class BDObj(VivadoObj):
     port = False
     ip = False
     virtual = False
+
+    memory_aperture_size = 64*1024
     
     @cached_property
     def bd(self):

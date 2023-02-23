@@ -6,49 +6,29 @@ import pexpect
 import struct
 from multiprocessing import Process
 
-from .builder import Builder
+artifacts = dict()
 
 class Artifact:
-    dependents = []
-    generator = None
+    def __init__(self, name):
+        self.name = name
+        assert name not in artifacts
+        artifacts[name] = self
+        self.generator = None
+        
+    def generate(self, ctx):
+        self.generator(ctx)
 
-    @classmethod
-    def build(cls, ctx):
-        builder = Builder(ctx)
-
-        builder.add_artifact(cls)
-
-        
-        
-    def __init__(self, ctx):
-        self.builder = self.generator(ctx)
-
-    @property
-    def uptodate(self):
-        if not self.exists:
-            return False
-        
-
-    @property
-    def exists(self):
-        return False
-        
-    @property
-    def mtime(self):
-        return 0
-        
-        
 class File(Artifact):
-    @property
-    def exists(self):
-        return self.path.exists()
-    
+    def __init__(self, path):
+        if not isinstance(path, Path):
+            path = Path(path)
+        super().__init__(str(path))
+        self.path = path
+
     @property
     def mtime(self):
-        print(f"Checking mtime for {self.path}")
+        if not self.path.exists():
+            return 0
+
         return self.path.stat().st_mtime
 
-
-    
-class VivadoCheckpoint(File):
-    pass

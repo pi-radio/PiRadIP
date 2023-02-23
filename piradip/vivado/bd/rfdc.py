@@ -9,11 +9,29 @@ from .piradio import AXISSampleInterleaver
 class RFDC(BDIP):
     vlnv = "xilinx.com:ip:usp_rf_data_converter:2.6"
 
+    memory_aperture_size = 0x40000
+    
     def __init__(self, parent, name):
         super().__init__(parent, name, [
             ("CONFIG.DAC0_Sampling_Rate", "4.0"),
             ("CONFIG.DAC1_Sampling_Rate", "4.0"),
-            ("CONFIG.PRESET", "8x8-ADC-R2C-4GSPS-DAC-C2R")
+            ("CONFIG.PRESET", "8x8-ADC-R2C-4GSPS-DAC-C2R"),
+            ("CONFIG.ADC_NCO_Freq00", "1.0"),
+            ("CONFIG.ADC_NCO_Freq02", "1.0"),
+            ("CONFIG.ADC_NCO_Freq10", "1.0"),
+            ("CONFIG.ADC_NCO_Freq12", "1.0"),
+            ("CONFIG.ADC_NCO_Freq20", "1.0"),
+            ("CONFIG.ADC_NCO_Freq22", "1.0"),
+            ("CONFIG.ADC_NCO_Freq30", "1.0"),
+            ("CONFIG.ADC_NCO_Freq32", "1.0"),
+            ("CONFIG.DAC_NCO_Freq00", "1.0"),
+            ("CONFIG.DAC_NCO_Freq01", "1.0"),
+            ("CONFIG.DAC_NCO_Freq02", "1.0"),
+            ("CONFIG.DAC_NCO_Freq03", "1.0"),
+            ("CONFIG.DAC_NCO_Freq10", "1.0"),
+            ("CONFIG.DAC_NCO_Freq11", "1.0"),
+            ("CONFIG.DAC_NCO_Freq12", "1.0"),
+            ("CONFIG.DAC_NCO_Freq13", "1.0"),
         ])
 
         self.enumerate_pins()
@@ -41,7 +59,7 @@ class RFDC(BDIP):
             AXISSampleInterleaver(self.parent,
                                   f"adc_interleaver{i}",
                                   {
-                                      "CONFIG.IQ_OUT_WIDTH": 256,
+                                      "CONFIG.IQ_OUT_WIDTH": 128,
                                       "CONFIG.I_IN_WIDTH": 128,
                                       "CONFIG.Q_IN_WIDTH": 128
                                   } ) for i in range(8) ]
@@ -77,12 +95,15 @@ class RFDC(BDIP):
                     
         self.adc_proc_resets = [ BDPSReset(self.parent, f"adc_reset_{i}", None) for i in range(4) ]
         self.adc_axis_resetn_nets = [ p.create_net(f"adc_axis_resetn{i}") for i, p in enumerate(all_pins(self.adc_proc_resets, "peripheral_aresetn")) ]
-                                   
+
         self.adc_axis_clk_nets = [ p.create_net(f"adc_axis_clk{i}") for i, p in enumerate(all_pins(self.adc_axis_clocks, "clk_out1")) ]
 
         for i, n in enumerate(self.adc_axis_clk_nets):
             n.connect(self.pins[f"m{i}_axis_aclk"])
-        
+
+        for i, n in enumerate(self.adc_axis_resetn_nets):
+            n.connect(self.pins[f"m{i}_axis_aresetn"])
+            
         # Connect the DCM lock
         for n, (op, ip) in enumerate(zip(all_pins(self.adc_axis_clocks, "locked"), all_pins(self.adc_proc_resets, "dcm_locked"))):
             op.create_net(f"adc_clk_locked{n}").connect(ip)
@@ -98,10 +119,14 @@ class RFDC(BDIP):
 
         for i, n in enumerate(self.dac_axis_clk_nets):
             n.connect(self.pins[f"s{i}_axis_aclk"])
-        
+
+            
         self.dac_proc_resets = [ BDPSReset(self.parent, f"dac_reset_{i}", None) for i in range(2) ]
         self.dac_axis_resetn_nets = [ p.create_net(f"dac_axis_resetn{i}") for i, p in enumerate(all_pins(self.dac_proc_resets, "peripheral_aresetn")) ]
 
+        for i, n in enumerate(self.dac_axis_resetn_nets):
+            n.connect(self.pins[f"s{i}_axis_aresetn"])
+        
         for n, p in zip(self.dac_axis_clk_nets, all_pins(self.dac_proc_resets, "slowest_sync_clk")):
             n.connect(p)
         

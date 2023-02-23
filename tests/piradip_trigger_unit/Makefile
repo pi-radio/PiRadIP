@@ -15,5 +15,5 @@ SOURCES+=tb/util/piradip_tb_trigger_unit.sv
 
 TOP_MODULE=piradip_tb_trigger_unit
 
-include ../Makefile.inc
+include ../include.mk
 

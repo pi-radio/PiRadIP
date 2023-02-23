@@ -8,6 +8,8 @@ from multiprocessing import Process
 
 from .synthesis import SynthesisMessageHandler
 
+total_build_time = 0
+
 class BuildStep:
     must_load = False
     
@@ -60,11 +62,15 @@ class BuildStep:
         self.build(**kwargs)
     
     def build_and_save(self, **kwargs):
+        global total_build_time
         print(f"Executing build {self.name}")
+        start_time = time.time()
         if self.build(**kwargs):
             self.save(**kwargs)
         self.ready = True
-        print(f"End build {self.name}")
+        build_time = time.time() - start_time
+        total_build_time += build_time
+        print(f"End build {self.name} Duration {build_time}")
     
     def save(self, **kwargs):
         pass
@@ -143,8 +149,11 @@ class GenerateBuildStep(BuildStep):
     name = "generate"
     predecessor_name = "build_bd"
 
-    def __call__(self, **kwargs):
-        self.predecessor(**kwargs)
+    def build(self, **kwargs):
+        #update_compile_order -fileset sources_1
+        #open_bd_design {/home/zapman/piradio/UCSB-FW/block-design/UCSB/UCSB.bd}
+        # set_property synth_checkpoint_mode None [get_files  /home/zapman/piradio/UCSB-FW/block-design/UCSB/UCSB.bd]
+        # generate_target all [get_files  /home/zapman/piradio/UCSB-FW/block-design/UCSB/UCSB.bd]
         self.cmd(f"set_property synth_checkpoint_mode None [get_files {self.predecessor.path}]")
         self.cmd(f"generate_target all [get_files {self.predecessor.path}]")
         self.cmd(f"export_ip_user_files -of_objects [get_files {self.predecessor.path}] -no_script -sync -force -quiet")
@@ -274,7 +283,7 @@ class XSABuildStep(FileBuildStep):
         #self.cmd(f"read_bd {self.ctx.prj.bd_path}")
         self.cmd(f"set_property platform.name {self.ctx.prj.project_name} [current_project]")
         print(f"Writing XSA at {self.path}...")
-        print(self.cmd(f"write_hw_platform -fixed -force -include_bit {self.path}"))
+        print(self.cmd(f"write_hw_platform -fixed -force -include_bit {self.path}", timeout=15*60))
 
     
 class BitFileBuildStep(FileBuildStep):

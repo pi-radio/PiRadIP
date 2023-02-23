@@ -20,6 +20,7 @@ SOURCES+=library/axis/piradip_axis.sv
 SOURCES+=library/axis/piradip_axis_fifo.sv
 SOURCES+=library/axis/piradip_axis_sample_buffer.sv
 SOURCES+=library/axis/piradip_axis_sample_buffer_out.sv
+SOURCES+=library/axis/piradip_axis_sample_buffer_in.sv
 
 SOURCES+=tb/util/piradip_tb_clocks.sv
 SOURCES+=tb/aximm/piradip_tb_aximm_util.sv

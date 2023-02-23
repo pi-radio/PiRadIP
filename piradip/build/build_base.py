@@ -8,7 +8,7 @@ from multiprocessing import Process
 
 from .artifact import Artifact, File, VivadoCheckpoint
 from .step import BuildStep    
-        
+from .builder import Builder        
 
 class VivadoStep(BuildStep):
     # This one will do the load.

@@ -79,7 +79,8 @@ InterfaceDesc(
         ParameterDesc('ARUSER_WIDTH', "Width of the read address user bus", prefix="C_"),
         ParameterDesc('WUSER_WIDTH', "Width of the write user bus", prefix="C_"),
         ParameterDesc('RUSER_WIDTH', "Width of the read user bus", prefix="C_"),
-        ParameterDesc('BUSER_WIDTH', "Width of the write response user bus", prefix="C_")
+        ParameterDesc('BUSER_WIDTH', "Width of the write response user bus", prefix="C_"),
+        ParameterDesc('ID_WIDTH', "Width of the ID busses", prefix="C_")        
     ],
     ipxdesc = IPXDesc(
         busType = VLNV("xilinx.com", "interface", "aximm", "1.0"),

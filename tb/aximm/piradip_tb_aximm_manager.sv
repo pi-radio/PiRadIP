@@ -2,6 +2,10 @@
 
 import piradip_axi4::*;
 
+class aximm_event_sink;
+  virtual task read_done(input integer addr, input integer data, input integer resp); endtask
+endclass;
+
 module piradip_tb_aximm_manager #(
         name="AXI",
         DEBUG=0
@@ -23,6 +27,7 @@ module piradip_tb_aximm_manager #(
         WRITE = 2
     } opcode_t;
 
+
     class aximm_op;
         opcode_t opcode;
         logic complete;
@@ -32,7 +37,8 @@ module piradip_tb_aximm_manager #(
         logic addr_sent;
         logic data_sent;
         axi_resp_t resp;
-
+        aximm_event_sink sink;
+      
         event e;
 
         function new(input opcode_t opcode, input logic barrier, input addr_t addr = 0, input data_t data = 0);
@@ -41,13 +47,19 @@ module piradip_tb_aximm_manager #(
             this.addr = addr;
             this.data = data;
             this.complete = 1'b0;
+	    this.sink = null;
         endfunction
 
-        function void set_complete(input axi_resp_t resp);
+        task set_complete(input axi_resp_t resp);
             this.complete = 1'b1;
             this.resp = resp;
+	    if (this.sink) begin
+	      if (this.opcode == READ) begin
+		this.sink.read_done(this.addr, this.data, this.resp);
+	      end
+	    end
             ->this.e;
-        endfunction
+        endtask
     endclass
 
     semaphore read_sem;
@@ -192,7 +204,7 @@ module piradip_tb_aximm_manager #(
                 aximm.arvalid <= 1'b1;
                 aximm.araddr <= op.addr;
                 aximm.arprot <= AWPROT;
-                aximm.arlen <= 1;
+                aximm.arlen <= 0; // len - 1
                 aximm.arid <= 0;
                 aximm.arburst <= AXI_BURST_INCR;
                 aximm.arsize <= WORD_BURST_SIZE;
@@ -328,6 +340,14 @@ module piradip_tb_aximm_manager #(
         data = op.data;
         resp = op.resp;
         if (DEBUG) $display("%s: Read %x complete: %x", name, addr, data);
+    endtask // read_resp
+
+    task automatic read_async(input addr_t addr, aximm_event_sink sink);
+      aximm_op op = new(READ, 0, addr);
+
+      op.sink = sink;
+
+      op_mbx.put(op);
     endtask
 
     task automatic write(input addr_t addr, input data_t data);

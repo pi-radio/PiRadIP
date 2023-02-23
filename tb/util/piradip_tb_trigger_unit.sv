@@ -34,12 +34,12 @@ module piradip_tb_trigger_unit();
         clk_gen.sleep(5);
 
         for (i = 0; i < 32; i++) begin
-           manager.write(4*(2+i), i);
+           manager.write(4*(3+i), i);
         end
 
-        manager.write(4,1);
+        manager.write(4 * 2,1);
 
-        clk_gen.sleep(40);
+        clk_gen.sleep(400);
 
         $finish;
 

@@ -44,11 +44,16 @@ class BDAddressSpace:
             addr_seg = self.iface.cmd(f"get_bd_addr_segs {self.dest_iface.path}/*").split()
 
             for seg in addr_seg:
-                self.log(f"Mapping {seg} to 0x{base_addr:08x}")
-            
+                required = self.required
+
+                if base_addr & (required - 1):
+                    base_addr = (base_addr + required) & ~(required-1)
+                
                 self.base_addr = base_addr
 
-                self.iface.cmd(f"assign_bd_address -offset 0x{self.base_addr:08x} -range {self.required} " +
+                self.log(f"Mapping {seg} to 0x{base_addr:08x}")
+
+                self.iface.cmd(f"assign_bd_address -offset 0x{self.base_addr:08x} -range 0x{self.required:x} " +
                                f"[get_bd_addr_segs {seg}]")
 
                 base_addr += self.required
@@ -60,7 +65,7 @@ class BDAddressSpace:
     def required(self):
         if len(self.children) == 0:
             # Yeah, find a way to figure this out -- Works For Now
-            return 64 * 1024;
+            return self.dest_block.memory_aperture_size
 
         required = 0
         

@@ -38,12 +38,24 @@ interface axi4mm_lite #(
   assign aclk = clk;
   assign aresetn = resetn;
 
+  function integer data_width();
+    data_width = DATA_WIDTH;
+  endfunction
+
+  function integer addr_width();
+    addr_width = ADDR_WIDTH;
+  endfunction
+  
   modport MANAGER(
+      import data_width,
+      import addr_width,
       input aclk, aresetn, awready, wready, bresp, bvalid, arready, rdata, rresp, rvalid,
       output awaddr, awprot, awvalid, wdata, wstrb, wvalid, bready, araddr, arprot, arvalid, rready
   );
 
   modport SUBORDINATE(
+      import data_width,
+      import addr_width,
       output awready, wready, bresp, bvalid, arready, rdata, rresp, rvalid,
       input awaddr, awprot, awvalid, wdata, wstrb,
                        wvalid, bready, araddr, arprot, arvalid, rready,

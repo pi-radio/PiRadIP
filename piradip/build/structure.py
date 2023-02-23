@@ -7,10 +7,6 @@ from pathlib import PurePath, Path
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-build_root = Path(__file__).parent.parent.absolute()
-
-INFO(f"Build root: {build_root}")
-
 interface_map = {}
 
 module_map = {}

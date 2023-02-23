@@ -11,17 +11,16 @@ module piradip_axis_sample_interleaver (
   localparam Q_WIDTH = Q_in.data_width();
   localparam OUT_WIDTH = IQ_out.data_width();
   
-  localparam IN_SAMPLE_WIDTH = I_WIDTH / SAMPLE_WIDTH;
+  localparam N_SAMPLES = I_WIDTH / SAMPLE_WIDTH / 2;
   
   genvar i;
 
   generate
-    for (i = 0; i < IN_SAMPLE_WIDTH; i++) begin
-      always_comb
-	IQ_out.tdata[2*SAMPLE_WIDTH*i+:SAMPLE_WIDTH] = I_in.tdata[SAMPLE_WIDTH*i+:SAMPLE_WIDTH];
-      always_comb
-	IQ_out.tdata[SAMPLE_WIDTH*(2*i+1)+:SAMPLE_WIDTH] = Q_in.tdata[SAMPLE_WIDTH*i+:SAMPLE_WIDTH];
-    end
+    for (i = 0; i < N_SAMPLES; i++) 
+      begin
+	always_comb IQ_out.tdata[SAMPLE_WIDTH * (2 * i+1)+:SAMPLE_WIDTH] = I_in.tdata[SAMPLE_WIDTH * (2*i)+:SAMPLE_WIDTH];
+	always_comb IQ_out.tdata[SAMPLE_WIDTH * (2 * i)+:SAMPLE_WIDTH] = Q_in.tdata[SAMPLE_WIDTH * (2*i+1)+:SAMPLE_WIDTH];
+      end 
   endgenerate
 
   always_comb I_in.tready = IQ_out.tready;
@@ -31,6 +30,6 @@ module piradip_axis_sample_interleaver (
   initial
     begin
       assert(I_WIDTH == Q_WIDTH);
-      assert(2 * I_WIDTH == OUT_WIDTH);
+      assert(I_WIDTH == OUT_WIDTH);
     end
 endmodule

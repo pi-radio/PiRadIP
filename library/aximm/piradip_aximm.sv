@@ -87,9 +87,14 @@ interface axi4mm #(
     addr_width = ADDR_WIDTH;
   endfunction
 
+  function integer id_width();
+    id_width = ID_WIDTH;
+  endfunction
+  
   modport MANAGER(
       import data_width,
       import addr_width,
+      import id_width,
       output
 	     awid, awaddr, awlen, awsize, awburst, awlock, awcache, awprot, awqos, awregion, awuser, awvalid,
 	     wdata, wstrb, wlast, wuser, wvalid,
@@ -107,6 +112,7 @@ interface axi4mm #(
   modport SUBORDINATE(
       import data_width,
       import addr_width,
+      import id_width,
       output
             awready,
             wready,

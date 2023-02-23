@@ -28,10 +28,6 @@ class BuildStep(metaclass=BuildStepMetaclass):
     inputs = []
     outputs = []
     
-    def __init__(self, ctx):
-        self.ctx = ctx        
+    def __init__(self,builder):
+        self.buidler = builder 
 
-    def check_dependencies(self, mtime):
-        for i in self.inputs:
-            if not i.exists:
-                i.build(self.ctx)

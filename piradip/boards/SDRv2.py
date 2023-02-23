@@ -51,6 +51,19 @@ class SDRv2_Capture(BD):
                 
         self.ps = Zynq_US_PS(self, "ps")
 
+        """
+startgroup
+set_property -dict [list \
+  CONFIG.PSU__CRL_APB__PL1_REF_CTRL__FREQMHZ {25} \
+  CONFIG.PSU__CRL_APB__PL1_REF_CTRL__SRCSEL {IOPLL} \
+  CONFIG.PSU__FPGA_PL1_ENABLE {1} \
+] [get_bd_cells ps]
+INFO: [PSU-1]  DP_AUDIO clock source: RPLL is also being used by other peripheral clocks. Their outputs may get impacted if any driver changes DP_AUDIO PLL source to support runtime audio change 
+endgroup
+disconnect_bd_net /aximm0_net [get_bd_pins spi/s_axi_aclk]
+connect_bd_net [get_bd_pins ps/pl_clk1] [get_bd_pins spi/s_axi_aclk]
+"""
+        
         self.ps.setup_aximm()
 
 
@@ -58,7 +71,7 @@ class SDRv2_Capture(BD):
         print("Creating AXI Interconnect...")
 
         self.axi_interconnect = AXIInterconnect(self, "axi_interconnect",
-                                                num_subordinates=3, num_managers=4,
+                                                num_subordinates=2, num_managers=4,
                                                 global_clock=self.ps.aximm_clocks[0],
                                                 global_reset=self.ps.aximm_clocks[0].assoc_resetn)
 
@@ -68,14 +81,14 @@ class SDRv2_Capture(BD):
         self.axi_interconnect.pins["S00_AXI"].connect(self.ps.pins["M_AXI_HPM0_FPD"])
         self.axi_interconnect.pins["S01_AXI"].connect(self.ps.pins["M_AXI_HPM1_FPD"])
 
-        self.jtag_to_axi = JTAGtoAXI(self, "jtag_to_axi", None)
+        #self.jtag_to_axi = JTAGtoAXI(self, "jtag_to_axi", None)
 
-        self.jtag_to_axi.pins["aclk"].connect(self.ps.pins["pl_clk0"])
-        self.jtag_to_axi.pins["aresetn"].connect(self.ps.pins["pl_resetn0"])
+        #self.jtag_to_axi.pins["aclk"].connect(self.ps.pins["pl_clk0"])
+        #self.jtag_to_axi.pins["aresetn"].connect(self.ps.pins["pl_resetn0"])
 
-        self.jtag_to_axi.aximm_overrides = { "clk": "aclk", "rst": "aresetn" }
+        #self.jtag_to_axi.aximm_overrides = { "clk": "aclk", "rst": "aresetn" }
         
-        self.axi_interconnect.pins["S02_AXI"].connect(self.jtag_to_axi.pins["M_AXI"])
+        #self.axi_interconnect.pins["S02_AXI"].connect(self.jtag_to_axi.pins["M_AXI"])
         
 
         
@@ -126,7 +139,7 @@ class SDRv2_Capture(BD):
 
             self.spi_map = BDModule(self, "spi_map", "SPIMAP")
 
-            self.axi_spi = AXI_SPI(self, "spi", { "CONFIG.C_NUM_SS_BITS": 29 })
+            self.axi_spi = AXI_SPI(self, "spi", { "CONFIG.C_NUM_SS_BITS": 29, "CONFIG.Multiples16": 2 })
 
             self.axi_spi.pins["ext_spi_clk"].connect(self.ps.pl_clk[0])
             
