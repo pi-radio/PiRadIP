@@ -139,6 +139,8 @@ class BDBuildStep(FileBuildStep):
     def __call__(self):
         print(f"Reading block diagram {self.path}")
         self.cmd(f"read_bd {self.path}")
+        self.cmd(f"update_compile_order -fileset sources_1")
+        self.cmd(f"set_property SYNTH_CHECKPOINT_MODE NONE [get_files {self.path}]")
         
     @property
     def path(self):
@@ -150,14 +152,21 @@ class GenerateBuildStep(BuildStep):
     predecessor_name = "build_bd"
 
     def build(self, **kwargs):
-        #update_compile_order -fileset sources_1
-        #open_bd_design {/home/zapman/piradio/UCSB-FW/block-design/UCSB/UCSB.bd}
-        # set_property synth_checkpoint_mode None [get_files  /home/zapman/piradio/UCSB-FW/block-design/UCSB/UCSB.bd]
-        # generate_target all [get_files  /home/zapman/piradio/UCSB-FW/block-design/UCSB/UCSB.bd]
-        self.cmd(f"set_property synth_checkpoint_mode None [get_files {self.predecessor.path}]")
         self.cmd(f"generate_target all [get_files {self.predecessor.path}]")
         self.cmd(f"export_ip_user_files -of_objects [get_files {self.predecessor.path}] -no_script -sync -force -quiet")
-        #self.cmd(f"export_simulation -of_objects [get_files /home/zapman/piradio/SDR2-HDL/block-design/SDRv2/SDRv2.bd] -directory /home/zapman/piradio/SDR2-HDL/ip_user_files/sim_scripts -ip_user_files_dir /home/zapman/piradio/SDR2-HDL/ip_user_files -ipstatic_source_dir /home/zapman/piradio/SDR2-HDL/SDRv2.ip_user_files/ipstatic -lib_map_path [list {modelsim=/home/zapman/piradio/SDR2-HDL/SDRv2.cache/compile_simlib/modelsim} {questa=/home/zapman/piradio/SDR2-HDL/SDRv2.cache/compile_simlib/questa} {xcelium=/home/zapman/piradio/SDR2-HDL/SDRv2.cache/compile_simlib/xcelium} {vcs=/home/zapman/piradio/SDR2-HDL/SDRv2.cache/compile_simlib/vcs} {riviera=/home/zapman/piradio/SDR2-HDL/SDRv2.cache/compile_simlib/riviera}] -use_ip_compiled_libs -force -quiet")
+        
+        output_root = self.predecessor.path.parent.parent
+        
+        self.cmd(f"export_simulation -of_objects [get_files {self.predecessor.path}]"
+                 + f" -directory {output_root}/ip_user_files/sim_scripts"
+                 + f" -ip_user_files_dir {output_root}/ip_user_files"
+                 + f" -ipstatic_source_dir {output_root}/SDRv2.ip_user_files/ipstatic"
+                 + f" -lib_map_path [list {{modelsim={output_root}/SDRv2.cache/compile_simlib/modelsim}}"
+                 + f" {{questa={output_root}/SDRv2.cache/compile_simlib/questa}}"
+                 + f" {{xcelium={output_root}/SDRv2.cache/compile_simlib/xcelium}}"
+                 + f" {{vcs={output_root}/SDRv2.cache/compile_simlib/vcs}}"
+                 + f" {{riviera={output_root}/SDRv2.cache/compile_simlib/riviera}}]"
+                 + f" -use_ip_compiled_libs -force -quiet")
         self.cmd(f"read_bd {self.predecessor.path}")
                 
     @property
@@ -213,6 +222,7 @@ class SynthesizeBuildStep(CheckpointBuildStep):
         self.cmd(f"set_property top {top} [current_fileset]")
         self.cmd(f"set_property XPM_LIBRARIES {{XPM_CDC XPM_MEMORY XPM_FIFO}} [current_project]")
         self.cmd(f"synth_design -top {top} -flatten_hierarchy none", timeout=12*60*60)
+        #self.cmd(f"synth_design -top {top}", timeout=12*60*60)
 
 
         syn_msgs.show_locations()

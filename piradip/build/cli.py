@@ -8,11 +8,37 @@ import shutil
 @click.pass_context
 def cli(ctx):
     pass
-    
+
+def do_clean(prj):
+    here = Path(".")
+
+    l = here.glob(f"{prj.project_name}.*")
+
+    for p in l:
+        print(f"Removing {p}...")
+        if p.is_dir():
+            shutil.rmtree(p)
+        else:
+            p.unlink()
+
+    f = (here / "checkpoints").glob("*.dcp")
+
+    for p in f:
+        p.unlink()
+
+    if (here/"ip_cache").exists():
+        shutil.rmtree(here/"ip_cache")
+
+@cli.command()
+@click.pass_context
+def clean(ctx):
+    do_clean(ctx)
+
 @cli.command()
 @click.pass_context
 def create(ctx):
     prj = ctx.obj()
+    do_clean(prj)
     prj.create()
 
 @cli.command()
@@ -142,27 +168,6 @@ def iplib(ctx):
     if os.system("cd ../PiRadIP; ./buildlib.py build") != 0:
         raise RuntimeError("Failed to build IP lib")
     
-    
-@cli.command()
-@click.pass_context
-def clean(ctx):
-    prj = ctx.obj()
-
-    here = Path(".")
-
-    l = here.glob(f"{prj.project_name}.*")
-
-    for p in l:
-        print(f"Removing {p}...")
-        if p.is_dir():
-            shutil.rmtree(p)
-        else:
-            p.unlink()
-
-    f = (here / "checkpoints").glob("*.dcp")
-
-    for p in f:
-        p.unlink()
     
     
 @cli.command("import-run")

@@ -24,7 +24,10 @@ module piradip_axis_sample_buffer_out (
   logic stream_one_shot;
   logic [STREAM_ADDR_WIDTH-1:0] stream_start_offset;
   logic [STREAM_ADDR_WIDTH-1:0] stream_end_offset;
+  logic                         stream_wrap_toggle;
 
+  logic i_en, q_en;
+  
   logic enable_stream;
 
   piradip_ram_if #(
@@ -123,11 +126,17 @@ module piradip_axis_sample_buffer_out (
   always @(posedge stream_out.aclk) begin
     if (~stream_out.aresetn) begin
       mem_stream.addr <= 0;
+      stream_wrap_toggle <= 0;
     end else begin
       if (stream_update & stream_active) begin
         mem_stream.addr <= stream_start_offset;
       end else if (enable_stream & gearbox_in.tready) begin
-        mem_stream.addr <= (mem_stream.addr >= stream_end_offset) ? stream_start_offset : mem_stream.addr+1;
+	if (mem_stream.addr >= stream_end_offset) begin
+	  mem_stream.addr <= stream_start_offset;
+	  stream_wrap_toggle <= ~stream_wrap_toggle;	  
+	end else begin
+	  mem_stream.addr <= mem_stream.addr + 1;
+	end
       end
     end
   end

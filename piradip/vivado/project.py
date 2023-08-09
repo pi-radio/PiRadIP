@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Dict, List, Optional
 import os.path
 from pathlib import Path
+from shutil import rmtree
 import pexpect
 import functools
 import sys
@@ -388,8 +389,19 @@ class PiRadioProject:
 
     def open(self):
         self.prj = self.base_project.load(self.vivado, self.project_name)
-    
+
+    def clean(self):
+        rmtree(Path.cwd() / "ip_cache", ignore_errors=True)
+        rmtree(Path.cwd() / f"{self.project_name}.cache", ignore_errors=True)
+        rmtree(Path.cwd() / "checkpoints", ignore_errors=True)
+        
+        for child in Path.cwd().iterdir():
+            if child.name.endswith(".cache"):
+                rmtree(child)
+        
     def create(self):
+        self.clean()
+        
         self.prj = self.base_project.create(self.vivado, self.project_name)
 
         for ip in [ "xilinx.com:ip:proc_sys_reset:5.0",

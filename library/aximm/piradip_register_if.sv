@@ -23,22 +23,18 @@ interface piradip_register_if #(
   function automatic logic is_reg_read(input regno_t regno);
     return rden & (rreg_no == regno);
   endfunction
-  ;
 
-  function automatic logic is_reg_write(input regno_t regno);
+  function static logic is_reg_write(input regno_t regno);
     return wren & (wreg_no == regno);
   endfunction
-  ;
 
   function automatic logic reg_update_bit(input regno_t regno, input integer bitno, input logic v);
     return (wren & (wreg_no == regno) && (wstrb[bitno/8] == 1)) ? wreg_data[bitno] : v;
   endfunction
-  ;
 
   function automatic logic is_reg_bit_set(input regno_t regno, input integer bitno);
     return wren & (wreg_no == regno) && (wreg_data & (1 << bitno)) && (wstrb[bitno/8] == 1);
   endfunction
-  ;
 
   function automatic logic [DATA_WIDTH-1:0] mask_write_bytes(input logic [DATA_WIDTH-1:0] r);
     integer                  i;

@@ -18,6 +18,7 @@ Library("piradlib",
             "library/util/piradip_shift_registers.sv",
             "library/util/piradip_shifters.sv",
             "library/util/piradip_slice.sv",
+            "library/util/piradip_concat.sv",
             
             "library/aximm/piradip_axi4.sv",
             "library/aximm/piradip_axi4mmlite.sv",
@@ -241,6 +242,34 @@ ModuleDesc(name="piradip_slice32",
            display_name="PiRadIP Slice 32",
            ipxact_name="piradip_slice32"
 )
+
+ModuleDesc(name="piradip_concat8",
+           version="1.0",
+           file="library/util/piradip_concat.sv",
+           wrapper_name="piradip_concat8_ip",
+           description="Concat 8 bits together",
+           display_name="PiRadIP Concat 8",
+           ipxact_name="piradip_concat8"
+)
+
+ModuleDesc(name="piradip_concat16",
+           version="1.0",
+           file="library/util/piradip_concat.sv",
+           wrapper_name="piradip_concat16_ip",
+           description="Concat 16 bits together",
+           display_name="PiRadIP Concat 16",
+           ipxact_name="piradip_concat16"
+)
+
+ModuleDesc(name="piradip_concat32",
+           version="1.0",
+           file="library/util/piradip_concat.sv",
+           wrapper_name="piradip_concat32_ip",
+           description="Concat 32 bits individually",
+           display_name="PiRadIP Concat 32",
+           ipxact_name="piradip_concat32"
+)
+
 
 
 @click.group(chain=True)

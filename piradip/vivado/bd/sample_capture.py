@@ -5,14 +5,14 @@ from .piradio import *
 from .rfdc import RFDC
 
 class SampleCapture(BDHier):
-    def __init__(self, parent, name="data_capture"):
+    def __init__(self, parent, NCOFreq=1.25, name="data_capture"):
         super().__init__(parent, name)
 
         #
         # Create IP blocks
         #
         print("Creating RFDC block...")
-        self.rfdc = RFDC(self, "rfdc")
+        self.rfdc = RFDC(self, "rfdc", NCOFreq=NCOFreq)
         print("Setting up ADC streams...")
         self.rfdc.setup_adc_axis()
         print("Setting up ADC I/Q interleaving...")
@@ -33,7 +33,7 @@ class SampleCapture(BDHier):
                                f"samples_in{i}",
                                {
                                     "CONFIG.C_AXIMM_ADDR_WIDTH": 14,
-                                    "CONFIG.STREAM_IN_WIDTH": 128 
+                                    "CONFIG.STREAM_IN_WIDTH": 256 
                                }) for i in range(8) ]
 
 
@@ -109,6 +109,7 @@ class SampleCapture(BDHier):
             self.axi_interconnect.aximm.connect(i.pins["AXIMM"])
 
         print("Connecting trigger...")
+        print(self.slice32.pins)
         self.connect(self.trigger.pins["triggers"], self.slice32.pins["din"])
 
         for i in range(8):
@@ -138,7 +139,11 @@ class SampleCapture(BDHier):
         for i, (si, adc_axis) in enumerate(zip(all_pins(self.sample_in, "STREAM_IN"), self.rfdc.adc_axis)):
             adc_axis.connect(si)
             
+        for i, (si, adci) in enumerate(zip(all_pins(self.sample_in, "i_en"), self.rfdc.i_en)):
+            adci.connect(si)
 
+        for i, (si, adci) in enumerate(zip(all_pins(self.sample_in, "q_en"), self.rfdc.q_en)):
+            adci.connect(si)
 
 
 

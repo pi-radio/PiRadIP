@@ -9,6 +9,9 @@ _piradio_ip_defs = {
     "Slice32": "pi-rad.io:piradip:piradip_slice32:1.0",
     "Slice16": "pi-rad.io:piradip:piradip_slice16:1.0",
     "Slice8": "pi-rad.io:piradip:piradip_slice8:1.0",
+    "Concat32": "pi-rad.io:piradip:piradip_concat32:1.0",
+    "Concat16": "pi-rad.io:piradip:piradip_concat16:1.0",
+    "Concat8": "pi-rad.io:piradip:piradip_concat8:1.0",
     "TriggerUnit": "pi-rad.io:piradip:piradip_trigger_unit:1.0",
     "PiRadSPI": "pi-rad.io:piradip:piradspi_ip:1.0",
 }

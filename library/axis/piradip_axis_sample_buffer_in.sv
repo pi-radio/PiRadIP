@@ -4,7 +4,9 @@ module piradip_axis_sample_buffer_in (
     axi4mm_lite.SUBORDINATE axilite,
     axi4mm.SUBORDINATE aximm,
     axi4s.SUBORDINATE stream_in,
-    input trigger
+    input trigger,
+    output i_en,
+    output q_en
 );
 
   localparam AXIMM_DATA_WIDTH = aximm.data_width();
@@ -23,7 +25,8 @@ module piradip_axis_sample_buffer_in (
   logic                         stream_one_shot;
   logic [STREAM_ADDR_WIDTH-1:0] stream_start_offset;
   logic [STREAM_ADDR_WIDTH-1:0] stream_end_offset;
-
+  logic                         stream_wrap_toggle;
+  
   logic                         enable_stream;
   logic                         stream_stopped;
   logic                         stream_write;
@@ -99,11 +102,17 @@ module piradip_axis_sample_buffer_in (
   always @(posedge stream_in.aclk) begin
     if (~stream_in.aresetn) begin
       mem_stream.addr <= 0;
+      stream_wrap_toggle <= 0;
     end else begin
       if (stream_update & stream_active) begin
         mem_stream.addr <= stream_start_offset;
       end else if (stream_write) begin
-        mem_stream.addr <= (mem_stream.addr >= stream_end_offset) ? stream_start_offset : mem_stream.addr+1;
+	if (mem_stream.addr >= stream_end_offset) begin
+	  mem_stream.addr <= stream_start_offset;
+	  stream_wrap_toggle <= ~stream_wrap_toggle;	  
+	end else begin
+	  mem_stream.addr <= mem_stream.addr + 1;
+	end
       end
     end
   end

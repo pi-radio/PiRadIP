@@ -54,7 +54,7 @@ module piradip_tb_sample_buffer_out
       @(posedge mem_clk);
       while (~mem_rstn) @(posedge mem_clk);
 
-      for (i = 0; i < 256; i++) begin
+      for (i = 0; i < (1 << (MEMORY_ADDR_WIDTH - 2)); i++) begin
         memory_manager.write_faf(4*i, { { i[5:0], 2'd3 },  { i[5:0], 2'd2 },  { i[5:0], 2'd1 },  { i[5:0], 2'd0 } });
       end
 
@@ -70,7 +70,7 @@ endmodule
 
 module piradip_tb_sample_buffer_in
 #(
-    parameter MEMORY_ADDR_WIDTH = 10,
+    parameter MEMORY_ADDR_WIDTH = 14,
     parameter MEMORY_DATA_WIDTH = 32
  )
  (
@@ -85,7 +85,7 @@ module piradip_tb_sample_buffer_in
   axi4mm_lite ctrl(.clk(mem_clk), .resetn(mem_rstn));
   axi4mm #(.ADDR_WIDTH(MEMORY_ADDR_WIDTH)) memory(.clk(mem_clk), .resetn(mem_rstn));
 
-  piradip_tb_axilite_manager control_manager(.aximm(ctrl));
+  piradip_tb_axilite_manager control_manager(.aximm(ctrl.MANAGER));
   piradip_tb_aximm_manager memory_manager(.aximm(memory));
 
   piradip_axis_sample_buffer_in sample_buffer (
@@ -127,11 +127,11 @@ module piradip_tb_sample_buffer_in
 	  
       $display("Reading memory");
       
-      for (i = 0; i < 256; i++) begin
+      for (i = 0; i < (1 << (MEMORY_ADDR_WIDTH - 2)); i++) begin
         memory_manager.read_async(4*i, read_handler);
       end
 
-      for (i = 0; i < 2000; i++)
+      for (i = 0; i < 5000; i++)
 	@(posedge mem_clk);
 
       done <= 1'b1;
@@ -152,9 +152,9 @@ module piradip_tb_sample_buffers(
   logic stream_clk;
   logic stream_rstn;
   
-  localparam MEMORY_ADDR_WIDTH = 10;
+  localparam MEMORY_ADDR_WIDTH = 14;
   localparam MEMORY_DATA_WIDTH = 32;
-  localparam STREAM_WIDTH=256;
+  localparam STREAM_WIDTH=128;
   
   piradip_tb_clkgen mm_clk_gen(.clk(mem_clk));
   piradip_tb_clkgen #(.HALF_PERIOD(1)) stream_clk_gen(.clk(stream_clk));

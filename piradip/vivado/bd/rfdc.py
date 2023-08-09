@@ -11,27 +11,27 @@ class RFDC(BDIP):
 
     memory_aperture_size = 0x40000
     
-    def __init__(self, parent, name):
+    def __init__(self, parent, name, NCOFreq="1.25"):
         super().__init__(parent, name, [
             ("CONFIG.DAC0_Sampling_Rate", "4.0"),
             ("CONFIG.DAC1_Sampling_Rate", "4.0"),
             ("CONFIG.PRESET", "8x8-ADC-R2C-4GSPS-DAC-C2R"),
-            ("CONFIG.ADC_NCO_Freq00", "1.0"),
-            ("CONFIG.ADC_NCO_Freq02", "1.0"),
-            ("CONFIG.ADC_NCO_Freq10", "1.0"),
-            ("CONFIG.ADC_NCO_Freq12", "1.0"),
-            ("CONFIG.ADC_NCO_Freq20", "1.0"),
-            ("CONFIG.ADC_NCO_Freq22", "1.0"),
-            ("CONFIG.ADC_NCO_Freq30", "1.0"),
-            ("CONFIG.ADC_NCO_Freq32", "1.0"),
-            ("CONFIG.DAC_NCO_Freq00", "1.0"),
-            ("CONFIG.DAC_NCO_Freq01", "1.0"),
-            ("CONFIG.DAC_NCO_Freq02", "1.0"),
-            ("CONFIG.DAC_NCO_Freq03", "1.0"),
-            ("CONFIG.DAC_NCO_Freq10", "1.0"),
-            ("CONFIG.DAC_NCO_Freq11", "1.0"),
-            ("CONFIG.DAC_NCO_Freq12", "1.0"),
-            ("CONFIG.DAC_NCO_Freq13", "1.0"),
+            ("CONFIG.ADC_NCO_Freq00", NCOFreq),
+            ("CONFIG.ADC_NCO_Freq02", NCOFreq),
+            ("CONFIG.ADC_NCO_Freq10", NCOFreq),
+            ("CONFIG.ADC_NCO_Freq12", NCOFreq),
+            ("CONFIG.ADC_NCO_Freq20", NCOFreq),
+            ("CONFIG.ADC_NCO_Freq22", NCOFreq),
+            ("CONFIG.ADC_NCO_Freq30", NCOFreq),
+            ("CONFIG.ADC_NCO_Freq32", NCOFreq),
+            ("CONFIG.DAC_NCO_Freq00", NCOFreq),
+            ("CONFIG.DAC_NCO_Freq01", NCOFreq),
+            ("CONFIG.DAC_NCO_Freq02", NCOFreq),
+            ("CONFIG.DAC_NCO_Freq03", NCOFreq),
+            ("CONFIG.DAC_NCO_Freq10", NCOFreq),
+            ("CONFIG.DAC_NCO_Freq11", NCOFreq),
+            ("CONFIG.DAC_NCO_Freq12", NCOFreq),
+            ("CONFIG.DAC_NCO_Freq13", NCOFreq),
         ])
 
         self.enumerate_pins()
@@ -59,7 +59,7 @@ class RFDC(BDIP):
             AXISSampleInterleaver(self.parent,
                                   f"adc_interleaver{i}",
                                   {
-                                      "CONFIG.IQ_OUT_WIDTH": 128,
+                                      "CONFIG.IQ_OUT_WIDTH": 256,
                                       "CONFIG.I_IN_WIDTH": 128,
                                       "CONFIG.Q_IN_WIDTH": 128
                                   } ) for i in range(8) ]
@@ -76,6 +76,9 @@ class RFDC(BDIP):
             il.pins["Q_IN"].connect(Q)
 
         self.adc_axis = [ p.create_net(f"adc_iq{i}") for i, p in enumerate(all_pins(self.interleavers, "IQ_OUT")) ]
+
+        self.i_en = [ p.create_net(f"i_en{i}") for i, p in enumerate(all_pins(self.interleavers, "i_en")) ]
+        self.q_en = [ p.create_net(f"q_en{i}") for i, p in enumerate(all_pins(self.interleavers, "q_en")) ]
         
         
     def setup_adc_axis(self):
