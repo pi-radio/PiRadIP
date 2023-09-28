@@ -16,7 +16,7 @@ xvlog.pb: $(VSOURCES) ../glbl.v Makefile ../include.mk
 compile: xvlog.pb
 
 xelab.pb: compile
-	xelab --debug all -L xpm -top $(TOP_MODULE) -snapshot test_snapshot glbl
+	xelab -initfile=/opt/Xilinx/Vivado/2022.2/data/xsim/ip/xsim_ip.ini --debug all -L UNISIMS_VER -L UNIMACRO_VER -L xpm -top $(TOP_MODULE) -snapshot test_snapshot glbl
 
 elaborate: xelab.pb
 

@@ -40,6 +40,7 @@ Library("piradlib",
             "library/axis/piradip_axis_sample_buffer_out.sv",
             "library/axis/piradip_axis_sample_buffer_in.sv",
             "library/axis/piradip_axis_sample_interleaver.sv",
+            "library/axis/piradip_axis_gain_block.sv",
 
             "library/util/piradip_trigger_unit.sv",
             
@@ -168,6 +169,15 @@ InterfaceDesc(
                              default_value="32"),            
             ]
         )
+)
+
+ModuleDesc(name="piradip_axis_gain_block",
+           version="1.0",
+           file="library/axis/piradip_axis_gain_block.sv",
+           wrapper_name="AXIS_GainBlock",
+           description="A memory mapped sample buffer to stream out over an AXI stream interface",
+           display_name="AXI Gain Block",
+           ipxact_name="axis_gain_block"
 )
 
 ModuleDesc(name="piradip_axis_sample_buffer_out",

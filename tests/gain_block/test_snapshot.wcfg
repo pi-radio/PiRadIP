@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="test_snapshot.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="piradip_axi4" />
+            <top_module name="piradip_tb_axis_gain_block" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="3,217.887 ns"></ZoomEndTime>
+      <Cursor1Time time="1,000.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="266"></NameColumnWidth>
+      <ValueColumnWidth column_width="74"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="13" />
+   <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/done">
+      <obj_property name="ElementShortName">done</obj_property>
+      <obj_property name="ObjectShortName">done</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/mem_clk">
+      <obj_property name="ElementShortName">mem_clk</obj_property>
+      <obj_property name="ObjectShortName">mem_clk</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/mem_rstn">
+      <obj_property name="ElementShortName">mem_rstn</obj_property>
+      <obj_property name="ObjectShortName">mem_rstn</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/stream_clk">
+      <obj_property name="ElementShortName">stream_clk</obj_property>
+      <obj_property name="ObjectShortName">stream_clk</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/stream_rstn">
+      <obj_property name="ElementShortName">stream_rstn</obj_property>
+      <obj_property name="ObjectShortName">stream_rstn</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/i">
+      <obj_property name="ElementShortName">i[31:0]</obj_property>
+      <obj_property name="ObjectShortName">i[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/j">
+      <obj_property name="ElementShortName">j[31:0]</obj_property>
+      <obj_property name="ObjectShortName">j[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/d">
+      <obj_property name="ElementShortName">d[127:0]</obj_property>
+      <obj_property name="ObjectShortName">d[127:0]</obj_property>
+   </wvobject>
+   <wvobject type="group" fp_name="group34">
+      <obj_property name="label">Samples In</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/samples_in/clk">
+         <obj_property name="ElementShortName">clk</obj_property>
+         <obj_property name="ObjectShortName">clk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/samples_in/resetn">
+         <obj_property name="ElementShortName">resetn</obj_property>
+         <obj_property name="ObjectShortName">resetn</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/samples_in/aclk">
+         <obj_property name="ElementShortName">aclk</obj_property>
+         <obj_property name="ObjectShortName">aclk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/samples_in/aresetn">
+         <obj_property name="ElementShortName">aresetn</obj_property>
+         <obj_property name="ObjectShortName">aresetn</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/samples_in/tready">
+         <obj_property name="ElementShortName">tready</obj_property>
+         <obj_property name="ObjectShortName">tready</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/samples_in/tvalid">
+         <obj_property name="ElementShortName">tvalid</obj_property>
+         <obj_property name="ObjectShortName">tvalid</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/samples_in/tlast">
+         <obj_property name="ElementShortName">tlast</obj_property>
+         <obj_property name="ObjectShortName">tlast</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/samples_in/tdata">
+         <obj_property name="ElementShortName">tdata[127:0]</obj_property>
+         <obj_property name="ObjectShortName">tdata[127:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group43">
+      <obj_property name="label">Samples Out</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/samples_out/clk">
+         <obj_property name="ElementShortName">clk</obj_property>
+         <obj_property name="ObjectShortName">clk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/samples_out/resetn">
+         <obj_property name="ElementShortName">resetn</obj_property>
+         <obj_property name="ObjectShortName">resetn</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/samples_out/aclk">
+         <obj_property name="ElementShortName">aclk</obj_property>
+         <obj_property name="ObjectShortName">aclk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/samples_out/aresetn">
+         <obj_property name="ElementShortName">aresetn</obj_property>
+         <obj_property name="ObjectShortName">aresetn</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/samples_out/tready">
+         <obj_property name="ElementShortName">tready</obj_property>
+         <obj_property name="ObjectShortName">tready</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/samples_out/tvalid">
+         <obj_property name="ElementShortName">tvalid</obj_property>
+         <obj_property name="ObjectShortName">tvalid</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/samples_out/tlast">
+         <obj_property name="ElementShortName">tlast</obj_property>
+         <obj_property name="ObjectShortName">tlast</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/samples_out/tdata">
+         <obj_property name="ElementShortName">tdata[127:0]</obj_property>
+         <obj_property name="ObjectShortName">tdata[127:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group32">
+      <obj_property name="label">Mult 1</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/gain_block/\genblk1[0].mult /clk">
+         <obj_property name="ElementShortName">clk</obj_property>
+         <obj_property name="ObjectShortName">clk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/gain_block/\genblk1[0].mult /rst">
+         <obj_property name="ElementShortName">rst</obj_property>
+         <obj_property name="ObjectShortName">rst</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/gain_block/\genblk1[0].mult /A">
+         <obj_property name="ElementShortName">A[15:0]</obj_property>
+         <obj_property name="ObjectShortName">A[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/gain_block/\genblk1[0].mult /B">
+         <obj_property name="ElementShortName">B[17:0]</obj_property>
+         <obj_property name="ObjectShortName">B[17:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/gain_block/\genblk1[0].mult /OUT">
+         <obj_property name="ElementShortName">OUT[15:0]</obj_property>
+         <obj_property name="ObjectShortName">OUT[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/gain_block/\genblk1[0].mult /P">
+         <obj_property name="ElementShortName">P[47:0]</obj_property>
+         <obj_property name="ObjectShortName">P[47:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/gain_block/\genblk1[0].mult /OVERFLOW">
+         <obj_property name="ElementShortName">OVERFLOW</obj_property>
+         <obj_property name="ObjectShortName">OVERFLOW</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/gain_block/\genblk1[0].mult /PATTERNBDETECT">
+         <obj_property name="ElementShortName">PATTERNBDETECT</obj_property>
+         <obj_property name="ObjectShortName">PATTERNBDETECT</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/gain_block/\genblk1[0].mult /PATTERNDETECT">
+         <obj_property name="ElementShortName">PATTERNDETECT</obj_property>
+         <obj_property name="ObjectShortName">PATTERNDETECT</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/gain_block/\genblk1[0].mult /UNDERFLOW">
+         <obj_property name="ElementShortName">UNDERFLOW</obj_property>
+         <obj_property name="ObjectShortName">UNDERFLOW</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group43">
+      <obj_property name="label">Gain Block</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/gain_block/result">
+         <obj_property name="ElementShortName">result[127:0]</obj_property>
+         <obj_property name="ObjectShortName">result[127:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/gain_block/cnt">
+         <obj_property name="ElementShortName">cnt[4:0]</obj_property>
+         <obj_property name="ObjectShortName">cnt[4:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/gain_block/gain">
+         <obj_property name="ElementShortName">gain[17:0]</obj_property>
+         <obj_property name="ObjectShortName">gain[17:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group47">
+      <obj_property name="label">Latency Sync</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/gain_block/stream_sync/clk">
+         <obj_property name="ElementShortName">clk</obj_property>
+         <obj_property name="ObjectShortName">clk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/gain_block/stream_sync/resetn">
+         <obj_property name="ElementShortName">resetn</obj_property>
+         <obj_property name="ObjectShortName">resetn</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/gain_block/stream_sync/in_valid">
+         <obj_property name="ElementShortName">in_valid</obj_property>
+         <obj_property name="ObjectShortName">in_valid</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/gain_block/stream_sync/in_band">
+         <obj_property name="ElementShortName">in_band[127:0]</obj_property>
+         <obj_property name="ObjectShortName">in_band[127:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/gain_block/stream_sync/out_of_band">
+         <obj_property name="ElementShortName">out_of_band[-1:0]</obj_property>
+         <obj_property name="ObjectShortName">out_of_band[-1:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_axis_gain_block/gain_block/stream_sync/out_valid">
+         <obj_property name="ElementShortName">out_valid</obj_property>
+         <obj_property name="ObjectShortName">out_valid</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/gain_block/stream_sync/out_data">
+         <obj_property name="ElementShortName">out_data[127:0]</obj_property>
+         <obj_property name="ObjectShortName">out_data[127:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/gain_block/stream_sync/oob_out">
+         <obj_property name="ElementShortName">oob_out[0:0]</obj_property>
+         <obj_property name="ObjectShortName">oob_out[0:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/gain_block/stream_sync/oob_cat">
+         <obj_property name="ElementShortName">oob_cat[0:0]</obj_property>
+         <obj_property name="ObjectShortName">oob_cat[0:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_axis_gain_block/gain_block/stream_sync/\genblk2.oob_fifo ">
+         <obj_property name="ElementShortName">\genblk2.oob_fifo [0:2][0:0]</obj_property>
+         <obj_property name="ObjectShortName">\genblk2.oob_fifo [0:2][0:0]</obj_property>
+      </wvobject>
+   </wvobject>
+</wave_config>

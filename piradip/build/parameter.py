@@ -77,6 +77,8 @@ def parse_trailing_assign(node):
 def parse_parameter(node):
     nchildren = len(node.children)
     assert nchildren in [3, 4], "Unexpected number of children {nchildren} {node.children}"
+    print(f"NODE: {node.tag} {node.text} {dir(node)}")
+    print(f"NODE CHILD 0: {node.children[0]}")
     assert(node.children[0].tag in [ 'parameter', 'localparam' ])
     if nchildren == 4:
         assert node.children[3].tag == ';'
