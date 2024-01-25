@@ -39,12 +39,14 @@ module piradip_tb_sample_buffer_out
   piradip_tb_axilite_manager control_manager(.aximm(ctrl));
   piradip_tb_aximm_manager memory_manager(.aximm(memory));
 
-  piradip_axis_sample_buffer_out sample_buffer (
-						.axilite(ctrl.SUBORDINATE),
-						.aximm(memory.SUBORDINATE),
-						.stream_out(stream),
-						.trigger(trigger)
-						);
+  piradip_axis_sample_buffer_out #(
+    .NWORDS(1536)  
+  ) sample_buffer (
+    .axilite(ctrl.SUBORDINATE),
+    .aximm(memory.SUBORDINATE),
+    .stream_out(stream),
+    .trigger(trigger)
+  );
 
   integer i;
   
@@ -57,6 +59,8 @@ module piradip_tb_sample_buffer_out
       for (i = 0; i < (1 << (MEMORY_ADDR_WIDTH - 2)); i++) begin
         memory_manager.write_faf(4*i, { { i[5:0], 2'd3 },  { i[5:0], 2'd2 },  { i[5:0], 2'd1 },  { i[5:0], 2'd0 } });
       end
+
+      control_manager.write(4*3, 32'd10);
 
       memory_manager.sync();
 
@@ -88,7 +92,9 @@ module piradip_tb_sample_buffer_in
   piradip_tb_axilite_manager control_manager(.aximm(ctrl.MANAGER));
   piradip_tb_aximm_manager memory_manager(.aximm(memory));
 
-  piradip_axis_sample_buffer_in sample_buffer (
+  piradip_axis_sample_buffer_in #(
+    .NWORDS(1536)				  
+  ) sample_buffer (
 					       .axilite(ctrl.SUBORDINATE),
 					       .aximm(memory.SUBORDINATE),
 					       .stream_in(stream),

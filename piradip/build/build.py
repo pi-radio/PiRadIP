@@ -138,7 +138,8 @@ def make_generate_all():
     tcl.cmd("cd $prev_path")
 
 def up_to_date():
-    input_files = list(Path("build").glob("*.py"))
+    p = Path(__file__).parent.resolve()
+    input_files = list(p.glob("[!.#]*.py"))
 
     for l in library_map.values():
         input_files += l.files

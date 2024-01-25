@@ -73,14 +73,14 @@ class svexreferencecallbase:
     def parse(node):
         if len(node.children) == 1:
             return svexcreate(node.children[0])
-        print(node.children)
+        #print(node.children)
         assert_nchild(node, 2)
         return svexreferencecallbase(svexcreate(node.children[0]), svexcreate(node.children[1]))
 
     def __init__(self, base, ext):
         self.base = base
         self.ext = ext
-        print(base, ext)
+        #print(base, ext)
 
     @property
     def const(self):
@@ -133,6 +133,10 @@ def txbindigits(node):
 @svex("TK_DecNumber")
 def tkdecnumber(node):
     return svexliteral(int(node.text))
+
+@svex("TK_StringLiteral")
+def tkstringliteral(node):
+    return svexliteral(node.text)
 
 @svex("kBaseDigits")
 def parse_base_digits(node):

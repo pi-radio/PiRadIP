@@ -88,7 +88,82 @@ module piradip_axis_gearbox #(
       .read_count(read_count),
       .write_count(write_count)
   );
+endmodule // piradip_axis_gearbox
+
+/*
+module piradip_axis_fifo #(
+    parameter integer DEPTH = 2
+) (
+    axi4s.SUBORDINATE in,
+    axi4s.MANAGER out
+);
+  localparam IN_DATA_WIDTH = stream_in.data_width();
+  localparam OUT_DATA_WIDTH = stream_out.data_width();
+
+  logic rst;
+  logic rd_reset_busy, wr_reset_busy;
+  logic wren, rden;
+  
+  always_comb rst = ~in.aresetn | ~out.aresetn;
+
+  always_comb wren = ~wr_reset_busy & in.tvalid;
+  always_comb rden = ~rd_reset_busy & out.tready;
+  
+  xpm_fifo_async #(
+   .CASCADE_HEIGHT(0),        // DECIMAL
+   .CDC_SYNC_STAGES(2),       // DECIMAL
+   .DOUT_RESET_VALUE("0"),    // String
+   .ECC_MODE("no_ecc"),       // String
+   .FIFO_MEMORY_TYPE("auto"), // String
+   .FIFO_READ_LATENCY(1),     // DECIMAL
+   .FIFO_WRITE_DEPTH(2048),   // DECIMAL
+   .FULL_RESET_VALUE(0),      // DECIMAL
+   .PROG_EMPTY_THRESH(10),    // DECIMAL
+   .PROG_FULL_THRESH(10),     // DECIMAL
+   .RD_DATA_COUNT_WIDTH(1),   // DECIMAL
+   .READ_DATA_WIDTH(32),      // DECIMAL
+   .READ_MODE("std"),         // String
+   .RELATED_CLOCKS(0),        // DECIMAL
+   .SIM_ASSERT_CHK(0),        // DECIMAL; 0=disable simulation messages, 1=enable simulation messages
+   .USE_ADV_FEATURES("0707"), // String
+   .WAKEUP_TIME(0),           // DECIMAL
+   .WRITE_DATA_WIDTH(32),     // DECIMAL
+   .WR_DATA_COUNT_WIDTH(1)    // DECIMAL
+)
+  fifo_inst (
+   //.almost_empty(almost_empty),  
+   //.almost_full(almost_full),    
+   //.dbiterr(dbiterr),
+   //.empty(empty),
+   //.full(full),
+   //.overflow(overflow),
+   //.prog_empty(prog_empty),
+   //.prog_full(prog_full),
+   //.rd_data_count(rd_data_count),
+   //.sbiterr(sbiterr),
+   //.underflow(underflow),
+   //.wr_ack(wr_ack),
+   //.wr_data_count(wr_data_count),
+   //.injectdbiterr(injectdbiterr),
+   //.injectsbiterr(injectsbiterr),
+
+   .rst(rst),
+   .sleep(1b0),
+	     
+   .rd_clk(out.aclk),
+   .rd_rst_busy(rd_reset_busy),
+   .rd_en(rden),
+   .data_valid(out.tvalid),       
+   .dout(out.tdata),
+
+   .wr_clk(in.aclk),
+   .wr_rst_busy(wr_reset_busy),
+   .din(in.tdata),
+   .wr_en(wren)
+);  
+  
 endmodule
+*/
 
 /* Simple, Symetric and Synchronous fifo */
 module piradip_axis_fifo_sss #(

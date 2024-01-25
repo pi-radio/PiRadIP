@@ -200,6 +200,7 @@ class Project(VivadoObj):
         
     @classmethod
     def create(cls, vivado, name):
+        print(f"Creating project {name}...")
         vivado.cmd(f"create_project -force {name}.xpr ./ -part {cls.board_cls.fpga}", timeout=90)
 
         prj = cls(vivado, name)
@@ -371,7 +372,6 @@ class ZCU111Project(Project):
             
 class PiRadioProject:
     base_project = ZCU111Project
-    bd_template = SDRv2_Capture
 
     @property
     def board(self):
@@ -401,6 +401,8 @@ class PiRadioProject:
         
     def create(self):
         self.clean()
+
+        print(f"Creating Pi Radio project {self.project_name}...")
         
         self.prj = self.base_project.create(self.vivado, self.project_name)
 

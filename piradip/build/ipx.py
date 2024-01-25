@@ -214,6 +214,17 @@ class IPXScript(TCLScript):
 
         self.indent()
 
+        if p.basetype is None:
+            if isinstance(p.default.n, str) and not p.default.n.isnumeric():
+                value_format = "string"
+            else:
+                value_format = "long"            
+            print(f"Inferring SPIRIT TYPE: {p.default} {type(p.default)} {type(p.default.n)} {value_format}")
+        elif p.basetype == "string":
+            value_format = "string"
+        else:
+            value_format = "long"
+
         cup.set_prop("description", p.name)
         cup.set_prop("display_name", p.name)
         cup.set_prop("enablement_value", "true")
@@ -221,7 +232,7 @@ class IPXScript(TCLScript):
         cup.set_prop("usage", "all")
         cup.set_prop("order", n)
         cup.set_prop("value", p.default)
-        cup.set_prop("value_format", "long")
+        cup.set_prop("value_format", value_format)
         cup.set_prop("value_resolve_type", "user")
         cup.set_prop("value_source", "default")
 
@@ -244,7 +255,7 @@ class IPXScript(TCLScript):
         chp.set_prop("ipxact_id", f"MODELPARAM_VALUE.{p.name}")
         chp.set_prop("order", f"{n}")
         chp.set_prop("value", p.default)
-        chp.set_prop("value_format", "long")
+        chp.set_prop("value_format", value_format)
         chp.set_prop("value_resolve_type", "generated")
         chp.set_prop("value_source", "default")
         chp.set_prop("value_validation_type", "range_long")

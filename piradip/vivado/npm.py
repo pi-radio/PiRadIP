@@ -1,3 +1,4 @@
+import os
 from functools import cached_property
 from pathlib import Path
 
@@ -11,12 +12,26 @@ from .build import BinFileBuildStep, DTBO
 class NPM:
     def __init__(self, prj):
         self.prj = prj
+
+        self.project_dir = Path.cwd()
+        
+        piradip_root = Path(__file__).parent.parent.parent
+        common_path = Path(os.path.commonpath((piradip_root, self.project_dir)))
+
+        s = ""
+
+        while not (self.project_dir/s).samefile(common_path):
+            s += "../"
+
+        modpath = Path(s) / piradip_root.relative_to(common_path)
+
+        print(f"Relative IP repo path: {modpath}")
         
         self.cmd(f"set_part {prj.board.fpga}")
         self.cmd(f"set_property TARGET_LANGUAGE Verilog [current_project]")
         self.cmd(f"set_property BOARD_PART {prj.board.part} [current_project]")
         self.cmd(f"set_property DEFAULT_LIB xil_defaultlib [current_project]")
-        self.cmd(f"set_property IP_REPO_PATHS \"../PiRadIP\" [current_fileset]")
+        self.cmd(f"set_property IP_REPO_PATHS [file normalize \"{modpath}\"] [current_fileset]")
         self.cmd(f"set_param messaging.defaultLimit 2000")
 
         self.checkpoint_dir = Path("checkpoints")
@@ -57,6 +72,8 @@ class NPM:
     def check_ips(self):
         locked = []
         need_save = False
+
+        self.cmd(f"open_bd_design [{self.prj.bd_path}]")
         
         for ip in self.ips:
             if not self.ip_locked(ip):
@@ -67,6 +84,8 @@ class NPM:
 
             self.cmd(f"upgrade_ips [get_ips {ip}]")
             need_save = True
+
+            self.cmd(f"export_ip_user_files -of_objects [get_ips {ip}]")
             
             if self.ip_locked(ip):
                 details = self.cmd(f"get_property LOCK_DETAILS [get_ips {ip}]")
@@ -77,8 +96,12 @@ class NPM:
                 
         return locked
 
-    def load_bd(self):
+    def load_bd(self, locked_ok=False):
         self.read_bd()
+
+        if locked_ok:
+            return
+        
         locked = self.check_ips()
 
         if len(locked):

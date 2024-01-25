@@ -40,10 +40,12 @@ interface piradip_ram_if #(
 endinterface
 
 module piradip_tdp_ram #(
+    parameter integer MEMORY_SIZE = 0,
     parameter integer READ_LATENCY_A = 1,
     parameter integer READ_LATENCY_B = 1,
     parameter integer READ_RESET_VALUE_A = 0,
-    parameter integer READ_RESET_VALUE_B = 0
+    parameter integer READ_RESET_VALUE_B = 0,
+    parameter MEMORY_TYPE = "auto"
 ) (
     piradip_ram_if.RAM_PORT a,
     piradip_ram_if.RAM_PORT b
@@ -55,7 +57,7 @@ module piradip_tdp_ram #(
   localparam B_ADDR_WIDTH = b.addr_width();
   localparam B_DATA_WIDTH = b.data_width();
 
-  localparam MEMORY_BITS = a.memory_size();
+  localparam MEMORY_BITS = (MEMORY_SIZE == 0) ? a.memory_size() : MEMORY_SIZE;
 
   generate
     if (a.memory_size() != b.memory_size())
@@ -95,7 +97,7 @@ module piradip_tdp_ram #(
       .MEMORY_INIT_FILE("none"),
       .MEMORY_INIT_PARAM("0"),
       .MEMORY_OPTIMIZATION("true"),
-      .MEMORY_PRIMITIVE("auto"),
+      .MEMORY_PRIMITIVE(MEMORY_TYPE),
       .MEMORY_SIZE(MEMORY_BITS),
       .MESSAGE_CONTROL(0),
       .SIM_ASSERT_CHK(1),

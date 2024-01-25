@@ -171,7 +171,7 @@ connect_bd_net [get_bd_pins ps/pl_clk1] [get_bd_pins spi/s_axi_aclk]
         self.mosi.set_phys(RFMC.DAC.IO_05.Ball, "LVCMOS18")
         self.sclk.set_phys(RFMC.DAC.IO_01.Ball, "LVCMOS18")
             
-        self.capture = SampleCapture(self)
+        self.capture = SampleCapture(self, NCOFreq="1.0")
 
         for p in self.capture.external_interfaces:
             port = self.reexport(p)

@@ -23,7 +23,7 @@ def parse(filename):
         ERROR(f"Failed to parse file {filename}: {e}")
     
 def dump_node(header, node):
-    print(header)
+    #print(header)
     for p, _, t in anytree.RenderTree(node):
         print(f"DUMP: {p}{t}")
 
@@ -165,7 +165,7 @@ def svkeyword(tag):
     svexpression_handlers[tag] = tokenwrapper
     return token
 
-svkeywords = [ "integer", "logic", "output", "input", "wire", "reg" ]
+svkeywords = [ "integer", "logic", "output", "input", "wire", "reg", "string" ]
 
 for k in svkeywords:
     globals()[f"sv{k}"] = svkeyword(k)

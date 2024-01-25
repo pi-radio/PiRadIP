@@ -1,6 +1,9 @@
 `timescale 1ns / 1ps
 
-module piradip_axis_sample_buffer_in (
+module piradip_axis_sample_buffer_in #(
+    parameter integer NWORDS=0,  // Number of 32-bit words
+    parameter MEMORY_TYPE="auto"
+) (
     axi4mm_lite.SUBORDINATE axilite,
     axi4mm.SUBORDINATE aximm,
     axi4s.SUBORDINATE stream_in,
@@ -12,13 +15,19 @@ module piradip_axis_sample_buffer_in (
   localparam AXIMM_DATA_WIDTH = aximm.data_width();
   localparam AXIMM_ADDR_WIDTH = aximm.addr_width();
 
-  localparam MEMORY_BIT_WIDTH = AXIMM_ADDR_WIDTH + 3;
+  //  Memory size in bits
+  localparam MEMORY_SIZE = (NWORDS == 0) ? (1 << (AXIMM_ADDR_WIDTH + 3)) : (NWORDS << 5); 
+  
+  localparam MEMORY_BIT_WIDTH = $clog2(MEMORY_SIZE);
 
   localparam STREAM_DATA_WIDTH = stream_in.data_width();
   localparam STREAM_ADDR_WIDTH = MEMORY_BIT_WIDTH - $clog2(STREAM_DATA_WIDTH);
 
+  //assert((MEMORY_SIZE & ((1 << STREAM_DATA_WIDTH) - 1)) == 0)
+  
   localparam READ_LATENCY_A = 1;
   localparam READ_LATENCY_B = 1;
+
 
   logic                         stream_update;
   logic                         stream_active;
@@ -47,7 +56,8 @@ module piradip_axis_sample_buffer_in (
   );
 
   piradip_axis_sample_buffer_csr #(
-      .BUFFER_BYTES(1 << (MEMORY_BIT_WIDTH - 3)),
+      .BUFFER_BYTES(MEMORY_SIZE / 8),
+      .STREAM_DATA_WIDTH(STREAM_DATA_WIDTH),
       .STREAM_OFFSET_WIDTH(STREAM_ADDR_WIDTH)
   ) csr (
       .aximm(axilite),
@@ -57,8 +67,10 @@ module piradip_axis_sample_buffer_in (
   );
 
   piradip_tdp_ram #(
+      .MEMORY_SIZE(MEMORY_SIZE),
       .READ_LATENCY_A(READ_LATENCY_A),
-      .READ_LATENCY_B(READ_LATENCY_B)
+      .READ_LATENCY_B(READ_LATENCY_B),
+      .MEMORY_TYPE(MEMORY_TYPE)
   ) ram (
       .a(mem_mm.RAM_PORT),
       .b(mem_stream.RAM_PORT)

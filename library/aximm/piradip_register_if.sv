@@ -39,7 +39,6 @@ interface piradip_register_if #(
   function automatic logic [DATA_WIDTH-1:0] mask_write_bytes(input logic [DATA_WIDTH-1:0] r);
     integer                  i;
     logic   [DATA_WIDTH-1:0] retval;
-    ;
     for (i = 0; i < STRB_WIDTH; i = i + 1) begin
       retval[(i*8)+:8] = wstrb[i] ? wreg_data[(i*8)+:8] : r[(i*8)+:8];
     end

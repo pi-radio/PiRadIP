@@ -1,3 +1,4 @@
+from pathlib import Path
 from functools import cached_property
 
 from .axi import AXIInterconnect
@@ -40,12 +41,37 @@ class BDAddressSpace:
                 return base_addr
 
             assert len(self.children) == 0
-            
-            addr_seg = self.iface.cmd(f"get_bd_addr_segs {self.dest_iface.path}/*").split()
 
+            aximm = self.dest_iface.path
+            
+
+            pin = None
+                
+            for p in self.iface.cmd(f"get_bd_pins -of_objects [get_bd_intf_pins {aximm}]").split():
+                if p.endswith("_awaddr"):
+                    pin = p
+                    break
+
+            if pin is None:
+                raise RuntimeError(f"Could not find awaddr pin for interface {aximm}")
+
+            left = int(self.iface.cmd(f"get_property LEFT [get_bd_pins {pin}]"))
+            right = int(self.iface.cmd(f"get_property RIGHT [get_bd_pins {pin}]"))
+
+            print(f"{pin} {left} {right}")
+
+            self.required = 1 << (left + 1)
+
+            if self.required < (1 << 16):
+                self.required = 1 << 16
+            
+            addr_seg = self.iface.cmd(f"get_bd_addr_segs {aximm}/*").split()
+            
             for seg in addr_seg:
                 required = self.required
 
+                print(f"seg: {seg} req: {required:08x} base_addr: {base_addr:08x}")
+                
                 if base_addr & (required - 1):
                     base_addr = (base_addr + required) & ~(required-1)
                 

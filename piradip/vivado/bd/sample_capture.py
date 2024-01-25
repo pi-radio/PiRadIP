@@ -1,3 +1,5 @@
+import math
+
 from .hier import BDHier
 from .pin import all_pins, create_pin
 from .xilinx import *
@@ -5,7 +7,9 @@ from .piradio import *
 from .rfdc import RFDC
 
 class SampleCapture(BDHier):
-    def __init__(self, parent, NCOFreq=1.25, name="data_capture"):
+    def __init__(self, parent, NCOFreq=1.25, name="data_capture",
+                 complex_samples=True,
+                 tx_samples=16384, rx_samples=32768):
         super().__init__(parent, name)
 
         #
@@ -20,11 +24,25 @@ class SampleCapture(BDHier):
         print("Setting up DAC streams...")
         self.rfdc.setup_dac_axis()
 
+        # Assumes complex samples
+        if complex_samples:
+            out_addr_width = math.log2(tx_samples) + 2
+            in_addr_width = math.log2(rx_samples) + 2
+        else:
+            out_addr_width = math.log2(tx_samples) + 1
+            in_addr_width = math.log2(rx_samples) + 1
+
+        out_addr_width = int(out_addr_width)
+        in_addr_width = int(in_addr_width)
+            
+        print(f"Configuring tx sample capture with {1 << out_addr_width} bytes")
+        print(f"Configuring rx sample capture with {1 << in_addr_width} bytes")
+            
         self.sample_out = [
-            AXISSampleBufferOut(self,
-                                f"samples_out{i}",
+            SampleBufferOut(self,
+                            f"samples_out{i}",
                                 {
-                                    "CONFIG.C_AXIMM_ADDR_WIDTH": 14,
+                                    "CONFIG.C_AXIMM_ADDR_WIDTH": out_addr_width,
                                     "CONFIG.STREAM_OUT_WIDTH": 256
                                 }) for i in range(8) ]
 
@@ -32,7 +50,7 @@ class SampleCapture(BDHier):
             AXISSampleBufferIn(self,
                                f"samples_in{i}",
                                {
-                                    "CONFIG.C_AXIMM_ADDR_WIDTH": 14,
+                                    "CONFIG.C_AXIMM_ADDR_WIDTH": in_addr_width,
                                     "CONFIG.STREAM_IN_WIDTH": 256 
                                }) for i in range(8) ]
 

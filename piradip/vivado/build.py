@@ -227,7 +227,7 @@ class SynthesizeBuildStep(CheckpointBuildStep):
 
         syn_msgs.show_locations()
         
-        self.cmd(f"report_timing_summary -file reports/synthesis_timing.rpt")
+        self.cmd(f"report_timing_summary -file reports/synthesis_timing.rpt", timeout=1*60*60)
 
         # Hmm, batch this up?
         syn_msgs.end_report()
@@ -242,7 +242,7 @@ class OptimizationBuildStep(CheckpointBuildStep):
     def build(self, **kwargs):
         self.cmd(f"opt_design", timeout=12*60*60)
 
-        self.cmd(f"report_timing_summary -file reports/opt_timing.rpt")
+        self.cmd(f"report_timing_summary -file reports/opt_timing.rpt", timeout=1*60*60)
         return True
         
 class PlaceBuildStep(CheckpointBuildStep):
@@ -263,7 +263,7 @@ class PlaceBuildStep(CheckpointBuildStep):
         self.cmd(f"place_design", timeout=12*60*60)
         self.cmd(f"phys_opt_design", timeout=12*60*60)
 
-        self.cmd(f"report_timing_summary -file reports/placed_timing.rpt")
+        self.cmd(f"report_timing_summary -file reports/placed_timing.rpt", timeout=1*60*60)
         return True
         
 class RouteBuildStep(CheckpointBuildStep):
@@ -274,7 +274,7 @@ class RouteBuildStep(CheckpointBuildStep):
     
     def build(self, **kwargs):
         self.cmd(f"route_design", timeout=12*60*60)
-        self.cmd(f"report_timing_summary -file reports/routed_timing.rpt")
+        self.cmd(f"report_timing_summary -file reports/routed_timing.rpt", timeout=1*60*60)
         return True
         
 class XSABuildStep(FileBuildStep):

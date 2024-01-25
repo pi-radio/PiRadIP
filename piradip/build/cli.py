@@ -1,13 +1,38 @@
 import os
 import sys
 import click
+import pathlib
 from pathlib import Path
 import shutil
+import importlib
+
+from piradip.vivado import PiRadioProject
 
 @click.group(chain=True)
+@click.option('-d', '--build-dir', 'build_dir', default=None)
 @click.pass_context
-def cli(ctx):
-    pass
+def cli(ctx, build_dir):
+    if build_dir is None:
+        p = Path.cwd()
+    else:
+        p = Path(build_dir)
+        os.chdir(p)
+        
+    if (p / "bitstream.py").exists():
+        print(f"Loading board definition from {p}/board.py...")
+        m = importlib.import_module("bitstream")
+
+        class project(PiRadioProject):
+            bd_template = m.bitstream_definition
+            project_name = bd_template.bitstream_name
+
+
+            
+        ctx.obj = project
+    elif (p / "library.py").exists():
+        pass
+    else:
+        print("No board or library files found...")
 
 def do_clean(prj):
     here = Path(".")
@@ -32,7 +57,8 @@ def do_clean(prj):
 @cli.command()
 @click.pass_context
 def clean(ctx):
-    do_clean(ctx)
+    prj = ctx.obj()
+    do_clean(prj)
 
 @cli.command()
 @click.pass_context
@@ -47,10 +73,23 @@ def generate(ctx):
     prj = ctx.obj()
 
     prj.vivado.cmd(f"open_project {prj.project_name}")
-
+    prj.vivado.cmd(f"update_compile_order -fileset sources_1")
     prj.vivado.cmd(f"open_bd_design {prj.bd_path}")
 
+
     prj.vivado.cmd(f"generate_target -force -verbose all [get_files {prj.bd_path}]")
+    prj.vivado.cmd(f"export_ip_user_files -of_objects [get_files {prj.bd_path}] -no_script -sync -force -quiet")
+    prj.vivado.cmd(f"export_simulation -of_objects [get_files {prj.bd_path}]"
+                   + f" -directory ip_user_files/sim_scripts"
+                   + f" -ip_user_files_dir ip_user_files"
+                   + f" -ipstatic_source_dir BetelgeuseNRT.ip_user_files/ipstatic"
+                   + f" -lib_map_path [list {{modelsim=cache/compile_simlib/modelsim}}"
+                   + f"  {{questa=cache/compile_simlib/questa}}"
+                   + f"  {{xcelium=cache/compile_simlib/xcelium}}"
+                   + f"  {{vcs=cache/compile_simlib/vcs}}"
+                   + f"  {{riviera=cache/compile_simlib/riviera}}]"
+                   + f" -use_ip_compiled_libs -force -quiet")
+
 
 @cli.command("create-runs")
 @click.pass_context
@@ -79,8 +118,10 @@ def upgrade_ip(ctx):
 
     npm = prj.NPM
 
-    npm.load_bd()
+    npm.load_bd(locked_ok=True)
 
+    npm.check_ips()
+        
 @cli.command()
 @click.pass_context
 def synthesize(ctx):
@@ -165,7 +206,9 @@ def dtbo(ctx):
 @cli.command("iplib")
 @click.pass_context
 def iplib(ctx):
-    if os.system("cd ../PiRadIP; ./buildlib.py build") != 0:
+    p = Path(__file__).parent.parent.parent.resolve()
+    
+    if os.system(f"cd {p}; ./buildlib.py build") != 0:
         raise RuntimeError("Failed to build IP lib")
     
     
@@ -182,6 +225,22 @@ def import_run(ctx):
     
     pass
 
+@cli.command()
+@click.pass_context
+def info(ctx):
+    print("Info")
 
+@cli.command()
+@click.pass_context
+def half_monty(ctx):
+    ctx.invoke(create)
+    ctx.invoke(generate)
+    ctx.invoke(synthesize)
+    ctx.invoke(dtbo)
     
-    
+@cli.command()
+@click.pass_context
+def full_monty(ctx):
+    ctx.invoke(iplib)
+    ctx.invoke(half_monty)
+

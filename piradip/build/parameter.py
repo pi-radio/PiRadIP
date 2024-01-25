@@ -7,9 +7,6 @@ from .sv import *
 class svparametertype:
     def __init__(self, basetype,  packed_dimensions, name, unpacked_dimensions):
         self.basetype = basetype
-        if self.basetype == None:
-            self.basetype = svinteger()
-            
         self.name = name
         self.packed_dimensions = packed_dimensions
         self.unpacked_dimensions = unpacked_dimensions
@@ -40,8 +37,10 @@ class svparameter:
         )
 
     @property
-    def decl(self):
-        v = f"parameter {self.basetype}"
+    def decl(self):            
+        v = f"parameter"
+        if self.basetype is not None:
+            v += f" {self.basetype}"
         if self.packed_dimensions:
             v += f" {self.packed_dimensions}"
         v += f" {self.name}"
@@ -77,8 +76,6 @@ def parse_trailing_assign(node):
 def parse_parameter(node):
     nchildren = len(node.children)
     assert nchildren in [3, 4], "Unexpected number of children {nchildren} {node.children}"
-    print(f"NODE: {node.tag} {node.text} {dir(node)}")
-    print(f"NODE CHILD 0: {node.children[0]}")
     assert(node.children[0].tag in [ 'parameter', 'localparam' ])
     if nchildren == 4:
         assert node.children[3].tag == ';'

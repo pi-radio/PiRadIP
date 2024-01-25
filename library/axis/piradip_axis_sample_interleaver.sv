@@ -13,7 +13,7 @@ module piradip_axis_sample_interleaver (
   localparam Q_WIDTH = Q_in.data_width();
   localparam OUT_WIDTH = IQ_out.data_width();
   
-  localparam N_SAMPLES = I_WIDTH / SAMPLE_WIDTH;
+  localparam N_SAMPLES = OUT_WIDTH / SAMPLE_WIDTH;
 
   logic toggle;
 
@@ -33,8 +33,8 @@ module piradip_axis_sample_interleaver (
 
 	IQ_out.tvalid <= I_in.tvalid & Q_in.tvalid;
 	IQ_out.tstrb <= {(OUT_WIDTH/8){1'b1}};
-		       
-	for (i = 0; i < N_SAMPLES; i++) begin
+
+	for (i = 0; i < N_SAMPLES/2; i++) begin
 	  IQ_out.tdata[2*i*SAMPLE_WIDTH+:SAMPLE_WIDTH] <= I_in.tdata[i*SAMPLE_WIDTH+:SAMPLE_WIDTH];
 	  IQ_out.tdata[(2*i+1)*SAMPLE_WIDTH+:SAMPLE_WIDTH] <= Q_in.tdata[i*SAMPLE_WIDTH+:SAMPLE_WIDTH];	 
 	end
@@ -45,6 +45,11 @@ module piradip_axis_sample_interleaver (
       end else begin
 	toggle <= ~toggle;
 
+
+	IQ_out.tdata <= i_en ? I_in.tdata : Q_in.tdata;
+	IQ_out.tstrb <= {(OUT_WIDTH/8){1'b1}};
+	
+	/*
 	IQ_out.tvalid <= I_in.tvalid;
 	
 	if (!toggle) begin
@@ -56,6 +61,7 @@ module piradip_axis_sample_interleaver (
 	  IQ_out.tdata[I_WIDTH+:I_WIDTH] <= i_en ? I_in.tdata : Q_in.tdata;
 	  IQ_out.tstrb <= { {(I_WIDTH/8){1'b1}}, {(I_WIDTH/8){1'b0}} };
 	end
+	*/
       end
     end // always @ (posedge IQ_out.aclk)
   

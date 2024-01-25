@@ -2,9 +2,12 @@ from functools import cached_property
 import inspect
 from pathlib import Path
 
+def encode_property(v):
+    return f"{{{v}}}"
+
 def get_property_list(l):
     if len(l) > 1:
-        return "-dict [list " + " \\\n".join([f"{k} {{{v}}}" for k, v in l]) + f"]"
+        return "-dict [list " + " \\\n".join([f"{k} {encode_property(v)}" for k, v in l]) + f"]"
 
     return f"{l[0][0]} {{{l[0][1]}}}" 
         
@@ -57,6 +60,7 @@ class VivadoObj:
         self.vivado.set_property(prop, val, self.obj)
 
     def set_property_list(self, d):
+        print(f"set_property {get_property_dict(d)} {self.obj}")
         self.cmd(f"set_property {get_property_dict(d)} {self.obj}")
             
     def get_property(self, prop):

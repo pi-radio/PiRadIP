@@ -20,6 +20,7 @@ endpackage
 
 module piradip_axis_sample_buffer_csr #(
     parameter BUFFER_BYTES = (1 << 16),
+    parameter STREAM_DATA_WIDTH = 128,
     parameter STREAM_OFFSET_WIDTH = 5,
     parameter DEBUG = 1
 ) (
@@ -42,6 +43,8 @@ module piradip_axis_sample_buffer_csr #(
   localparam ADDR_WIDTH = aximm.addr_width();
   localparam REGISTER_ADDR_BITS = ADDR_WIDTH - $clog2(DATA_WIDTH / 8);
 
+  localparam LAST_OFFSET = (BUFFER_BYTES * 8 / STREAM_DATA_WIDTH) - 1;
+  
   import piradip_sample_buffer::*;
 
   logic                           mm_update;
@@ -84,7 +87,7 @@ module piradip_axis_sample_buffer_csr #(
 
   logic ctrl_stat_write;
   logic initialized;
-  logic do_trigger, cur_trigger, last_trigger;
+  logic cur_trigger, last_trigger;
   
   always_comb
     ctrl_stat_write = aximm.aresetn && reg_if.wren && (reg_if.wreg_no == REGISTER_CTRLSTAT);
@@ -152,12 +155,17 @@ module piradip_axis_sample_buffer_csr #(
       mm_wrap_count <= mm_wrap_count + 1;
     end
   end
-    
-	     
+
+  logic [STREAM_OFFSET_WIDTH-1:0] masked_start_offset;
+  logic [STREAM_OFFSET_WIDTH-1:0] masked_end_offset;
+
+  always_comb masked_start_offset = reg_if.mask_write_bytes(mm_start_offset);
+  always_comb masked_end_offset = reg_if.mask_write_bytes(mm_end_offset);
+  
   always @(posedge aximm.aclk) begin
     if (~aximm.aresetn) begin
       mm_start_offset <= 0;
-      mm_end_offset <= (1 << STREAM_OFFSET_WIDTH) - 1;
+      mm_end_offset <= LAST_OFFSET;
       mm_one_shot <= 0;
       mm_i_en <= 1;
       mm_q_en <= 1;
@@ -169,8 +177,8 @@ module piradip_axis_sample_buffer_csr #(
 	    mm_i_en <= reg_if.wreg_data[CTRLSTAT_I_EN];
 	    mm_q_en <= reg_if.wreg_data[CTRLSTAT_Q_EN];
 	  end
-          REGISTER_START_OFFSET: mm_start_offset <= reg_if.mask_write_bytes(mm_start_offset);
-          REGISTER_END_OFFSET:   mm_end_offset <= reg_if.mask_write_bytes(mm_end_offset);
+          REGISTER_START_OFFSET: mm_start_offset <= (masked_start_offset < LAST_OFFSET) ? masked_start_offset : LAST_OFFSET;
+          REGISTER_END_OFFSET:   mm_end_offset <= (masked_end_offset < LAST_OFFSET) ? masked_end_offset : LAST_OFFSET;
         endcase
       end // if (reg_if.wren)
     end
@@ -191,7 +199,7 @@ module piradip_axis_sample_buffer_csr #(
 	reg_if.rreg_data = mm_end_offset;
       end
       REGISTER_STREAM_DEPTH: begin
-	reg_if.rreg_data = (1 << STREAM_OFFSET_WIDTH);
+	reg_if.rreg_data = 8 * BUFFER_BYTES / STREAM_DATA_WIDTH;
       end
       REGISTER_SIZE_BYTES: begin
 	reg_if.rreg_data = BUFFER_BYTES;
