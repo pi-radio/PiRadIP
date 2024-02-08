@@ -3,7 +3,9 @@ from functools import cached_property
 from .ip import BDIP
 from .pin import BDIntfPin, all_pins
 from .xilinx import BDPSReset, ClockWizard
+from .axis import AXISDataWidthConverter, AXISClockConverter
 from .piradio import AXISSampleInterleaver
+
 
 @BDIP.register
 class RFDC(BDIP):
@@ -13,8 +15,12 @@ class RFDC(BDIP):
 
     def __init_IQ(self, parent, name, NCOFreq, sample_freq):
         super().__init__(parent, name, [
-            ("CONFIG.DAC0_Sampling_Rate", "4.0"),
-            ("CONFIG.DAC1_Sampling_Rate", "4.0"),
+            ("CONFIG.ADC0_Sampling_Rate", f"{sample_freq/1000000000}"),
+            ("CONFIG.ADC1_Sampling_Rate", f"{sample_freq/1000000000}"),
+            ("CONFIG.ADC2_Sampling_Rate", f"{sample_freq/1000000000}"),
+            ("CONFIG.ADC3_Sampling_Rate", f"{sample_freq/1000000000}"),
+            ("CONFIG.DAC0_Sampling_Rate", f"{sample_freq/1000000000}"),
+            ("CONFIG.DAC1_Sampling_Rate", f"{sample_freq/1000000000}"),
             ("CONFIG.PRESET", "8x8-ADC-R2C-4GSPS-DAC-C2R"),
             ("CONFIG.ADC_NCO_Freq00", NCOFreq),
             ("CONFIG.ADC_NCO_Freq02", NCOFreq),
@@ -36,12 +42,12 @@ class RFDC(BDIP):
 
     def __init_Real(self, parent, name, sample_freq):
         super().__init__(parent, name, [
-            ("CONFIG.ADC0_Sampling_Rate", f"{sample_freq/1e9}"),
-            ("CONFIG.ADC1_Sampling_Rate", f"{sample_freq/1e9}"),
-            ("CONFIG.ADC2_Sampling_Rate", f"{sample_freq/1e9}"),
-            ("CONFIG.ADC3_Sampling_Rate", f"{sample_freq/1e9}"),
-            ("CONFIG.DAC0_Sampling_Rate", f"{sample_freq/1e9}"),
-            ("CONFIG.DAC1_Sampling_Rate", f"{sample_freq/1e9}"),
+            ("CONFIG.ADC0_Sampling_Rate", f"{sample_freq/1000000000}"),
+            ("CONFIG.ADC1_Sampling_Rate", f"{sample_freq/1000000000}"),
+            ("CONFIG.ADC2_Sampling_Rate", f"{sample_freq/1000000000}"),
+            ("CONFIG.ADC3_Sampling_Rate", f"{sample_freq/1000000000}"),
+            ("CONFIG.DAC0_Sampling_Rate", f"{sample_freq/1000000000}"),
+            ("CONFIG.DAC1_Sampling_Rate", f"{sample_freq/1000000000}"),
             ("CONFIG.PRESET", "8x8-ADC-R2C-4GSPS-DAC-C2R"),
             ("CONFIG.ADC_Data_Type00", "0"), 
             ("CONFIG.ADC_Data_Type02", "0"),
@@ -69,12 +75,13 @@ class RFDC(BDIP):
             ("CONFIG.DAC_Interpolation_Mode13", "1")
         ])
     
-    def __init__(self, parent, name, NCOFreq="1.25", real_mode=False, sample_freq=4e9):
+    def __init__(self, parent, name, NCOFreq="1.25", real_mode=False, sample_freq=4e9, reclock_adc=False):
         if real_mode == False:
             self.__init_IQ(parent, name, NCOFreq=NCOFreq, sample_freq=sample_freq)
         else:
             self.__init_Real(parent, name, sample_freq=sample_freq)
 
+        self.reclock_adc = reclock_adc
         self.real_mode = real_mode
         self.sample_freq = sample_freq
         
@@ -129,16 +136,33 @@ class RFDC(BDIP):
         
         
     def setup_adc_axis(self):
+        props = {
+            "CONFIG.CLKOUT1_REQUESTED_OUT_FREQ": f"{self.sample_freq/8/1e6}",
+            "CONFIG.PRIM_IN_FREQ": f"{self.sample_freq/128/1e6}",
+            "CONFIG.RESET_BOARD_INTERFACE": "Custom",
+            "CONFIG.USE_BOARD_FLOW": "true"
+        }
+        
+        if self.reclock_adc:
+            props.update({
+                "CONFIG.CLKOUT1_JITTER": "128.356",
+                "CONFIG.CLKOUT1_PHASE_ERROR": "174.405",
+                "CONFIG.CLKOUT2_JITTER": "140.184",
+                "CONFIG.CLKOUT2_PHASE_ERROR": "174.405",
+                "CONFIG.CLKOUT2_REQUESTED_OUT_FREQ": f"{self.sample_freq/16/1e6}",
+                "CONFIG.CLKOUT2_USED": "true",
+                "CONFIG.MMCM_CLKFBOUT_MULT_F": "40.000",
+                "CONFIG.MMCM_CLKOUT0_DIVIDE_F": "2.500",
+                "CONFIG.MMCM_CLKOUT1_DIVIDE": "5",
+                "CONFIG.NUM_OUT_CLKS": "2"
+            })
+
+        
         self.adc_axis_clocks = [
             ClockWizard(
                 self.parent,
                 f"adc{i}_clk_wiz",
-                {
-                    "CONFIG.CLKOUT1_REQUESTED_OUT_FREQ": f"{self.sample_freq/8/1e6}",
-                    "CONFIG.PRIM_IN_FREQ": f"{self.sample_freq/128/1e6}",
-                    "CONFIG.RESET_BOARD_INTERFACE": "Custom",
-                    "CONFIG.USE_BOARD_FLOW": "true"
-                } ) for i in range(4) ]
+                props) for i in range(4) ]
 
         for i, (rfdc_clk_out, wiz_clk_in) in enumerate(zip(self.adc_axis_ref_clk, all_pins(self.adc_axis_clocks, "clk_in1"))):
             rfdc_clk_out.create_net(f"adc_axis_in_clk{i}").connect(wiz_clk_in)
@@ -146,10 +170,49 @@ class RFDC(BDIP):
         self.adc_proc_resets = [ BDPSReset(self.parent, f"adc_reset_{i}", None) for i in range(4) ]
         self.adc_axis_resetn_nets = [ p.create_net(f"adc_axis_resetn{i}") for i, p in enumerate(all_pins(self.adc_proc_resets, "peripheral_aresetn")) ]
 
-        self.adc_axis_clk_nets = [ p.create_net(f"adc_axis_clk{i}") for i, p in enumerate(all_pins(self.adc_axis_clocks, "clk_out1")) ]
+        if self.reclock_adc:
+            self.adc_dwidth_conv = [ AXISDataWidthConverter(self.parent,
+                                                            f"adc{i}_dwidth_conv",
+                                                            {
+                                                                "CONFIG.M_TDATA_NUM_BYTES": "32"
+                                                            }) for i in range(8) ]
 
-        for i, n in enumerate(self.adc_axis_clk_nets):
-            n.connect(self.pins[f"m{i}_axis_aclk"])
+            self.adc_clock_conv = [ AXISClockConverter(self.parent,
+                                                           f"adc{i}_clock_conv",
+                                                            {
+                                                                "CONFIG.IS_ACLK_ASYNC": "0",
+                                                                "CONFIG.ACLK_RATIO": "2:1"
+                                                            }) for i in range(8) ]
+            
+            self.adc_full_rate_axis_clk_nets = [ p.create_net(f"adc_axis_full_rate_clk{i}") for i, p in enumerate(all_pins(self.adc_axis_clocks, "clk_out1")) ]
+            self.adc_axis_clk_nets = [ p.create_net(f"adc_axis_clk{i}") for i, p in enumerate(all_pins(self.adc_axis_clocks, "clk_out2")) ]
+
+            fr_clk_nets = [ x for x in self.adc_full_rate_axis_clk_nets for _ in range(2) ]
+            hr_clk_nets = [ x for x in self.adc_axis_clk_nets for _ in range(2) ]
+            rst_nets = [ x for x in self.adc_axis_resetn_nets for _ in range(2) ]
+            
+            for rst, fr_clk, hr_clk, dc, cc in zip(rst_nets, fr_clk_nets, hr_clk_nets,
+                                        self.adc_dwidth_conv, self.adc_clock_conv):
+                fr_clk.connect(dc.pins["aclk"], cc.pins["s_axis_aclk"])
+                hr_clk.connect(cc.pins["m_axis_aclk"])
+                rst.connect(dc.pins["aresetn"])
+                rst.connect(cc.pins["m_axis_aresetn"])
+                rst.connect(cc.pins["s_axis_aresetn"])
+                cc.pins["S_AXIS"].connect(dc.pins["M_AXIS"])
+                
+            for rfdc_axis, dc in zip(self.adc_axis, self.adc_dwidth_conv):
+                rfdc_axis.connect(dc.pins["S_AXIS"])
+                
+            self.adc_axis = [ cc.pins[f"M_AXIS"] for cc in self.adc_clock_conv ]
+
+            for i, n in enumerate(self.adc_full_rate_axis_clk_nets):
+                n.connect(self.pins[f"m{i}_axis_aclk"])            
+        else:
+            self.adc_axis_clk_nets = [ p.create_net(f"adc_axis_clk{i}") for i, p in enumerate(all_pins(self.adc_axis_clocks, "clk_out1")) ]
+
+            for i, n in enumerate(self.adc_axis_clk_nets):
+                n.connect(self.pins[f"m{i}_axis_aclk"])
+            
 
         for i, n in enumerate(self.adc_axis_resetn_nets):
             n.connect(self.pins[f"m{i}_axis_aresetn"])

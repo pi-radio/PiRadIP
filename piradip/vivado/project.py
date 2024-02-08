@@ -133,10 +133,17 @@ class Project(VivadoObj):
 
         super().__init__(None, name)
 
+        self.project_dir = Path.cwd()
+
+        self.sources_dir = self.project_dir / "sources"
+        self.constraints_dir = self.project_dir / "constraints"
+        self.scripts_dir = self.project_dir / "scripts"
+        
         self.src_fileset = Fileset(self, "sources_1")
         self.constraint_fileset =  Fileset(self, "constraints", "constrset")
         self.simulation_fileset = Fileset(self, "simulations", "simset")
-
+        self.post_synthesis_path = self.scripts_dir / "post_synth.tcl"
+        
         self.log_path = Path.cwd() / "logs"
 
         self.log_path.mkdir(exist_ok=True)
@@ -148,21 +155,20 @@ class Project(VivadoObj):
     def build_project(self):
         self.set_default_properties()
 
-        self.project_dir = Path.cwd()
     
         print(f"Creating project {name} in {self.project_dir}...")
 
-        self.sources_dir = self.project_dir / "sources"
-        self.constraints_dir = self.project_dir / "constraints"
 
         self.sources_dir.mkdir(exist_ok=True)
         self.constraints_dir.mkdir(exist_ok=True)
+        self.scripts_dir.mkdir(exist_ok=True)
 
         self.constraints_filename = self.constraints_dir / f"{self.name}.xdc"
 
         self.constraints_file = open(self.constraints_filename, "w+")
 
-
+        self.post_synthesis_script = open(self.post_synthesis_path, "w+")
+        
         piradip_root = Path(__file__).parent.parent.parent
 
         common_path = Path(os.path.commonpath((piradip_root, self.project_dir)))
@@ -213,6 +219,9 @@ class Project(VivadoObj):
     @property
     def obj(self):
         return "[current_project]"
+
+    def add_post_synthesis_command(self, cmd):
+        self.post_synthesis_script.write(f"{cmd}\n")
         
     def set_default_properties(self):
         self.set_property("default_lib", "xil_defaultlib")

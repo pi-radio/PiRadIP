@@ -153,17 +153,25 @@ class AXIInterconnect(BDIP):
         assert not ("num_slaves" in kwargs and "num_subordinates" in kwargs), "Can not specify both subordinates and slaves."
 
         assert (("global_clock" in kwargs) == ("global_reset" in kwargs)), "Both clock and reset must be specified to use globally"
+        assert (("global_master_clock" in kwargs) == ("global_master_reset" in kwargs)), "Both clock and reset must be specified to use globally"
+
+        num_managers = 1
         
         if "num_masters" in kwargs:
-            p["CONFIG.NUM_MI"] = kwargs["num_masters"]
+            num_managers = kwargs["num_masters"]
         elif "num_managers" in kwargs:
-            p["CONFIG.NUM_MI"] = kwargs["num_managers"]
+            num_managers = kwargs["num_managers"]
 
+        p["CONFIG.NUM_MI"] = num_managers            
             
         if "num_slaves" in kwargs:
             p["CONFIG.NUM_SI"] = kwargs["num_slaves"]
         elif "num_subordinates" in kwargs:
             p["CONFIG.NUM_SI"] = kwargs["num_subordinates"]
+
+        if "manager_regslice" in kwargs and kwargs["manager_regslice"] == True:
+            for i in range(num_managers):
+                p["CONFIG.M{i:2d}_HAS_REGSLICE"] = "1"
             
         super().__init__(parent, name, p)
 
@@ -173,6 +181,11 @@ class AXIInterconnect(BDIP):
             self.parent.connect(kwargs["global_clock"], *[ p.clk for p in self.aximm.all_pins ])
             self.parent.connect(kwargs["global_reset"], *[ p.rst for p in self.aximm.all_pins ])
             
+        if "global_master_clock" in kwargs:
+            AXIMMWrapper(self)
+
+            self.parent.connect(kwargs["global_master_clock"], *[ p.clk for p in self.aximm.all_pins if p.iface.mode == 'Master' ])
+            self.parent.connect(kwargs["global_master_reset"], *[ p.rst for p in self.aximm.all_pins if p.iface.mode == 'Master' ])
 
     @property
     def num_subordinates(self):

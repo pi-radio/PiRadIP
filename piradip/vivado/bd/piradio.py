@@ -12,6 +12,7 @@ _piradio_ip_defs = {
     "Concat8": "pi-rad.io:piradip:piradip_concat8:1.0",
     "TriggerUnit": "pi-rad.io:piradip:piradip_trigger_unit:1.0",
     "PiRadSPI": "pi-rad.io:piradip:piradspi_ip:1.0",
+    "AXIS_FIR7SYM_16WIDE": "pi-rad.io:piradip:piradio_16x4sym"
 }
 
 for name, vlnv in _piradio_ip_defs.items():

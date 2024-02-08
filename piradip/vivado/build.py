@@ -105,7 +105,7 @@ class CheckpointBuildStep(BuildStep):
     
     def do_load(self, **kwargs):
         print(f"Loading checkpoint for {self.name}...")
-        self.cmd(f"open_checkpoint {self.checkpoint}")
+        self.cmd(f"open_checkpoint {self.checkpoint}", timeout=15*60)
         
     def save(self):
         print(f"Saving checkpoint for {self.name}...")
@@ -224,7 +224,13 @@ class SynthesizeBuildStep(CheckpointBuildStep):
         self.cmd(f"synth_design -top {top} -flatten_hierarchy none", timeout=12*60*60)
         #self.cmd(f"synth_design -top {top}", timeout=12*60*60)
 
-
+        print(type(self).__name__)
+        print(type(self.ctx).__name__)
+        print(type(self.ctx.prj).__name__)
+        
+        if self.ctx.post_synthesis_path.exists():
+            self.cmd(f"source {self.ctx.post_synthesis_path.absolute()}")
+            
         syn_msgs.show_locations()
         
         self.cmd(f"report_timing_summary -file reports/synthesis_timing.rpt", timeout=1*60*60)

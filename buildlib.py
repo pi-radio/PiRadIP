@@ -42,6 +42,8 @@ Library("piradlib",
             "library/axis/piradip_axis_sample_interleaver.sv",
             "library/axis/piradip_axis_gain_block.sv",
 
+            "library/axis/dsp/piradip_16x4sym.sv",
+
             "library/util/piradip_trigger_unit.sv",
             
             "library/spi/piradspi_pkg.sv",
@@ -205,6 +207,15 @@ ModuleDesc(name="piradip_axis_sample_interleaver",
            description="A memory mapped sample buffer to capture streamed data",
            display_name="AXI Sample Interleaver",
            ipxact_name="axis_sample_interleaver"
+)
+
+ModuleDesc(name="piradip_16x4sym",
+           version="1.0",
+           file="library/axis/dsp/piradip_16x4sym.sv",
+           wrapper_name="AXIS_FIR7SYM_16WIDE",
+           description="Configurable 7 tap FIR for parallel streams",
+           display_name="AXIS 7 tap symmetric FIR",
+           ipxact_name="piradio_16x4sym"
 )
 
 

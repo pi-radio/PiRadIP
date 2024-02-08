@@ -40,7 +40,10 @@ class BDObj(VivadoObj):
         if self.root:
             return self
         return self.parent.bd
-            
+
+    def add_post_synthesis_command(self, cmd):
+        self.bd.project.add_post_synthesis_command(cmd)
+    
     @cached_property
     def path(self):
         pp = self.parent.path

@@ -178,14 +178,14 @@ endmodule
 
 
 
-module piradip_util_axi4s_subordinate #(
-    parameter WIDTH=32
-) (
+module piradip_util_axi4s_subordinate (
     input string name,
     axi4s.SUBORDINATE sub_in
 );
+    localparam STREAM_WIDTH = sub_in.data_width();
+  
     logic tvalid, tlast, tready, aresetn;
-    logic [WIDTH-1:0] tdata;
+    logic [STREAM_WIDTH-1:0] tdata;
 
     assign aresetn = sub_in.aresetn;
     assign tvalid = sub_in.tvalid;
@@ -198,7 +198,7 @@ module piradip_util_axi4s_subordinate #(
         output tready;
     endclocking
 
-    logic [WIDTH-1:0] recv_q[$];
+    logic [STREAM_WIDTH-1:0] recv_q[$];
 
     always @SUB_CB begin
         if (tready & SUB_CB.tvalid) begin
@@ -215,7 +215,7 @@ module piradip_util_axi4s_subordinate #(
         SUB_CB.tready <= 1'b0;
     endfunction
 
-    task automatic recv_one(output logic [WIDTH-1:0] result);
+    task automatic recv_one(output logic [STREAM_WIDTH-1:0] result);
         logic old_tready = tready;
 
         SUB_CB.tready <= 1;

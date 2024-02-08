@@ -27,6 +27,8 @@ class BD(BDConnector, BDObj):
     def __init__(self, project, name):
         super().__init__(project, name)
         self.cmd(f"create_bd_design -dir block-design -verbose {name}")
+
+        self.project = project
         
         self._current = self
         self.name = name
@@ -93,8 +95,10 @@ class BD(BDConnector, BDObj):
     def wrap(self):
         self.file.set_property("REGISTERED_WITH_MANAGER", "1")
         self.file.set_property("SYNTH_CHECKPOINT_MODE", "Hierarchical")
+
+        locked = self.file.get_property("IS_LOCKED")
         
-        if int(self.file.get_property("IS_LOCKED")):
+        if locked != "" and int(locked):
             print("Ugh, need to import wrapper somehow")
             sys.exit(0)
         else:
@@ -111,7 +115,7 @@ class BD(BDConnector, BDObj):
             
             
     def generate(self):
-        self.cmd(f"generate_target all {self.file.obj}")
+        self.cmd(f"generate_target all {self.file.obj}", timeout=15*60)
         
         
     def assign_addresses(self, root=None):

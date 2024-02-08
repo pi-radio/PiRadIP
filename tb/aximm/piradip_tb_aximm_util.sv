@@ -336,6 +336,18 @@ module piradip_tb_axilite_manager #(
         if (DEBUG) $display("%s: Write %x complete: %x", name, addr, data);
     endtask
 
+    task automatic sync();
+        aximm_op op = new(NOOP, 0, 0, 0);
+
+        op_mbx.put(op);
+
+        wait(op.e.triggered);
+
+        assert(op.resp == AXI_RESP_OKAY);
+        if (DEBUG) $display("%s: Sync complete", name);
+    endtask
+
+  
     initial
     begin
         write_sem = new(1);

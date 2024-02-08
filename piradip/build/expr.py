@@ -316,9 +316,29 @@ def parse_dimension_range(node):
     
     return svrange(svexcreate(node.children[1]), svexcreate(node.children[3]))
 
+@svex("kDimensionScalar")
+def parse_dimension_range(node):
+    assert(node.children[0].tag == '[')
+    assert(node.children[2].tag == ']')
+
+    retval = svexcreate(node.children[1])
+    
+    print(f"Dimension Scalar: {node.children[1].tag} {retval}")
+    
+    return retval
+
+
 svpassnodeopt("kPackedDimensions")
 svpassnode("kDeclarationDimensions")
+
+@svex("kDeclarationDimensions")
+def parse_declaration_dimensions(node):
+    if len(node.children) == 1:
+        return svexcreate(node.children[0])
     
+    retval = map(svexcreate, node.children)
+    print(retval)
+    return retval
 
 @svex("logic")
 def parse_logic(node):

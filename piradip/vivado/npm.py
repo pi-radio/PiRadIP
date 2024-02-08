@@ -14,6 +14,10 @@ class NPM:
         self.prj = prj
 
         self.project_dir = Path.cwd()
+
+        self.scripts_dir = self.project_dir / "scripts"
+        
+        self.post_synthesis_path = self.scripts_dir / "post_synth.tcl"
         
         piradip_root = Path(__file__).parent.parent.parent
         common_path = Path(os.path.commonpath((piradip_root, self.project_dir)))

@@ -77,8 +77,8 @@ def generate(ctx):
     prj.vivado.cmd(f"open_bd_design {prj.bd_path}")
 
 
-    prj.vivado.cmd(f"generate_target -force -verbose all [get_files {prj.bd_path}]")
-    prj.vivado.cmd(f"export_ip_user_files -of_objects [get_files {prj.bd_path}] -no_script -sync -force -quiet")
+    prj.vivado.cmd(f"generate_target -force -verbose all [get_files {prj.bd_path}]", timeout=15*60)
+    prj.vivado.cmd(f"export_ip_user_files -of_objects [get_files {prj.bd_path}] -no_script -sync -force -quiet", timeout=15*60)
     prj.vivado.cmd(f"export_simulation -of_objects [get_files {prj.bd_path}]"
                    + f" -directory ip_user_files/sim_scripts"
                    + f" -ip_user_files_dir ip_user_files"
@@ -88,7 +88,8 @@ def generate(ctx):
                    + f"  {{xcelium=cache/compile_simlib/xcelium}}"
                    + f"  {{vcs=cache/compile_simlib/vcs}}"
                    + f"  {{riviera=cache/compile_simlib/riviera}}]"
-                   + f" -use_ip_compiled_libs -force -quiet")
+                   + f" -use_ip_compiled_libs -force -quiet",
+                   timeout=15*60)
 
 
 @cli.command("create-runs")
