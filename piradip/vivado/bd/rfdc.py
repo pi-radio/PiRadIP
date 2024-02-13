@@ -2,7 +2,7 @@ from functools import cached_property
 
 from .ip import BDIP
 from .pin import BDIntfPin, all_pins
-from .xilinx import BDPSReset, ClockWizard
+from .xilinx import BDPSReset, ClockWizard, BDVectorLogic
 from .axis import AXISDataWidthConverter, AXISClockConverter
 from .piradio import AXISSampleInterleaver
 
@@ -167,7 +167,6 @@ class RFDC(BDIP):
         for i, (rfdc_clk_out, wiz_clk_in) in enumerate(zip(self.adc_axis_ref_clk, all_pins(self.adc_axis_clocks, "clk_in1"))):
             rfdc_clk_out.create_net(f"adc_axis_in_clk{i}").connect(wiz_clk_in)
                     
-        self.adc_proc_resets = [ BDPSReset(self.parent, f"adc_reset_{i}", None) for i in range(4) ]
         self.adc_axis_resetn_nets = [ p.create_net(f"adc_axis_resetn{i}") for i, p in enumerate(all_pins(self.adc_proc_resets, "peripheral_aresetn")) ]
 
         if self.reclock_adc:
@@ -187,6 +186,14 @@ class RFDC(BDIP):
             self.adc_full_rate_axis_clk_nets = [ p.create_net(f"adc_axis_full_rate_clk{i}") for i, p in enumerate(all_pins(self.adc_axis_clocks, "clk_out1")) ]
             self.adc_axis_clk_nets = [ p.create_net(f"adc_axis_clk{i}") for i, p in enumerate(all_pins(self.adc_axis_clocks, "clk_out2")) ]
 
+            self.not_resetn = BDVectorLogic(self.parent, "not_resetn", { "CONFIG.C_OPERATION": "not", "CONFIG.C_SIZE": "1" })
+
+            self.not_resetn.pins["Op1"].connect(self.ext_reset_in)
+
+            for c in self.adc_axis_clocks:
+                c.pins["reset"].connect(self.not_resetn.pins["Res"])
+
+            
             fr_clk_nets = [ x for x in self.adc_full_rate_axis_clk_nets for _ in range(2) ]
             hr_clk_nets = [ x for x in self.adc_axis_clk_nets for _ in range(2) ]
             rst_nets = [ x for x in self.adc_axis_resetn_nets for _ in range(2) ]
@@ -223,13 +230,8 @@ class RFDC(BDIP):
         
         for n, p in zip(self.adc_axis_clk_nets, all_pins(self.adc_proc_resets, "slowest_sync_clk")):
             n.connect(p)
-
-        if self.real_mode:
-            self.adc_axis_clk = [ n for n in  self.adc_axis_clk_nets for _ in range(2) ]
-        else:
-            self.adc_axis_clk = [ n for n in  self.adc_axis_clk_nets for _ in range(4) ]
+        
             
-        self.adc_axis_resetn = [ n for n in self.adc_axis_resetn_nets for _ in range(4) ]
         
     def setup_dac_axis(self):
         self.dac_axis_clk_nets = [ p.create_net(f"dac_ref_clk{i}") for i, p in enumerate(self.dac_axis_ref_clk) ]
@@ -238,7 +240,7 @@ class RFDC(BDIP):
             n.connect(self.pins[f"s{i}_axis_aclk"])
 
             
-        self.dac_proc_resets = [ BDPSReset(self.parent, f"dac_reset_{i}", None) for i in range(2) ]
+        #self.dac_proc_resets = [ BDPSReset(self.parent, f"dac_reset_{i}", None) for i in range(2) ]
         self.dac_axis_resetn_nets = [ p.create_net(f"dac_axis_resetn{i}") for i, p in enumerate(all_pins(self.dac_proc_resets, "peripheral_aresetn")) ]
 
         for i, n in enumerate(self.dac_axis_resetn_nets):
@@ -250,6 +252,26 @@ class RFDC(BDIP):
         self.dac_axis_clk = [ n for n in self.dac_axis_clk_nets for _ in range(4) ]
         self.dac_axis_resetn = [ n for n in self.dac_axis_resetn_nets for _ in range(4) ]
 
+    @cached_property
+    def adc_axis_clk(self):
+        if self.real_mode:
+            return [ n for n in  self.adc_axis_clk_nets for _ in range(2) ]
+        else:
+            return [ n for n in  self.adc_axis_clk_nets for _ in range(4) ]
+
+    @cached_property
+    def adc_axis_resetn(self):
+        return [ n for n in self.adc_axis_resetn_nets for _ in range(4) ]
+
+    @cached_property
+    def adc_proc_resets(self):
+        return [ BDPSReset(self.parent, f"adc_reset_{i}", None) for i in range(4) ]
+
+    @cached_property
+    def dac_proc_resets(self):
+        return [ BDPSReset(self.parent, f"dac_reset_{i}", None) for i in range(2) ]
+        
+    
     @cached_property
     def ext_reset_in(self):
         return self.adc_proc_resets[0].pins["ext_reset_in"].create_net("rfdc_ext_reset").connect(*all_pins(self.adc_proc_resets[1:], "ext_reset_in"),

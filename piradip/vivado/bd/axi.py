@@ -171,7 +171,7 @@ class AXIInterconnect(BDIP):
 
         if "manager_regslice" in kwargs and kwargs["manager_regslice"] == True:
             for i in range(num_managers):
-                p["CONFIG.M{i:2d}_HAS_REGSLICE"] = "1"
+                p[f"CONFIG.M{i:02d}_HAS_REGSLICE"] = "1"
             
         super().__init__(parent, name, p)
 

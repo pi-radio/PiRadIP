@@ -132,7 +132,7 @@ class BDIntfPin(BDPinBase, VLNVRegistry):
 
     @property
     def other(self):
-        assert self.outer_net is not None, f"Interface is not connected {self.name}"
+        assert self.outer_net is not None, f"Interface is not connected {self.parent.name}/{self.name}"
         assert len(self.outer_net.pins) == 2
         assert not self.parent.hier
 

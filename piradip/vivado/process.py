@@ -86,18 +86,24 @@ class TCLVivadoWrapper:
         self.p.expect("Vivado%", timeout=60)
 
         self.msg_tally = defaultdict(lambda: 0)
-
+        self.print_all = False
+        
     def handle_message(self, msg):
         self.msg_tally[msg.facnum] += 1
 
         for h in self.handlers[msg.facility]:
             h.handle_msg(msg)
+
+        if msg.level == 'ERROR':
+            self.print_all = True
+            
             
         if msg.display:
             if not self.cur_cmd.printed:
                 self.cur_cmd.printed = True
                 print(f"During execution of command \"{self.cur_cmd.line.strip()}\":")
 
+        if msg.display or self.print_all:
             msg.output()
 
         if msg.log:

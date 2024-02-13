@@ -347,7 +347,11 @@ def parse_logic(node):
 @svex("kDataTypePrimitive")
 def parse_datatype_primitive(node):
     if len(node.children) == 2:
-        assert svexcreate(node.children[1]) == None
+        n = svexcreate(node.children[1])
+
+        if n is not None:
+            assert n in [ "signed" ]
+        
     r = svexcreate(node.children[0])
     if r == None:
         r = svlogic()

@@ -165,7 +165,7 @@ def svkeyword(tag):
     svexpression_handlers[tag] = tokenwrapper
     return token
 
-svkeywords = [ "integer", "logic", "output", "input", "wire", "reg", "string" ]
+svkeywords = [ "integer", "logic", "output", "input", "wire", "reg", "string", "signed" ]
 
 for k in svkeywords:
     globals()[f"sv{k}"] = svkeyword(k)

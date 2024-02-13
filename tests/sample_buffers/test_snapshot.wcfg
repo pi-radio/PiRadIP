@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="test_snapshot.wdb" id="1">
+         <top_modules>
+            <top_module name="\$unit_piradip_axi4_sv_2359162893 " />
+            <top_module name="glbl" />
+            <top_module name="piradip_axi4" />
+            <top_module name="piradip_sample_buffer" />
+            <top_module name="piradip_tb_sample_buffers" />
+            <top_module name="std" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000000 us"></ZoomStartTime>
+      <ZoomEndTime time="12.000001 us"></ZoomEndTime>
+      <Cursor1Time time="0.085801 us"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="266"></NameColumnWidth>
+      <ValueColumnWidth column_width="62"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="4" />
+   <wvobject type="group" fp_name="group53">
+      <obj_property name="label">REG_IF</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/reg_if/aclk">
+         <obj_property name="ElementShortName">aclk</obj_property>
+         <obj_property name="ObjectShortName">aclk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/reg_if/aresetn">
+         <obj_property name="ElementShortName">aresetn</obj_property>
+         <obj_property name="ObjectShortName">aresetn</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/reg_if/wren">
+         <obj_property name="ElementShortName">wren</obj_property>
+         <obj_property name="ObjectShortName">wren</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/reg_if/wreg_no">
+         <obj_property name="ElementShortName">wreg_no[5:0]</obj_property>
+         <obj_property name="ObjectShortName">wreg_no[5:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/reg_if/wreg_data">
+         <obj_property name="ElementShortName">wreg_data[31:0]</obj_property>
+         <obj_property name="ObjectShortName">wreg_data[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/reg_if/wstrb">
+         <obj_property name="ElementShortName">wstrb[3:0]</obj_property>
+         <obj_property name="ObjectShortName">wstrb[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/reg_if/rden">
+         <obj_property name="ElementShortName">rden</obj_property>
+         <obj_property name="ObjectShortName">rden</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/reg_if/rreg_no">
+         <obj_property name="ElementShortName">rreg_no[5:0]</obj_property>
+         <obj_property name="ObjectShortName">rreg_no[5:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/reg_if/rreg_data">
+         <obj_property name="ElementShortName">rreg_data[31:0]</obj_property>
+         <obj_property name="ObjectShortName">rreg_data[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/reg_if/DATA_WIDTH">
+         <obj_property name="ElementShortName">DATA_WIDTH[31:0]</obj_property>
+         <obj_property name="ObjectShortName">DATA_WIDTH[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/reg_if/REGISTER_ADDR_BITS">
+         <obj_property name="ElementShortName">REGISTER_ADDR_BITS[31:0]</obj_property>
+         <obj_property name="ObjectShortName">REGISTER_ADDR_BITS[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/reg_if/STRB_WIDTH">
+         <obj_property name="ElementShortName">STRB_WIDTH[31:0]</obj_property>
+         <obj_property name="ObjectShortName">STRB_WIDTH[31:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group52">
+      <obj_property name="label">AXILITE</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/awready">
+         <obj_property name="ElementShortName">awready</obj_property>
+         <obj_property name="ObjectShortName">awready</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/wready">
+         <obj_property name="ElementShortName">wready</obj_property>
+         <obj_property name="ObjectShortName">wready</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/bresp">
+         <obj_property name="ElementShortName">bresp[1:0]</obj_property>
+         <obj_property name="ObjectShortName">bresp[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/bvalid">
+         <obj_property name="ElementShortName">bvalid</obj_property>
+         <obj_property name="ObjectShortName">bvalid</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/arready">
+         <obj_property name="ElementShortName">arready</obj_property>
+         <obj_property name="ObjectShortName">arready</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/rdata">
+         <obj_property name="ElementShortName">rdata[31:0]</obj_property>
+         <obj_property name="ObjectShortName">rdata[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/rresp">
+         <obj_property name="ElementShortName">rresp[1:0]</obj_property>
+         <obj_property name="ObjectShortName">rresp[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/rvalid">
+         <obj_property name="ElementShortName">rvalid</obj_property>
+         <obj_property name="ObjectShortName">rvalid</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/awaddr">
+         <obj_property name="ElementShortName">awaddr[7:0]</obj_property>
+         <obj_property name="ObjectShortName">awaddr[7:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/awprot">
+         <obj_property name="ElementShortName">awprot[2:0]</obj_property>
+         <obj_property name="ObjectShortName">awprot[2:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/awvalid">
+         <obj_property name="ElementShortName">awvalid</obj_property>
+         <obj_property name="ObjectShortName">awvalid</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/wdata">
+         <obj_property name="ElementShortName">wdata[31:0]</obj_property>
+         <obj_property name="ObjectShortName">wdata[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/wstrb">
+         <obj_property name="ElementShortName">wstrb[3:0]</obj_property>
+         <obj_property name="ObjectShortName">wstrb[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/wvalid">
+         <obj_property name="ElementShortName">wvalid</obj_property>
+         <obj_property name="ObjectShortName">wvalid</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/bready">
+         <obj_property name="ElementShortName">bready</obj_property>
+         <obj_property name="ObjectShortName">bready</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/araddr">
+         <obj_property name="ElementShortName">araddr[7:0]</obj_property>
+         <obj_property name="ObjectShortName">araddr[7:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/arprot">
+         <obj_property name="ElementShortName">arprot[2:0]</obj_property>
+         <obj_property name="ObjectShortName">arprot[2:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/arvalid">
+         <obj_property name="ElementShortName">arvalid</obj_property>
+         <obj_property name="ObjectShortName">arvalid</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/rready">
+         <obj_property name="ElementShortName">rready</obj_property>
+         <obj_property name="ObjectShortName">rready</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/aclk">
+         <obj_property name="ElementShortName">aclk</obj_property>
+         <obj_property name="ObjectShortName">aclk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/axilite/aresetn">
+         <obj_property name="ElementShortName">aresetn</obj_property>
+         <obj_property name="ObjectShortName">aresetn</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group87">
+      <obj_property name="label">SBO</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/trigger">
+         <obj_property name="ElementShortName">trigger</obj_property>
+         <obj_property name="ObjectShortName">trigger</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/stream_update">
+         <obj_property name="ElementShortName">stream_update</obj_property>
+         <obj_property name="ObjectShortName">stream_update</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/stream_stopped">
+         <obj_property name="ElementShortName">stream_stopped</obj_property>
+         <obj_property name="ObjectShortName">stream_stopped</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/stream_active">
+         <obj_property name="ElementShortName">stream_active</obj_property>
+         <obj_property name="ObjectShortName">stream_active</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/stream_one_shot">
+         <obj_property name="ElementShortName">stream_one_shot</obj_property>
+         <obj_property name="ObjectShortName">stream_one_shot</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/stream_start_offset">
+         <obj_property name="ElementShortName">stream_start_offset[7:0]</obj_property>
+         <obj_property name="ObjectShortName">stream_start_offset[7:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/stream_end_offset">
+         <obj_property name="ElementShortName">stream_end_offset[7:0]</obj_property>
+         <obj_property name="ObjectShortName">stream_end_offset[7:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/stream_wrap_toggle">
+         <obj_property name="ElementShortName">stream_wrap_toggle</obj_property>
+         <obj_property name="ObjectShortName">stream_wrap_toggle</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/i_en">
+         <obj_property name="ElementShortName">i_en</obj_property>
+         <obj_property name="ObjectShortName">i_en</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/q_en">
+         <obj_property name="ElementShortName">q_en</obj_property>
+         <obj_property name="ObjectShortName">q_en</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/enable_stream">
+         <obj_property name="ElementShortName">enable_stream</obj_property>
+         <obj_property name="ObjectShortName">enable_stream</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group48">
+      <obj_property name="label">CSR</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/trigger">
+         <obj_property name="ElementShortName">trigger</obj_property>
+         <obj_property name="ObjectShortName">trigger</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/stream_rstn">
+         <obj_property name="ElementShortName">stream_rstn</obj_property>
+         <obj_property name="ObjectShortName">stream_rstn</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/stream_clk">
+         <obj_property name="ElementShortName">stream_clk</obj_property>
+         <obj_property name="ObjectShortName">stream_clk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/stream_stopped">
+         <obj_property name="ElementShortName">stream_stopped</obj_property>
+         <obj_property name="ObjectShortName">stream_stopped</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/stream_wrap_toggle">
+         <obj_property name="ElementShortName">stream_wrap_toggle</obj_property>
+         <obj_property name="ObjectShortName">stream_wrap_toggle</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/stream_update">
+         <obj_property name="ElementShortName">stream_update</obj_property>
+         <obj_property name="ObjectShortName">stream_update</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/stream_active">
+         <obj_property name="ElementShortName">stream_active</obj_property>
+         <obj_property name="ObjectShortName">stream_active</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/stream_one_shot">
+         <obj_property name="ElementShortName">stream_one_shot</obj_property>
+         <obj_property name="ObjectShortName">stream_one_shot</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/stream_start_offset">
+         <obj_property name="ElementShortName">stream_start_offset[7:0]</obj_property>
+         <obj_property name="ObjectShortName">stream_start_offset[7:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/stream_end_offset">
+         <obj_property name="ElementShortName">stream_end_offset[7:0]</obj_property>
+         <obj_property name="ObjectShortName">stream_end_offset[7:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/i_en">
+         <obj_property name="ElementShortName">i_en</obj_property>
+         <obj_property name="ObjectShortName">i_en</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/q_en">
+         <obj_property name="ElementShortName">q_en</obj_property>
+         <obj_property name="ObjectShortName">q_en</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/mm_update">
+         <obj_property name="ElementShortName">mm_update</obj_property>
+         <obj_property name="ObjectShortName">mm_update</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/mm_active">
+         <obj_property name="ElementShortName">mm_active</obj_property>
+         <obj_property name="ObjectShortName">mm_active</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/mm_one_shot">
+         <obj_property name="ElementShortName">mm_one_shot</obj_property>
+         <obj_property name="ObjectShortName">mm_one_shot</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/mm_start_offset">
+         <obj_property name="ElementShortName">mm_start_offset[7:0]</obj_property>
+         <obj_property name="ObjectShortName">mm_start_offset[7:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/mm_end_offset">
+         <obj_property name="ElementShortName">mm_end_offset[7:0]</obj_property>
+         <obj_property name="ObjectShortName">mm_end_offset[7:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/mm_trigger_count">
+         <obj_property name="ElementShortName">mm_trigger_count[31:0]</obj_property>
+         <obj_property name="ObjectShortName">mm_trigger_count[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/mm_write_count">
+         <obj_property name="ElementShortName">mm_write_count[31:0]</obj_property>
+         <obj_property name="ObjectShortName">mm_write_count[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/mm_wrap_count">
+         <obj_property name="ElementShortName">mm_wrap_count[31:0]</obj_property>
+         <obj_property name="ObjectShortName">mm_wrap_count[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/ctrl_stat_write">
+         <obj_property name="ElementShortName">ctrl_stat_write</obj_property>
+         <obj_property name="ObjectShortName">ctrl_stat_write</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/initialized">
+         <obj_property name="ElementShortName">initialized</obj_property>
+         <obj_property name="ObjectShortName">initialized</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/do_trigger">
+         <obj_property name="ElementShortName">do_trigger</obj_property>
+         <obj_property name="ObjectShortName">do_trigger</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/cur_trigger">
+         <obj_property name="ElementShortName">cur_trigger</obj_property>
+         <obj_property name="ObjectShortName">cur_trigger</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/last_trigger">
+         <obj_property name="ElementShortName">last_trigger</obj_property>
+         <obj_property name="ObjectShortName">last_trigger</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/mm_i_en">
+         <obj_property name="ElementShortName">mm_i_en</obj_property>
+         <obj_property name="ObjectShortName">mm_i_en</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/mm_q_en">
+         <obj_property name="ElementShortName">mm_q_en</obj_property>
+         <obj_property name="ObjectShortName">mm_q_en</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/mm_wrap_toggle">
+         <obj_property name="ElementShortName">mm_wrap_toggle</obj_property>
+         <obj_property name="ObjectShortName">mm_wrap_toggle</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/last_toggle">
+         <obj_property name="ElementShortName">last_toggle</obj_property>
+         <obj_property name="ObjectShortName">last_toggle</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/masked_start_offset">
+         <obj_property name="ElementShortName">masked_start_offset[7:0]</obj_property>
+         <obj_property name="ObjectShortName">masked_start_offset[7:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/piradip_tb_sample_buffers/sbo_tb/sample_buffer/csr/masked_end_offset">
+         <obj_property name="ElementShortName">masked_end_offset[7:0]</obj_property>
+         <obj_property name="ObjectShortName">masked_end_offset[7:0]</obj_property>
+      </wvobject>
+   </wvobject>
+</wave_config>

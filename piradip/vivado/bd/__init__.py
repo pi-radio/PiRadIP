@@ -16,4 +16,4 @@ from .gpio import GPIO
 from .rfmc import RFMC
 from .axi import AXIMMWrapper
 from .axi_spi import AXI_SPI
-from .axis import AXISDataWidthConverter, AXISClockConverter
+from .axis import *
