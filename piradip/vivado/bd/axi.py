@@ -43,8 +43,10 @@ class AXIMMIface:
         
         name = self.iface.name.upper()
 
-        if "_" in name:
-            prefix = name[:name.rindex("_")+1]
+        if (name[-4:] == "_AXI" and
+            name != "S_AXI" and
+            name != "M_AXI"): 
+            prefix = name[:-4] + "_"
         else:
             prefix = name + "_"
             
@@ -69,7 +71,7 @@ class AXIMMIface:
             l0 = list(parent.clk_pins if s == "clk" else parent.rst_pins)
             
             l = list(filter(lambda p: p.name.upper().startswith(prefix), l0))
-            assert len(l) == 1, f"{parent.name}: Invalid clock pin config: {self.iface.name} found: {l} {l0}"
+            assert len(l) == 1, f"{parent.name}: Invalid clock pin config: {self.iface.name} found: {l} l0: {l0}"
             return l[0]
 
         self.clk = get_param("clk")

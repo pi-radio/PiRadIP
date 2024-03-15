@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="test_snapshot.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="vsn_test1" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,792.458 ns"></ZoomEndTime>
+      <Cursor1Time time="1,000.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="312"></NameColumnWidth>
+      <ValueColumnWidth column_width="77"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="6" />
+   <wvobject type="group" fp_name="group18">
+      <obj_property name="label">Connection 0 Port 0</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="array" fp_name="/vsn_test1/\extcon[0] /\P[0] /a">
+         <obj_property name="ElementShortName">a[0:15][15:0]</obj_property>
+         <obj_property name="ObjectShortName">a[0:15][15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/vsn_test1/\extcon[0] /\P[0] /b">
+         <obj_property name="ElementShortName">b[0:15][15:0]</obj_property>
+         <obj_property name="ObjectShortName">b[0:15][15:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group18">
+      <obj_property name="label">Connection 0 Port 1</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="array" fp_name="/vsn_test1/\extcon[0] /\P[1] /a">
+         <obj_property name="ElementShortName">a[0:15][15:0]</obj_property>
+         <obj_property name="ObjectShortName">a[0:15][15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/vsn_test1/\extcon[0] /\P[1] /b">
+         <obj_property name="ElementShortName">b[0:15][15:0]</obj_property>
+         <obj_property name="ObjectShortName">b[0:15][15:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group18">
+      <obj_property name="label">Connection 1 Port 0</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="array" fp_name="/vsn_test1/\extcon[1] /\P[0] /a">
+         <obj_property name="ElementShortName">a[0:15][15:0]</obj_property>
+         <obj_property name="ObjectShortName">a[0:15][15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/vsn_test1/\extcon[1] /\P[0] /b">
+         <obj_property name="ElementShortName">b[0:15][15:0]</obj_property>
+         <obj_property name="ObjectShortName">b[0:15][15:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group18">
+      <obj_property name="label">Connection 1 Port 1</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="array" fp_name="/vsn_test1/\extcon[1] /\P[1] /a">
+         <obj_property name="ElementShortName">a[0:15][15:0]</obj_property>
+         <obj_property name="ObjectShortName">a[0:15][15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/vsn_test1/\extcon[1] /\P[1] /b">
+         <obj_property name="ElementShortName">b[0:15][15:0]</obj_property>
+         <obj_property name="ObjectShortName">b[0:15][15:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group13">
+      <obj_property name="label">RFDC Adapter 0</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="array" fp_name="/vsn_test1/\genblk1[0].rfdc_adapter /vsn_a">
+         <obj_property name="ElementShortName">vsn_a[255:0]</obj_property>
+         <obj_property name="ObjectShortName">vsn_a[255:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/vsn_test1/\genblk1[0].rfdc_adapter /vsn_b">
+         <obj_property name="ElementShortName">vsn_b[255:0]</obj_property>
+         <obj_property name="ObjectShortName">vsn_b[255:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group16">
+      <obj_property name="label">RFDC Adapter 1</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="array" fp_name="/vsn_test1/\genblk1[1].rfdc_adapter /vsn_a">
+         <obj_property name="ElementShortName">vsn_a[255:0]</obj_property>
+         <obj_property name="ObjectShortName">vsn_a[255:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/vsn_test1/\genblk1[1].rfdc_adapter /vsn_b">
+         <obj_property name="ElementShortName">vsn_b[255:0]</obj_property>
+         <obj_property name="ObjectShortName">vsn_b[255:0]</obj_property>
+      </wvobject>
+   </wvobject>
+</wave_config>

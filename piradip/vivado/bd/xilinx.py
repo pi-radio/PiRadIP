@@ -22,10 +22,10 @@ _xilinx_intf_port_defs = { k+"Port":v for k,v in _xilinx_vlnv_defs.items() }
 _xilinx_ip_defs = {
     "ClockWizard": "xilinx.com:ip:clk_wiz:6.0",
     "BDPSReset": "xilinx.com:ip:proc_sys_reset:5.0",
-    "BDVectorLogic": "xilinx.com:ip:util_vector_logic:2.0",
-    "BDVectorLogic": "xilinx.com:ip:util_vector_logic:2.0",
     "BDConcat": "xilinx.com:ip:xlconcat:2.1",
     "JTAGtoAXI": "xilinx.com:ip:jtag_axi:1.2",
+    "UtilDSBuf": "xilinx.com:ip:util_ds_buf",
+    "Constant": "xilinx.com:ip:xlconstant:1.1"
 }
 
 for name, vlnv in _xilinx_intf_pin_defs.items():
@@ -37,3 +37,38 @@ for name, vlnv in _xilinx_intf_port_defs.items():
     
 for name, vlnv in _xilinx_ip_defs.items():
     globals()[name] = BDIP.create_class(name, vlnv)
+
+
+class IBUFDS(UtilDSBuf):
+    def __init__(self, parent, name, props={}):
+        props["CONFIG.C_BUF_TYPE"] = "IBUFDS"
+        super().__init__(parent, name, props)
+
+class BUFG(UtilDSBuf):
+    def __init__(self, parent, name, props={}):
+        props["CONFIG.C_BUF_TYPE"] = "BUFG"
+        super().__init__(parent, name, props)
+
+@BDIP.register
+class BDVectorLogic(BDIP):
+    vlnv = "xilinx.com:ip:util_vector_logic:2.0"
+
+    def __init__(self, parent, name, props={}):
+        super().__init__(parent, name, props)
+
+
+class BDNot(BDVectorLogic):
+    def __init__(self, parent, name, width=1):
+         super().__init__(parent, name, { "CONFIG.C_OPERATION": "not", "CONFIG.C_SIZE": str(width) })
+
+class BDAnd(BDVectorLogic):
+    def __init__(self, parent, name, width=1):
+         super().__init__(parent, name, { "CONFIG.C_OPERATION": "and", "CONFIG.C_SIZE": str(width) })
+
+class BDOr(BDVectorLogic):
+    def __init__(self, parent, name, width=1):
+         super().__init__(parent, name, { "CONFIG.C_OPERATION": "or", "CONFIG.C_SIZE": str(width) })
+         
+class BDXor(BDVectorLogic):
+    def __init__(self, parent, name, width=1):
+         super().__init__(parent, name, { "CONFIG.C_OPERATION": "xor", "CONFIG.C_SIZE": str(width) })

@@ -17,3 +17,7 @@ class AXISDataFifo(BDIP):
 @BDIP.register
 class AXISRegisterSlice(BDIP):
     vlnv = "xilinx.com:ip:axis_register_slice:1.1"
+
+@BDIP.register
+class AXISBroadcaster(BDIP):
+    vlnv = "xilinx.com:ip:axis_broadcaster:1.1"

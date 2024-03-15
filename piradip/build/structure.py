@@ -91,7 +91,9 @@ class ModuleDesc:
     version: str
     ipxact_name: str
     parameters: List[ParameterDesc] = field(default_factory=list)
-
+    clocks: List[str] = field(default_factory=list)
+    bd_tcl: str = None
+    
     def __post_init__(self):
         self.param_map = { p.name: p  for p in self.parameters }
         module_map[self.name] = self

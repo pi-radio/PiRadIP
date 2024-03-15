@@ -1,0 +1,3 @@
+[submodule "pirbuild"]
+	path = pirbuild
+	url = git@github.com:pi-radio/pirbuild.git

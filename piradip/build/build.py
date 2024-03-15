@@ -141,6 +141,10 @@ def up_to_date():
     p = Path(__file__).parent.resolve()
     input_files = list(p.glob("[!.#]*.py"))
 
+    input_files += [ p.parent.parent.resolve() / "buildlib.py" ]
+    
+    print(input_files)
+    
     for l in library_map.values():
         input_files += l.files
 

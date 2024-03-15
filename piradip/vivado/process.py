@@ -1,9 +1,7 @@
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Dict, List, Optional
 import os.path
+import ptyprocess
+
 from pathlib import Path
-import pexpect
 import functools
 import sys
 import re
@@ -29,41 +27,88 @@ class VivadoTCLCommand:
         self.cmd_msgs = []
 
         if self.echo:
-            print(line)
+            print(f"   CMD: {self.line.strip()}")
 
-        self.p.send(self.line)
+        self.proc.write(self.line.encode())
+
 
     @property
-    def p(self):
-        return self.wrapper.p
+    def proc(self):
+        return self.wrapper.proc
         
     def process_result(self):
-        r = self.p.readline()
-            
+        def is_message(l):
+            return (l.startswith("INFO:") or l.startswith("WARNING:") or
+                    l.startswith("CRITICAL WARNING:") or l.startswith("ERROR:"))
+
         retval = ""
 
-        while True:
-            v = self.p.expect(["Vivado%", "INFO:[^\r\n]*\r\n", "WARNING:[^\r\n]*\r\n", "ERROR:[^\r\n]*\r\n"], timeout=self.timeout)
+        msg = None
 
-            if self.echo:
-                print(self.p.before + self.p.after)
+        lines = []
 
-            retval += self.p.before
-                
-            if v == 0:
-                break
-            else:
-                msg = VivadoMessage(self.p.after.strip())
-                
-                self.wrapper.handle_message(msg)
+        msg = None
+        last_line = None
+        
+        for i, l in enumerate(self.wrapper.cmd_output):
+            if l.startswith("Vivado-"):
+                continue
 
-                if msg.preserve:
-                    self.msgs.append(msg)
+            if last_line is not None:
+                if is_message(last_line):
+                    if msg is not None:
+                        self.wrapper.handle_message(msg)
+                        
+                    msg = VivadoMessage([ last_line ])
+                elif msg is not None:
+                    msg.msg += last_line                    
+
+            # skip the command echo
+            if i != 0:
+                last_line = l                
+                lines += [ l ]
+
+        return last_line
                 
-                if v >= 3:
+        lines = [ l for l in lines if l != "" ]
+        
+        if len(lines) == 0:
+            return ""
+
+        if not is_message(lines[-1]):
+            result = lines[-1]
+            lines = lines[:-1]
+        else:
+            result = ""
+
+        debug = False
+        
+        while len(lines):
+            l = lines.pop()
+
+
+            if is_message(l):
+                if self.echo:
+                    print(f"   MSG: {l}")
+                if l.startswith("ERROR:"):
                     self.die = True
                 
-        return retval
+                msg_lines = [ l ]
+
+                if l[-1] == ":":
+                    while len(lines) > 1 and not is_message(lines[0]):
+                        msg_lines.append(lines.pop())
+
+                msg = VivadoMessage(msg_lines)
+
+            else:
+                print(f"   ???: {l}")
+                
+
+        if self.echo:
+            print(f"   RESULT: {result}")
+                
+        return result
 
 class keydefaultdict(defaultdict):
     def __missing__(self, key):
@@ -72,7 +117,7 @@ class keydefaultdict(defaultdict):
         else:
             ret = self[key] = self.default_factory(key)
             return ret
-                
+        
 class TCLVivadoWrapper:    
     def __init__(self, log_vivado=False):
         print("Launching background Vivado process")
@@ -81,12 +126,36 @@ class TCLVivadoWrapper:
         
         if log_vivado:
            kwargs["logfile"] = sys.stdout
-            
-        self.p = pexpect.spawnu("vivado -nolog -nojournal -notrace -mode tcl", **kwargs)
-        self.p.expect("Vivado%", timeout=60)
 
+        kwargs['maxread'] = 32 * 1024
+
+        self.proc = ptyprocess.PtyProcess.spawn([ 'vivado', '-nolog', '-nojournal', '-notrace', '-mode', 'tcl' ],
+                                                echo=False, dimensions=(80, 200))        
+        
+        for l in self.cmd_output:
+            pass
+        
         self.msg_tally = defaultdict(lambda: 0)
         self.print_all = False
+
+    @property
+    def cmd_output(self):
+        buf = ""
+        
+        while True:
+            buf += self.proc.read(1).decode()
+
+            lines = buf.split("\n")
+            
+            for l in lines[:-1]:
+                if l[-1] == "\r":
+                    l = l[:-1]
+                yield l
+
+            buf = lines[-1]
+                
+            if buf == "Vivado%":
+                return
         
     def handle_message(self, msg):
         self.msg_tally[msg.facnum] += 1
@@ -126,8 +195,8 @@ class TCLVivadoWrapper:
             print(f"Error Command: {line}")
             raise Exception("Vivado error")
                 
-        return retval.strip()
-
+        return retval.strip() if retval is not None else ""
+    
     def cmd(self, line, **kwargs):
         return self.write(f"{line}\n", **kwargs)
 

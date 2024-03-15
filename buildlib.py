@@ -11,6 +11,8 @@ Library("piradlib",
         files = [
             "library/axi/piradip_axi4.svh",
             "library/axis/piradip_axis.svh",
+
+            "library/clocking/piradip_mts.sv",
             
             "library/util/piradip_latency_synchronizer.sv",
             "library/util/piradip_state_timer.sv",
@@ -71,6 +73,26 @@ axi4mm_ports = [ 'awid', 'awaddr', 'awlen', 'awsize', 'awburst',
 
 axi4s_ports = [ 'tdata', 'tstrb', 'tlast', 'tvalid', 'tready', 'tkeep', 'tid', 'tdest', 'tuser' ]
 
+"""
+InterfaceDesc(
+    name="diffclk",
+    file="library/clocking/piradip_diffclk.sv",
+    parameters = [
+    ]
+    ipxdesc = IPXDesc(
+        busType = VLNV("xilinx.com", "interface", "diff_clk", "1.0"),
+        abstractionType = VLNV("xilinx.com", "interface", "diff_clk_rtl", "1.0"),
+        ports = [ "p", "n" ],
+        port_map = { "p": "CLK_P", "n": "CLK_N" },
+        clock = None,
+        reset = None,
+        memoryMapped = False,
+        mmtype = "None",
+        xilinxParameters = [
+        ]
+    )
+)
+"""
 
 InterfaceDesc(
     name="axi4mm",
@@ -172,6 +194,29 @@ InterfaceDesc(
             ]
         )
 )
+
+ModuleDesc(name="piradip_mts_clocking",
+           version="1.0",
+           file="library/clocking/piradip_mts.sv",
+           wrapper_name="MTSClocking",
+           description="Clock alignment for SYSREF in MTS designs",
+           display_name="MTS Clock Alignment",
+           ipxact_name="mts_clocking",
+           clocks=[ "pl_clk", "sysref_in", "adc_clk", "dac_clk" ],           
+           bd_tcl="""
+proc post_config_ip {cellpath otherinfo} {
+    set ip [get_bd_cells $cellpath]
+
+    
+    bd::send_msg -of $cellpath -type WARNING -msg_id 1 -text [list_property [get_bd_pin $ip/adc_clk]]
+    bd::send_msg -of $cellpath -type WARNING -msg_id 1 -text [get_bd_pins -of_object $ip]
+    
+    set_property CONFIG.FREQ_HZ {536870912} [get_bd_pin $ip/adc_clk]
+    set_property CONFIG.FREQ_HZ {268435456} [get_bd_pin $ip/dac_clk]
+}
+"""           
+)
+
 
 ModuleDesc(name="piradip_axis_gain_block",
            version="1.0",

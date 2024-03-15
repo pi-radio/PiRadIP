@@ -6,7 +6,8 @@ from .build import BDBuildStep, GenerateBuildStep, WrapperBuildStep
 from .build import SynthesizeBuildStep, OptimizationBuildStep
 from .build import PlaceBuildStep, RouteBuildStep
 from .build import XSABuildStep, BitFileBuildStep
-from .build import BinFileBuildStep, DTBO
+from .build import BinFileBuildStep
+from .build import DeviceTreeXilinx, DeviceTree, FPGA_DTS, DTBO
 
 
 class NPM:
@@ -54,6 +55,9 @@ class NPM:
         XSABuildStep(self)
         BitFileBuildStep(self)
         BinFileBuildStep(self)
+        DeviceTreeXilinx(self)
+        DeviceTree(self)
+        FPGA_DTS(self)
         DTBO(self)
         
     @cached_property

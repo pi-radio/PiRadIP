@@ -5,7 +5,7 @@ from .pin import all_pins, create_pin
 from .xilinx import *
 from .sample_buffer import *
 from .piradio import *
-from .rfdc import RFDC
+from .rfdc import RFDCReal
 
 class RealSampleCapture(BDHier):
     def __init__(self, parent, name="data_capture",
@@ -17,7 +17,7 @@ class RealSampleCapture(BDHier):
         # Create IP blocks
         #
         print("Creating RFDC block...")
-        self.rfdc = RFDC(self, "rfdc", real_mode=True, sample_freq=sample_freq, reclock_adc=reclock_adc)
+        self.rfdc = RFDCReal(self, "rfdc", sample_freq=sample_freq, reclock_adc=reclock_adc)
         print("Setting up ADC streams...")
         self.rfdc.setup_adc_axis()
 

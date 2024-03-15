@@ -13,16 +13,16 @@ from functools import cached_property
 from collections import defaultdict
 
 class VivadoMessage:
-    msg_re = re.compile(f"(?P<level>ERROR|WARNING|INFO): \[(?P<facility>[^\s]+) (?P<maj>[\d]+)-(?P<min>[\d]+)\] (?P<msg>.*)")
-    file_line_re = re.compile(r"(?P<msg>.*) \[(?P<file>[^:]+):(?P<line>[0-9]+)\]")
     module_re = re.compile("module '?(?P<module>[A-Za-z_][A-Za-z_0-9]*)'?")
 
-    def __init__(self, s):
+    def __init__(self, lines):
         self.display = True
         self.log = True
         self.log_destinations = []
         self.preserve = True
         self.style = ''
+
+        s = " ".join(lines)
         
         n = s.find(":")
         
@@ -47,11 +47,20 @@ class VivadoMessage:
                 except:
                     print(f"Unhandled message number: {mn} {self.facility}")
             except:
-                self.facility, self.major = mn.split("-")
-                self.minor = None
-                
+                try:
+                    self.facility, self.major = mn.split("-")
+                    self.minor = None
+                except:
+                    print(f"Unparsed: {mn}")
+                    self.facility = None
+                    self.major = mn
+                    self.minor = None
+                    
         self.msg = s.strip()
-            
+
+        if len(self.msg) == 0:
+            return
+        
         if self.msg[-1] == "]":
             n = self.msg.rfind("[")
             ss = self.msg[n+1:-1]

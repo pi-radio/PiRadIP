@@ -74,7 +74,7 @@ class Fileset(VivadoObj):
         super().__init__(project, name)
         self.fstype = fstype
         l = self.cmd(f"get_filesets {self.name}").split()
-
+        
         if len(l) == 0:                     
             self.cmd(f"create_fileset -{self.fstype} {self.name}")
             
@@ -140,8 +140,8 @@ class Project(VivadoObj):
         self.scripts_dir = self.project_dir / "scripts"
         
         self.src_fileset = Fileset(self, "sources_1")
-        self.constraint_fileset =  Fileset(self, "constraints", "constrset")
-        self.simulation_fileset = Fileset(self, "simulations", "simset")
+        self.constraint_fileset =  Fileset(self, "constrs_1", "constrset")
+        self.simulation_fileset = Fileset(self, "sim_1", "simset")
         self.post_synthesis_path = self.scripts_dir / "post_synth.tcl"
         
         self.log_path = Path.cwd() / "logs"
@@ -430,6 +430,8 @@ class PiRadioProject:
             self.vivado.cmd(f"get_ipdefs -all {ip}")
         
         self.bd = self.bd_template(self.prj, self.project_name)
+
+        self.bd.finalize()
 
         self.bd.assign_addresses()
     

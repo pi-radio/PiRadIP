@@ -3,7 +3,7 @@ from functools import cached_property
 from piradip.vivado.obj import VivadoObj
 from piradip.vivado.property import VivadoProperty
 
-from .obj import BDObj
+from .obj import BDObj, bdactive
 from .connector import BDConnector
 from .port import BDIntfPort, BDPort
 from .memory_map import BDMemoryMapper
@@ -39,9 +39,19 @@ class BD(BDConnector, BDObj):
 
         self.port_phys = dict()
         self.phys_map = dict()
+        self.clocks = []
         
         self.logs.mkdir(exist_ok=True)
+
+        self.callbacks = []
         
+    def finalize(self):
+        for c in self.callbacks:
+            c()
+
+    def add_callback(self, c):
+        self.callbacks.append(c)
+            
     @property
     def logs(self):
         return self.parent.logs / "bd"
@@ -107,12 +117,29 @@ class BD(BDConnector, BDObj):
         self.parent.simulation_fileset.set_property("top", self.wrapper_name)
 
         for k, v in self.port_phys.items():
-            print(f"Mapping {k} to {v[0]} IO: {v[1]}")
+            #print(f"Mapping {k} to {v['ball']} IO: {v['iostd']}")
 
-            print(f"set_property PACKAGE_PIN {v[0]} [get_ports {k}]", file=self.parent.constraints_file)
-            print(f"set_property IOSTANDARD {v[1]} [get_ports {k}]", file=self.parent.constraints_file)
+            print(f"set_property PACKAGE_PIN {v['ball']} [get_ports {k}]", file=self.parent.constraints_file)
+            print(f"set_property IOSTANDARD {v['iostd']} [get_ports {k}]", file=self.parent.constraints_file)
 
-            
+            if 'diff_term' in v:
+                print(f"set_property DIFF_TERM_ADV {v['diff_term']} [get_ports {k}]", file=self.parent.constraints_file)
+
+        for clk in self.clocks:
+            l = f"create_clock -name {clk['port'].name} "
+
+            l += f"-period {clk['period']} "
+
+            l += f"[get_ports {clk['port'].name}]"
+
+            print(l, file=self.parent.constraints_file)
+
+    def add_clock(self, port, period, **kwargs):
+        kwargs['port'] = port
+        kwargs['period'] = period
+
+        self.clocks += [ kwargs ]
+        
             
     def generate(self):
         self.cmd(f"generate_target all {self.file.obj}", timeout=15*60)
@@ -126,3 +153,17 @@ class BD(BDConnector, BDObj):
 
         self.mmap = BDMemoryMapper(self, root)
 
+    @bdactive
+    def make_external(self, pin, name, debug=True):
+        if pin.get_property("VLNV") != "":
+            v1 = set(self.cmd(f"get_bd_ports").split())
+
+            self.cmd(f"make_bd_intf_pins_external {pin.obj}")
+
+            v2 = set(self.cmd(f"get_bd_ports").split())
+            
+            paths = list(v2-v1)
+            
+            return [ BDPort.create_from_bd(self, path) for path in paths ]
+
+        return super().make_external(pin, name, debug=debug)

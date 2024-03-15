@@ -5,10 +5,14 @@ import os
 import pexpect
 import struct
 from multiprocessing import Process
+from zipfile import ZipFile
 
 from .synthesis import SynthesisMessageHandler
 
 total_build_time = 0
+
+class NotGeneratedException(Exception):
+    pass
 
 class BuildStep:
     must_load = False
@@ -90,11 +94,15 @@ class BuildStep:
 
         if self.predecessor is None:
             return True
-        
-        if self.mtime() < self.predecessor.mtime():
-            print(f"{self.name} is older than {self.predecessor.name}")
-            return False
 
+        try:
+            print(f"{self.name}: {time.asctime(time.localtime(self.mtime))} -- {self.predecessor.name}: {time.asctime(time.localtime(self.predecessor.mtime))}")
+            if self.mtime < self.predecessor.mtime:
+                print(f"{self.name} is older than {self.predecessor.name}")
+                return False
+        except NotGeneratedException:
+            return False
+            
         return True
     
 class CheckpointBuildStep(BuildStep):
@@ -115,11 +123,14 @@ class CheckpointBuildStep(BuildStep):
     def exists(self):
         return self.checkpoint.exists()
             
+    @property
     def mtime(self):
         try:
             return self.checkpoint.stat().st_mtime
         except:
-            return time.time()
+            print("FAILED TO FIND CHECKPOINT")
+            raise NotGeneratedException()
+        
 
     def do_clean(self):
         self.checkpoint.unlink()
@@ -129,6 +140,7 @@ class FileBuildStep(BuildStep):
     def exists(self):
         return self.path.exists()
 
+    @property
     def mtime(self):
         return self.path.stat().st_mtime
         
@@ -152,8 +164,8 @@ class GenerateBuildStep(BuildStep):
     predecessor_name = "build_bd"
 
     def build(self, **kwargs):
-        self.cmd(f"generate_target all [get_files {self.predecessor.path}]")
-        self.cmd(f"export_ip_user_files -of_objects [get_files {self.predecessor.path}] -no_script -sync -force -quiet")
+        self.cmd(f"generate_target all [get_files {self.predecessor.path}]", timeout=300)
+        self.cmd(f"export_ip_user_files -of_objects [get_files {self.predecessor.path}] -no_script -sync -force -quiet", timeout=300)
         
         output_root = self.predecessor.path.parent.parent
         
@@ -166,8 +178,8 @@ class GenerateBuildStep(BuildStep):
                  + f" {{xcelium={output_root}/SDRv2.cache/compile_simlib/xcelium}}"
                  + f" {{vcs={output_root}/SDRv2.cache/compile_simlib/vcs}}"
                  + f" {{riviera={output_root}/SDRv2.cache/compile_simlib/riviera}}]"
-                 + f" -use_ip_compiled_libs -force -quiet")
-        self.cmd(f"read_bd {self.predecessor.path}")
+                 + f" -use_ip_compiled_libs -force -quiet", timeout=300)
+        self.cmd(f"read_bd {self.predecessor.path}", timeout=300)
                 
     @property
     def bd_dir(self):
@@ -176,9 +188,10 @@ class GenerateBuildStep(BuildStep):
     @property
     def exists(self):
         return (self.bd_dir / "ip").exists()
-    
+
+    @property
     def mtime(self):
-        return self.predecessor.mtime()
+        return self.predecessor.mtime
     
 class WrapperBuildStep(BuildStep):
     name = "make_and_read_wrapper"
@@ -204,7 +217,8 @@ class WrapperBuildStep(BuildStep):
     def exists(self):
         print(self.wrapper)
         return self.wrapper.exists()
-        
+
+    @property
     def mtime(self):
         return self.wrapper.stat().st_mtime
         
@@ -257,14 +271,22 @@ class PlaceBuildStep(CheckpointBuildStep):
     pretty_name = "Placement"
 
     def build(self, **kwargs):
-        self.cmd(f"read_xdc constraints/{self.ctx.prj.project_name}.xdc")
-
+        output = self.cmd(f"read_xdc constraints/{self.ctx.prj.project_name}.xdc")
+        print(output)
+        
+        fail = False
+        
         print("Exported ports:")
         for p in self.cmd("get_ports").split():
             loc = self.cmd(f"get_property PACKAGE_PIN [get_ports {p}]")
             std = self.cmd(f"get_property IOSTANDARD [get_ports {p}]")
+            if loc == "" or std == "":
+                fail = True
             print(f"  {p}: {loc} {std}")
-        
+
+        if fail:
+            print("Some pins in design not placed. Exiting.")
+            exit()
         
         self.cmd(f"place_design", timeout=12*60*60)
         self.cmd(f"phys_opt_design", timeout=12*60*60)
@@ -276,7 +298,7 @@ class RouteBuildStep(CheckpointBuildStep):
     name = "route"
     predecessor_name = PlaceBuildStep.name
     pretty_name = "Routing"
-    must_load = True
+    #must_load = True
     
     def build(self, **kwargs):
         self.cmd(f"route_design", timeout=12*60*60)
@@ -301,6 +323,24 @@ class XSABuildStep(FileBuildStep):
         print(f"Writing XSA at {self.path}...")
         print(self.cmd(f"write_hw_platform -fixed -force -include_bit {self.path}", timeout=15*60))
 
+
+    def __call__(self, **kwargs):
+        assert self.predecessor is not None, "Root objects need to override __call__"
+        
+        # Check if predecessor is up-to-date
+        self.predecessor(**kwargs)
+                
+        if not self.uptodate(**kwargs):
+            print(f"Loading predecessor {self.predecessor.name}...")
+            self.predecessor.load(**kwargs)            
+                
+            self.build_and_save(**kwargs)
+            self.ready = True
+        else:
+            print(f"{self.name} is up-to-date...")
+            if self.must_load:
+                print(f"Loading {self.name}...")
+                self.load(**kwargs)        
     
 class BitFileBuildStep(FileBuildStep):
     name = "write_bit"
@@ -312,7 +352,11 @@ class BitFileBuildStep(FileBuildStep):
         return Path(f"{self.ctx.prj.project_name}.bit")
     
     def build(self, **kwargs):
-        os.system(f"unzip -o {self.predecessor.path} {self.path}")
+        f = ZipFile(self.predecessor.path)
+
+        f.extract(str(self.path))
+        
+        #os.system(f"unzip -ou {self.predecessor.path} {self.path}")
 
         
 class BinFileBuildStep(FileBuildStep):
@@ -320,9 +364,9 @@ class BinFileBuildStep(FileBuildStep):
     predecessor_name = BitFileBuildStep.name
     pretty_name = "BIN File"
 
-    @property
-    def bitfile_path(self):
-        return Path(f"{self.ctx.prj.project_name}.bit")
+    #@property
+    #def bitfile_path(self):
+    #    return Path(f"{self.ctx.prj.project_name}.bit")
     
     @property
     def path(self):
@@ -345,7 +389,7 @@ class BinFileBuildStep(FileBuildStep):
         short = struct.Struct('>H')
         ulong = struct.Struct('>I')
         
-        bitfile = open(self.bitfile_path, 'rb')
+        bitfile = open(self.predecessor.path, 'rb')
 
         l = short.unpack(bitfile.read(2))[0]
         if l != 9:
@@ -431,63 +475,126 @@ class BinFileBuildStep(FileBuildStep):
 
         bitfile.close()
 
+class DeviceTreeXilinx(BuildStep):
+    name="device_tree_xilinx"
+    predecessor_name=BinFileBuildStep.name
+    pretty_name="Xilinx Device Tree"
 
+    @property
+    def path(self):
+        return "dtbo/device-tree-xilinx"
+
+    @property
+    def exists(self):
+        return Path("dtbo/device-tree-xlnx").exists()
+
+    @property
+    def mtime(self):
+        retval = 0
+        
+        for dirpath, dirnames, filenames in os.walk("dtbo/device-tree-xlnx"):
+            for f in filenames:
+                retval = max(retval, (Path(dirpath) / f).stat().st_mtime)
+                
+        return max(self.predecessor.mtime, retval)
+
+    def load(self):
+        # Check out vivado version?
+        print("Found device-tree-xilinx...")
+
+    def __call__(self, **kwargs):
+        assert self.predecessor is not None, "Root objects need to override __call__"
+        
+        # Check if predecessor is up-to-date
+        self.predecessor(**kwargs)
+                
+        if not self.exists:
+            xilinx_rel="2022.2"
+            
+            pwd = os.getcwd()
+            
+            try:
+                dtbo_root = Path("dtbo")
+                
+                dtbo_root.mkdir(exist_ok=True)
+                
+                os.chdir(dtbo_root)
+                
+                os.system(f"git clone https://github.com/Xilinx/device-tree-xlnx && cd device-tree-xlnx && git checkout xlnx_rel_v{xilinx_rel}")
+            finally:
+                os.chdir(pwd)
+    
+    
+class DeviceTree(FileBuildStep):
+    name="device_tree"
+    predecessor_name=DeviceTreeXilinx.name
+    pretty_name="Image Device Tree"
+
+    @property
+    def path(self):
+        return Path("dtbo/device-tree/pl.dtsi")
+
+    @property
+    def xsa_path(self):
+        return self.get_predecessor(XSABuildStep.name).path
+
+    def load(self, **kwargs):
+        pass
+    
+    def build(self, **kwargs):
+        pwd = os.getcwd()
+        
+        try:
+            os.chdir("dtbo")
+        
+            s = f"hsi::open_hw_design ../{self.xsa_path}; "
+            s += f"hsi::set_repo_path device-tree-xlnx; "
+            s += f"hsi create_sw_design device-tree -os device_tree -proc psu_cortexa53_0; "
+            s += f"hsi set_property CONFIG.dt_overlay true [hsi::get_os]; "
+            s += f"hsi generate_target -dir device-tree;"
+            
+            assert os.system(f"xsct -eval '{s}'") == 0
+        finally:
+            os.chdir(pwd)
+
+
+class FPGA_DTS(FileBuildStep):
+    name="FPGA_DTS"
+    predecessor_name=DeviceTree.name
+    pretty_name="fpga.dts"
+    
+    @property
+    def path(self):
+        return Path("dtbo/fpga.dts")
+
+    def uptodate(self, **kwargs):
+        if self.exists and Path("fpga.dtsi").stat().st_mtime > self.mtime:
+            return False
+
+        return super().uptodate(**kwargs)
+
+    def load(self, **kwargs):
+        pass
+    
+    def build(self, **kwargs):
+        if Path("fpga.dtsi").exists():
+            assert os.system(f"cat dtbo/device-tree/pl.dtsi fpga.dtsi > dtbo/fpga.dts") == 0
+        else:
+            assert os.system(f"cp dtbo/device-tree/pl.dtsi dtbo/fpga.dts") == 0
+            
 class DTBO(FileBuildStep):
     name = "dtbo"
-    predecessor_name = BinFileBuildStep.name
+    predecessor_name = FPGA_DTS.name
     pretty_name = "Device tree overlay"
 
     @property
     def path(self):
         return Path(f"{self.ctx.prj.project_name}.dtbo")
 
-    @property
-    def xsa_path(self):
-        return self.get_predecessor(XSABuildStep.name).path
     
     def build(self, **kwargs):
         dtbo_root = Path("dtbo")
-        xilinx_rel="2022.2"
-        
-        dtbo_root.mkdir(exist_ok=True)
-
-        pwd = os.getcwd()
-        
-        try:
-            os.chdir(dtbo_root)
-
-            if not Path("device-tree-xlnx").exists():
-                os.system(f"git clone https://github.com/Xilinx/device-tree-xlnx && cd device-tree-xlnx && git checkout xlnx_rel_v{xilinx_rel}")
-
-            if False:
-                # don't try to use expect with xsct.  It is broken, broken java of the devil which breaks everything
-                with open("make_dtsi.tcl", "w") as f:                
-                    print(f"hsi::open_hw_design ../{self.xsa_path}", file=f)
-                    print(f"hsi::set_repo_path device-tree-xlnx", file=f)
-                    #print(f"hsi::get_cells")
-                    #print(f"hsi create_dt_tree -verbose -dts_file pl.dtsi -dts_version /dts-v3/")
-                    print(f"hsi create_sw_design device-tree -os device_tree -proc psu_cortexa53_0", file=f)
-                    print(f"hsi set_property CONFIG.dt_overlay true [hsi::get_os]", file=f)
-                    print(f"hsi generate_target -dir device-tree", file=f)
-
-                assert os.system(f"xsct -eval 'source make_dtsi.tcl'") == 0
-            else:
-                s = f"hsi::open_hw_design ../{self.xsa_path}; "
-                s += f"hsi::set_repo_path device-tree-xlnx; "
-                s += f"hsi create_sw_design device-tree -os device_tree -proc psu_cortexa53_0; "
-                s += f"hsi set_property CONFIG.dt_overlay true [hsi::get_os]; "
-                s += f"hsi generate_target -dir device-tree;"
-
-                assert os.system(f"xsct -eval '{s}'") == 0
-
                 
-                
-            assert os.system(f"cp device-tree/pl.dtsi fpga.dts") == 0
-
-            if Path("../fpga.dtsi").exists():
-                assert os.system(f"cat ../fpga.dtsi >> fpga.dts") == 0
-        finally:
-            os.chdir(pwd)
-
+            
         assert os.system(f"dtc -f -@ -O dtb -o {self.path} dtbo/fpga.dts") == 0
         

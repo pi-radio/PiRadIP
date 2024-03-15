@@ -67,7 +67,7 @@ module REAL_ADC (
       repeat (SAMPLE_WIDTH/2) @(posedge adc_clk);
     end	
   end
-endmodule;
+endmodule
    
 module REAL_DAC (
   axi4s.SUBORDINATE dac_in,

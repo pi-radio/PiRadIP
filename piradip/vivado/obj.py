@@ -16,7 +16,6 @@ def get_property_dict(d):
         return get_property_list(d)
     return get_property_list([(k, v) for k, v in d.items()])
 
-
 class VivadoObj:
     def __init__(self, parent, name):
         self.parent = parent
@@ -25,20 +24,6 @@ class VivadoObj:
     @property
     def children(self):
         yield from ()
-
-
-    @property
-    def code_deps(self):
-        deps = set([self.classdef_file])
-
-        for c in self.children:
-            deps |= c.code_deps
-
-        return deps
-
-    @property
-    def classdef_file(self):
-        return inspect.getfile(self.__class__)
                     
     @cached_property
     def mtime(self):
@@ -60,7 +45,6 @@ class VivadoObj:
         self.vivado.set_property(prop, val, self.obj)
 
     def set_property_list(self, d):
-        print(f"set_property {get_property_dict(d)} {self.obj}")
         self.cmd(f"set_property {get_property_dict(d)} {self.obj}")
             
     def get_property(self, prop):

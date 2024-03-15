@@ -60,7 +60,10 @@ class Zynq_US_PS(BDIP):
             net.assoc_resetn = clk.assoc_resetn
             
             net.connect(ps_reset.pins["slowest_sync_clk"])
-            self.pl_resetn[0].connect(ps_reset.pins["ext_reset_in"])
+
+            self.resetn = self.pl_resetn[0].create_net("pl_resetn0")
+            
+            self.resetn.connect(ps_reset.pins["ext_reset_in"])
 
             
         self.aximm_overrides = {}
@@ -74,6 +77,8 @@ class Zynq_US_PS(BDIP):
 
 
         AXIMMWrapper(self)
+
+        self.bd.add_callback(self.connect_interrupts)
 
     def connect_interrupts(self):
         interrupts = [ p for c in self.parent.cells.values() for p in c.pins.values() if not p.intf and p.pin_type == "intr" and p.parent != self ]

@@ -4,7 +4,7 @@ from collections import defaultdict
 from .obj import bdactive, suffixize
 from .net import BDNet, BDIntfNet
 from .pin import create_pin
-from .port import create_port
+from .port import create_port, BDIntfPort
 from .buffer import IOBUF
 
 
@@ -93,7 +93,7 @@ class BDConnector:
         if debug:
             print(f"Unified nets: {nets}")
 
-        assert len(nets) < 2, "Multiple already connected pins.  TODO: try connecting anyway"
+        assert len(nets) < 2, f"Multiple already connected pins.  TODO: try connecting anyway\n Nets: {nets}\n Pins: {pins}\n Pin nets: {pin_nets}"
 
         if len(nets):
             net = nets[0]
@@ -111,10 +111,44 @@ class BDConnector:
             net = self.create_net(intf, name)
             
         return self.connect_net(net, *pins, accept=accept)
-                
+
+    @bdactive
+    def make_external(self, pin, name=None, debug=False):
+        desc = pin.desc
+
+        if name is not None:
+            desc["name"] = name
+
+        start_pins = set(self.cmd(f"get_bd_pins -quiet -of_object {self.obj}").split())
+
+        new_pin = create_pin(self, **desc)
+
+        new_pin.create()
+
+        end_pins = set(self.cmd(f"get_bd_pins -quiet -of_object {self.obj}").split())
+
+        print(end_pins)
+        print(end_pins - start_pins)
+        
+        result = self.connect(pin, new_pin)
+
+        print(result)
+        
+        if debug:
+            print(f"Make external: {self.path}: {pin}({pin.parent.path})<=>{new_pin}({new_pin.parent.path})")
+
+        if self.parent is None:
+            return new_pin
+        
+        return self.parent.make_external(new_pin, name=name, debug=debug)        
+    
     @bdactive
     def reexport(self, pin, name=None, debug=False):
-        assert pin.parent != self
+        if pin.net:
+            assert pin.parent == self
+            assert not pin.intf, "Interface nets not yet implemented"
+        else:
+            assert pin.parent != self
 
         desc = pin.desc
 
@@ -126,6 +160,19 @@ class BDConnector:
             if hasattr(pin, "export_as_port"):
                 return pin.export_as_port(self)
             else:
+                if pin.get_property("VLNV") != "":
+                    v1 = set(self.cmd(f"get_bd_intf_ports").split())
+                    
+                    self.cmd(f"make_bd_intf_pins_external {pin.obj}")
+                    
+                    v2 = set(self.cmd(f"get_bd_intf_ports").split())
+
+                    path = list(v2-v1)[0]
+
+                    print(f"Path: {path}")
+                    
+                    return BDIntfPort.create_from_bd(self, path)
+                
                 new_pin = create_port(self, **desc)
         else:
             new_pin = create_pin(self, **desc)

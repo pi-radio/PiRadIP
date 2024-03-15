@@ -11,7 +11,7 @@ module piradip_concat8 (
     input logic din1,
     input logic din0
 );
-  assign dout = { din7, din6, din5, din4, din3, din3, din2, din1, din0 };
+  assign dout = { din7, din6, din5, din4, din3, din2, din1, din0 };
 endmodule  // piradip_concat8
 
 module piradip_concat16 (

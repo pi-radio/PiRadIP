@@ -300,9 +300,38 @@ class IPXScript(TCLScript):
                     cp.set_prop("size_right_dependency", right.subst(self.model_param_refs))
                     cp.set_prop("size_right_resolve_type", "dependent")
 
-        cp.set_prop("type_name", "wire")
+        if port_name in self.module.desc.clocks:
+            self.generate_clock(port_name)
+        else:
+            cp.set_prop("type_name", "wire")
+        
         cp.set_prop("view_name_refs", "xilinx_verilogsynthesis xilinx_verilogbehavioralsimulation");
 
+    def generate_clock(self, port_name):
+        print(f"Setup clock {port_name}...")
+
+        cbi = self.set_var("current_bus_interface", f"[::ipx::add_bus_interface {port_name} $top]")
+
+        cbi.set_prop("bus_type_vendor", "xilinx.com")
+        cbi.set_prop("bus_type_library", "signal")
+        cbi.set_prop("bus_type_name", "clock_rtl")
+        cbi.set_prop("bus_type_version", "1.0")
+        cbi.set_prop("bus_type_vlnv", "xilinx.com:signal:clock_rtl:1.0")
+
+        cbi.set_prop("abstraction_type_vendor", "xilinx.com")
+        cbi.set_prop("abstraction_type_library", "signal")
+        cbi.set_prop("abstraction_type_name", "clock_rtl")
+        cbi.set_prop("abstraction_type_version", "1.0")
+        cbi.set_prop("abstraction_type_vlnv", "xilinx.com:signal:clock_rtl:1.0")
+
+        cpm = self.set_var("current_port_map", "[::ipx::add_port_map {logical_port} $current_bus_interface]")
+
+        cpm.set_prop("logical_name", "CLK")
+        cpm.set_prop("physical_name", port_name)
+        cpm.set_prop("is_logical_vector", "false")
+        cpm.set_prop("is_physical_vector", "false")
+        
+        
     def generate_interface(self, i):
         self.comment("")
         self.comment(f"Generating interface {i.busname}")
@@ -562,3 +591,6 @@ class XilinxBDTcl(TCLScript):
         self.cmd("}")
         self.cmd("}")
         self.cmd("}")
+
+        if self.module.desc.bd_tcl is not None:
+            self.cmd(self.module.desc.bd_tcl)

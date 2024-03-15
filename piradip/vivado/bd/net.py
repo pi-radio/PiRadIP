@@ -16,6 +16,36 @@ class BDNet(BDObj):
         self.parent.connect_net(self, *args)
         return self
 
+
+    @property
+    def desc(self):
+        return { i: getattr(self, i) for i in [ 'name', 'left', 'right' ] }
+    
+    @property
+    def left(self):
+        v = self.get_property("LEFT")
+
+        if v == '':
+            return 0
+        
+        return int(v)
+
+    @property
+    def right(self):
+        v = self.get_property("RIGHT")
+
+        if v == '':
+            return 0
+        
+        return int(v)
+
+    @property
+    def obj(self):
+        return f"[get_bd_nets {{{self.path}}}]"
+    
+    def __repr__(self):
+        return f"<|NET: {self.name}|>"
+    
     def assign_pin(self, pin):
         if self.parent == pin.parent:
             pin.inner_net = self

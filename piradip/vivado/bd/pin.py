@@ -56,9 +56,12 @@ class BDPinBase(BDObj):
         return net
             
 class BDPin(BDPinBase):
-    def __init__(self, parent, name, direction="I", pin_type="io", left=0, right=0, intf=False):
+    def __init__(self, parent, name, direction="I", pin_type="data", left=0, right=0, intf=False):
         super().__init__(parent, name)
         assert(self.parent is not None)
+
+        assert pin_type in [ "clk", "ce", "data", "intr", "rst", "undef" ], f"Invalid pin type: {pin_type}"
+        
         self.direction = direction
         self.pin_type = pin_type
         self.subpin = intf
@@ -75,6 +78,7 @@ class BDPin(BDPinBase):
         return f"<|PIN: {self.name} {self.pin_type}|>"
         
     def create(self):
+        self.parent.make_active()
         self.cmd(f"create_bd_pin -dir {self.direction} -type {self.pin_type} {self.name}")
         return self
 
@@ -93,31 +97,35 @@ class BDIntfPin(BDPinBase, VLNVRegistry):
         self.pin_type = "intf"
 
         if enum_pins:
-            q = f"[get_bd_pins -of_object {self.obj}]"
-
-            def vb(x):
-                if x == "TRUE":
-                    return True
-                return False
+            self.enumerate_pins()
             
-            def vr(x):
-                if x == "{}":
-                    return 0
-                return int(x)
+    def enumerate_pins(self):
+        q = f"[get_bd_pins -of_object {self.obj}]"
+        
+        def vb(x):
+            if x == "TRUE":
+                return True
+            return False
+        
+        def vr(x):
+            if x == "{}":
+                return 0
+            return int(x)
+        
+        
+        attrs = {
+            'name': self.cmd(f"get_property NAME {q}").split(),
+            'intf': map(vb, self.cmd(f"get_property INTF {q}").split()),
+            'direction': self.cmd(f"get_property DIR {q}").split(),
+            'pin_type': self.cmd(f"get_property TYPE {q}").split(),
+            'left': map(vr, self.cmd(f"get_property LEFT {q}").split()),
+            'right': map(vr, self.cmd(f"get_property RIGHT {q}").split())
+        }
 
-            
-            attrs = {
-                'name': self.cmd(f"get_property NAME {q}").split(),
-                'intf': map(vb, self.cmd(f"get_property INTF {q}").split()),
-                'direction': self.cmd(f"get_property DIR {q}").split(),
-                'pin_type': self.cmd(f"get_property TYPE {q}").split(),
-                'left': map(vr, self.cmd(f"get_property LEFT {q}").split()),
-                'right': map(vr, self.cmd(f"get_property RIGHT {q}").split())
-            }
-
-            for i in [ dict(zip(attrs, t)) for t in zip(*attrs.values()) ]:
-                self.pins[i["name"]] = create_pin(self.parent, **i)
-            
+        for i in [ dict(zip(attrs, t)) for t in zip(*attrs.values()) ]:
+            self.pins[i["name"]] = create_pin(self.parent, **i)
+        
+                
     @property
     def desc(self):
         return { i: getattr(self, i) for i in [ 'name', 'vlnv', 'mode' ] }
@@ -127,6 +135,7 @@ class BDIntfPin(BDPinBase, VLNVRegistry):
         return f"<|PIN: {self.name} {self.vlnv}|>"
 
     def create(self):
+        self.parent.make_active()
         self.cmd(f"create_bd_intf_pin -mode {self.mode} -vlnv {self.vlnv} {self.name}")
         return self
 

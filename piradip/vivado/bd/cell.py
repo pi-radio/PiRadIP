@@ -45,7 +45,7 @@ class BDCell(BDObj):
 
             for name, mode, vlnv in zip(names, modes, vlnvs):
                 create_pin(self, name, mode=mode, vlnv=vlnv, enum_pins=True)
-
+                
         pins = self.cmd(f"get_bd_pins -quiet -filter {{INTF==\"\"}} -of {self.obj}").split()
 
         if len(pins):

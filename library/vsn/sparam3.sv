@@ -130,33 +130,64 @@ module vsn_addmul_zzz(
   
 endmodule
 
+module vsn_sparam_2port #(
+  parameter integer DATA_WIDTH = 256
+) (
+  input vsn_clk,
+  input vsn_rstn,
+  vsn_port p0,
+  vsn_port p1,
+  logic [17:0] S[2][2]
+);
+  localparam SAMPLE_WIDTH = 16;
+  localparam NSAMPLES = DATA_WIDTH / SAMPLE_WIDTH;
+
+  genvar i, j;
+
+  generate
+    for (i = 0; i < NSAMPLES; i++) begin
+      always @(posedge vsn_clk) p0.b[i] = (S[0][0] * p0.a[i] + S[0][1] * p1.a[1]) >> 16;
+      always @(posedge vsn_clk) p1.b[i] = (S[1][0] * p0.a[i] + S[1][1] * p1.a[1]) >> 16;
+    end
+  endgenerate
+endmodule // vsn_sparam_3port
 
 module vsn_sparam_3port #(
-  parameter integer SAMPLE_WIDTH = 16,
-  parameter integer NSAMPLES = 16
+  parameter integer DATA_WIDTH = 256
 ) (
-  logic P0clk,
-  logic P0resetn,
-  logic [NSAMPLES * SAMPLES_WIDTH-1:0] P0a,
-  logic [NSAMPLES * SAMPLES_WIDTH-1:0] P0b,
-  logic P1clk,
-  logic P1resetn,
-  logic [NSAMPLES * SAMPLES_WIDTH-1:0] P1a,
-  logic [NSAMPLES * SAMPLES_WIDTH-1:0] P1b,
-  logic P2clk,
-  logic P2resetn,
-  logic [NSAMPLES * SAMPLES_WIDTH-1:0] P2a,
-  logic [NSAMPLES * SAMPLES_WIDTH-1:0] P2b,
-  logic [15:0] S[3][3]
-)
+  input vsn_clk,
+  input vsn_rstn,
+  vsn_port.U p0,
+  vsn_port.U p1,
+  vsn_port.U p2,
+  logic [17:0] S[3][3]
+);
+  //localparam SAMPLE_WIDTH = 16;
+  //localparam NSAMPLES = DATA_WIDTH / NSAMPLES;
 
-  logic [15:0] S00, S01, S02;
-  logic [15:0] S10, S11, S12;
-  logic [15:0] S20, S21, S22;
+  always @(posedge vsn_clk) p0.b = S[0][0] * p0.a + S[0][1] * p1.a + S[0][2] * p2.a;
+  always @(posedge vsn_clk) p1.b = S[1][0] * p0.a + S[1][1] * p1.a + S[1][2] * p2.a;
+  always @(posedge vsn_clk) p2.b = S[2][0] * p0.a + S[2][1] * p1.a + S[2][2] * p2.a;
 
-  // P0.b = S00 * P0.a + S01 * P1.a + S02 + P2.a
-  // P1.b = S10 * P0.a + S11 * P1.a + S12 + P2.a
-  // P2.b = S20 * P0.a + S21 * P1.a + S22 + P2.a
 
+/*  
+  genvar i;
+
+  generate
+    for (i = 0; i < NSAMPLES; i++) begin
+       vsn_addmul_zzz S00_P0(.clk(
+  input logic clk,
+  input logic rst,
+  input logic [15:0] a1,			       
+  input logic [15:0] a2,
+  input logic [17:0] b,
+  input logic [47:0] c,
+  output logic [47:0] result
+);
+    end
+  endgenerate
+*/
   
 endmodule  
+
+

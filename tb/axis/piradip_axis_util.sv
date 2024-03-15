@@ -328,4 +328,4 @@ module piradip_util_axi4s_manager
           end while(cur_op);
         end
     end
-endmodule;
+endmodule
