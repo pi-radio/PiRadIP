@@ -2,8 +2,6 @@ from functools import cached_property
 
 import piradip.vivado.bd as bd
 
-print(f"Imported bd: {bd}")
-
 from piradip.vivado.bd.ip import BDIP
 from piradip.vivado.bd.hier import BDHier
 from piradip.vivado.bd.pin import BDIntfPin, all_pins
@@ -21,7 +19,7 @@ class RFDC(BDIP):
 
     memory_aperture_size = 0x40000
 
-    def __init__(self, parent, name, props, sample_freq, mts=False):
+    def __init__(self, parent, name, props, sample_freq, mts=False, adc_mode="Real", dac_mode="Real", NCO_freq=0.0):
         self.ADC_TILES=4
         self.DAC_TILES=2
         self.ADC_DCSPT=2
@@ -33,21 +31,21 @@ class RFDC(BDIP):
         self.adc_tiles = [ ADCTile(tile, sample_freq, 8) for tile in range(4) ]
         self.dac_tiles = [ DACTile(tile, sample_freq, 16) for tile in range(2) ]
         
-        self.adcs = [ ADC(tile, block) for tile in self.adc_tiles for block in [ 0, 2 ] ]
-        self.dacs = [ DAC(tile, block) for tile in self.dac_tiles for block in range(4) ]
+        self.adcs = [ ADC(tile, block, adc_mode, NCO_freq) for tile in self.adc_tiles for block in [ 0, 2 ] ]
+        self.dacs = [ DAC(tile, block, dac_mode, NCO_freq) for tile in self.dac_tiles for block in range(4) ]
                 
         bdprops = { 'CONFIG.Preset': 'None' }
 
         print(f"PROPS: {props}")
 
         bdprops.update(props)
-        
+
         for tile in self.adc_tiles:
             bdprops.update(tile.build_props())
 
         for adc in self.adcs:
             bdprops.update(adc.build_props())
-
+            
         for tile in self.dac_tiles:
             bdprops.update(tile.build_props())
 
@@ -131,8 +129,6 @@ class RFDC(BDIP):
     def adc_axis(self):
         keys = sorted(filter(lambda x: x[0] == "m" and x[3:] == "_axis", self.pins.keys()))
 
-        print(keys)
-                
         return [ self.pins[k] for k in keys ]    
 
     @property
@@ -142,9 +138,7 @@ class RFDC(BDIP):
     @property
     def sysref_in(self):
         return self.pins["sysref_in"]
-
-
-
+    
     def build_props(self):
         props = {
             "CONFIG.PRESET": "None",

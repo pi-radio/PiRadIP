@@ -32,7 +32,7 @@ class ADCDomainIndependent(ADCClockDomain):
         
         self.rfdc_axis_clk.connect(self.clk.pins["clk_out1"])
 
-        self.rfdc.reset.connect(self.clk.pins["reset"])
+        self.rfdc.clocking.reset.connect(self.clk.pins["reset"])
         
         
 class ADCDomainIndependentReclocked(ADCClockDomain):
@@ -64,7 +64,7 @@ class ADCDomainIndependentReclocked(ADCClockDomain):
         self.rfdc_axis_clk.connect(self.clk.pins["clk_out1"])
         self.ext_axis_clk.connect(self.clk.pins["clk_out2"])
 
-        self.rfdc.reset.connect(self.clk.pins["reset"])
+        self.rfdc.clocking.reset.connect(self.clk.pins["reset"])
 
         
 class DACDomainIndependent(DACClockDomain):
@@ -90,8 +90,8 @@ class DACDomainIndependent(DACClockDomain):
         self.reset_clk = self.rfdc_axis_clk
 
         self.rfdc_axis_clk.connect(self.clk.pins["clk_out1"])
-        
-        self.rfdc.reset.connect(self.clk.pins["reset"])
+
+        self.rfdc.clocking.reset.connect(self.clk.pins["reset"])
 
 
 class RFDCClockingIndependent(RFDCClocking):
@@ -132,13 +132,13 @@ class RFDCClockingIndependent(RFDCClocking):
         return [ dom.ext_axis_rst_pin for dom in self.dac_domains for _ in range(self.rfdc.DAC_DCSPT) ]
 
     def pre_setup(self):
-        self.sysref_in = self.make_external(self.rfdc.sysref_in)
+        self.sysref_in = self.rfdc.make_external(self.rfdc.sysref_in)
 
-        self.not_resetn = BDVectorLogic(self, "not_resetn", { "CONFIG.C_OPERATION": "not", "CONFIG.C_SIZE": "1" })
+        self.not_resetn = BDVectorLogic(self.rfdc, "not_resetn", { "CONFIG.C_OPERATION": "not", "CONFIG.C_SIZE": "1" })
 
-        self.not_resetn.pins["Op1"].connect(self.resetn)
+        self.not_resetn.pins["Op1"].connect(self.rfdc.resetn)
 
-        self._reset = self.create_net(None, "resetp")
+        self._reset = self.rfdc.create_net(None, "resetp")
         self.reset.connect(self.not_resetn.pins["Res"])
 
     @property

@@ -52,11 +52,6 @@ module piradip_mts_clocking
     .src_in(sysref_pl)
   );
   
-  
-  always @(posedge pl_clk) r1 <= sysref_in;
-  always @(posedge adc_clk) sysref_adc <= r1;
-  always @(posedge dac_clk) sysref_dac <= r1;
-
   logic mmcm_clkfb_out, clkfboutb_unused;
 
   logic mmcm_clk_out0, mmcm_clk_out1;

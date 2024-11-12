@@ -14,7 +14,7 @@ class RFDCClocking:
         self.rfdc = rfdc
         self.adc_domains = []
         self.dac_domains = []
-
+        
     def update_rfdc_props(self, props):
         pass
         

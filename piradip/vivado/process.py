@@ -5,6 +5,7 @@ from pathlib import Path
 import functools
 import sys
 import re
+import time
 from functools import cached_property
 from collections import defaultdict
 from prompt_toolkit import print_formatted_text
@@ -50,65 +51,39 @@ class VivadoTCLCommand:
         msg = None
         last_line = None
         
+        
         for i, l in enumerate(self.wrapper.cmd_output):
+            if l.strip() == self.line.strip():
+                continue
+
             if l.startswith("Vivado-"):
                 continue
 
+            print(f"LINE: {l}")
+            
             if last_line is not None:
                 if is_message(last_line):
+                    if last_line.startswith("ERROR:"):
+                        print(f"ERROR: {last_line}")
+                        self.die = True
+                        
                     if msg is not None:
                         self.wrapper.handle_message(msg)
                         
                     msg = VivadoMessage([ last_line ])
                 elif msg is not None:
-                    msg.msg += last_line                    
+                    msg.msg += "\n" + last_line                    
 
             # skip the command echo
             if i != 0:
                 last_line = l                
                 lines += [ l ]
 
+        if msg is not None:
+            self.wrapper.handle_message(msg)
+                
         return last_line
                 
-        lines = [ l for l in lines if l != "" ]
-        
-        if len(lines) == 0:
-            return ""
-
-        if not is_message(lines[-1]):
-            result = lines[-1]
-            lines = lines[:-1]
-        else:
-            result = ""
-
-        debug = False
-        
-        while len(lines):
-            l = lines.pop()
-
-
-            if is_message(l):
-                if self.echo:
-                    print(f"   MSG: {l}")
-                if l.startswith("ERROR:"):
-                    self.die = True
-                
-                msg_lines = [ l ]
-
-                if l[-1] == ":":
-                    while len(lines) > 1 and not is_message(lines[0]):
-                        msg_lines.append(lines.pop())
-
-                msg = VivadoMessage(msg_lines)
-
-            else:
-                print(f"   ???: {l}")
-                
-
-        if self.echo:
-            print(f"   RESULT: {result}")
-                
-        return result
 
 class keydefaultdict(defaultdict):
     def __missing__(self, key):
@@ -145,17 +120,13 @@ class TCLVivadoWrapper:
         while True:
             buf += self.proc.read(1).decode()
 
-            lines = buf.split("\n")
-            
-            for l in lines[:-1]:
-                if l[-1] == "\r":
-                    l = l[:-1]
-                yield l
-
-            buf = lines[-1]
-                
-            if buf == "Vivado%":
+            if buf[-1] == "\n":
+                print(f"BUF: {buf[:-1]}")
+                yield buf[:-1]
+                buf = ""
+            elif buf == "Vivado%":
                 return
+                
         
     def handle_message(self, msg):
         self.msg_tally[msg.facnum] += 1

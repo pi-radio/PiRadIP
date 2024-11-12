@@ -51,6 +51,8 @@ class RFDCClockingMTS(RFDCClocking):
             props[f"CONFIG.DAC{i}_Multi_Tile_Sync"] = "true"
 
     def pre_setup(self):
+        self.make_external(self.sysref_in)
+
         self.rfdc.set_property(f"CONFIG.ADC0_Multi_Tile_Sync", "true")
         self.rfdc.set_property(f"CONFIG.DAC0_Multi_Tile_Sync", "true")
         
@@ -89,7 +91,6 @@ class RFDCClockingMTS(RFDCClocking):
             f"rfdc_ps_reset",
             None)
 
-        self.resetn = self.rfdc.create_net(None, "resetn")
         
         self.mts_sync.pins["pl_clk"].connect(self.pl_clk_bufg.pins["BUFG_O"])
         self.mts_sync.pins["sysref_in"].connect(self.sysref_ibufds.pins["IBUF_OUT"])
@@ -193,28 +194,3 @@ class RFDCClockingMTS(RFDCClocking):
     def dac_axis_resetn(self):
         return [ self.ext_axis_rst_pin for _ in range(self.rfdc.NDACS) ]
 
-    
-"""        
-create_bd_cell -type ip -vlnv xilinx.com:ip:clk_wiz:6.0 clk_wiz_0
-create_bd_cell: Time (s): cpu = 00:00:09 ; elapsed = 00:00:08 . Memory (MB): peak = 9573.199 ; gain = 253.512 ; free physical = 13562 ; free virtual = 23522
-endgroup
-set_property -dict [list CONFIG.PRIM_IN_FREQ.VALUE_SRC USER] [get_bd_cells clk_wiz_0]
-set_property -dict [list \
-  CONFIG.CLKIN1_JITTER_PS {81.38} \
-  CONFIG.CLKOUT1_JITTER {105.601} \
-  CONFIG.CLKOUT1_PHASE_ERROR {152.361} \
-  CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {512.000} \
-  CONFIG.CLKOUT2_JITTER {117.795} \
-  CONFIG.CLKOUT2_PHASE_ERROR {152.361} \
-  CONFIG.CLKOUT2_REQUESTED_OUT_FREQ {256} \
-  CONFIG.CLKOUT2_USED {true} \
-  CONFIG.MMCM_CLKFBOUT_MULT_F {31.250} \
-  CONFIG.MMCM_CLKIN1_PERIOD {8.138} \
-  CONFIG.MMCM_CLKOUT0_DIVIDE_F {2.500} \
-  CONFIG.MMCM_CLKOUT1_DIVIDE {5} \
-  CONFIG.MMCM_DIVCLK_DIVIDE {3} \
-  CONFIG.NUM_OUT_CLKS {2} \
-  CONFIG.PRIM_IN_FREQ {122.88} \
-  CONFIG.PRIM_SOURCE {Differential_clock_capable_pin} \
-] [get_bd_cells clk_wiz_0]
-"""

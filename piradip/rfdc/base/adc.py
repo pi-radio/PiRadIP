@@ -30,26 +30,23 @@ class ADCTile:
         }
 
 class ADC:
-    def __init__(self, tile, block):
+    def __init__(self, tile, block, mode, nco_freq):
         self.tile = tile
         self.block = block
+        self.mode = mode
+        self.NCO_freq = nco_freq
         
         
 
     def build_props(self):
         ns = f"{self.tile.n}{self.block}"
 
-        return {
+        d = {
             f"CONFIG.ADC_Bypass_BG_Cal{ns}": "false",
             f"CONFIG.ADC_CalOpt_Mode{ns}": "1",
-            f"CONFIG.ADC_Coarse_Mixer_Freq{ns}": "0",
-            f"CONFIG.ADC_Data_Type{ns}": "0",
             f"CONFIG.ADC_Data_Width{ns}": self.tile.fabric_width,
             f"CONFIG.ADC_Decimation_Mode{ns}": "1",
             f"CONFIG.ADC_Dither{ns}": "true",
-            f"CONFIG.ADC_Mixer_Mode{ns}": "2", # R2R
-            f"CONFIG.ADC_Mixer_Type{ns}": "0", # R2R
-            f"CONFIG.ADC_NCO_Freq{ns}": "0.0",
             f"CONFIG.ADC_NCO_Phase{ns}": "0",
             f"CONFIG.ADC_Neg_Quadrature{ns}": "false",
             f"CONFIG.ADC_Nyquist{ns}": "0",
@@ -60,3 +57,20 @@ class ADC:
             f"CONFIG.ADC_Slice{ns}_Enable": "true",
             f"CONFIG.ADC_TDD_RTS{ns}": "0",
         }
+
+        if self.mode == "Real":
+            d[f"CONFIG.ADC_Coarse_Mixer_Freq{ns}"] = 0
+            d[f"CONFIG.ADC_Data_Type{ns}"] = 0
+            d[f"CONFIG.ADC_Mixer_Mode{ns}"] = 2 # Bypass
+            d[f"CONFIG.ADC_Mixer_Type{ns}"] = 0 # R2R
+            d[f"CONFIG.ADC_NCO_Freq{ns}"]= self.NCO_freq            
+        elif self.mode == "IQ":
+            d[f"CONFIG.ADC_Coarse_Mixer_Freq{ns}"] = 0
+            d[f"CONFIG.ADC_Data_Type{ns}"] = 1
+            d[f"CONFIG.ADC_Mixer_Mode{ns}"] = 0 # Fine
+            d[f"CONFIG.ADC_Mixer_Type{ns}"] = 2 # C2R
+            d[f"CONFIG.ADC_NCO_Freq{ns}"]= self.NCO_freq
+        else:
+            raise RuntimeException("Undefined mixer mode")
+        
+        return d

@@ -5,7 +5,7 @@ from .pin import all_pins, create_pin
 from .xilinx import *
 from .sample_buffer import *
 from .piradio import *
-from .rfdc import RFDCReal
+from piradip.rfdc import RFDCReal
 
 class RealSampleCapture(BDHier):
     def __init__(self, parent, name="data_capture",
@@ -18,11 +18,6 @@ class RealSampleCapture(BDHier):
         #
         print("Creating RFDC block...")
         self.rfdc = RFDCReal(self, "rfdc", sample_freq=sample_freq, reclock_adc=reclock_adc)
-        print("Setting up ADC streams...")
-        self.rfdc.setup_adc_axis()
-
-        print("Setting up DAC streams...")
-        self.rfdc.setup_dac_axis()
 
         
         #print(f"Configuring tx sample capture with {2*tx_samples} bytes (bus_width: {out_addr_width})")
@@ -98,7 +93,7 @@ class RealSampleCapture(BDHier):
                                         global_clock=self.pins["s_axi_aclk"],
                                         global_reset=self.pins["s_axi_aresetn"])            
 
-        self.axi_root.aximm.connect(self.rfdc.pins["s_axi"])
+        self.axi_root.aximm.connect(self.rfdc.pins["S_AXI"])
         self.axi_root.aximm.connect(self.trigger.pins["AXILITE"])
 
         
@@ -142,14 +137,15 @@ class RealSampleCapture(BDHier):
         self.external_interfaces = list()
         self.external_clocks = list()
 
-        for p in self.rfdc.adc_clk + self.rfdc.dac_clk:
-            np = self.reexport(p)
-            self.external_interfaces.append(np)
-            self.external_clocks.append(np)
+        if False:
+            for p in self.rfdc.adc_clk + self.rfdc.dac_clk:
+                np = self.reexport(p)
+                self.external_interfaces.append(np)
+                self.external_clocks.append(np)
 
-        for p in self.rfdc.adc_in + self.rfdc.dac_out + [ self.rfdc.sysref_in ]:
-            np = self.reexport(p)
-            self.external_interfaces.append(np)
+            for p in self.rfdc.adc_in + self.rfdc.dac_out + [ self.rfdc.sysref_in ]:
+                np = self.reexport(p)
+                self.external_interfaces.append(np)
 
         self.ext_reset_in = create_pin(self, "ext_reset_in", pin_type="rst").create()
         self.irq = create_pin(self, "irq", direction="O", pin_type="intr").create()
@@ -164,7 +160,7 @@ class RealSampleCapture(BDHier):
         # Make external async reset connections
         #
         print("Connecting async resets...")
-        self.rfdc.ext_reset_in.connect(self.ext_reset_in)
+        self.ext_reset_in.connect(self.rfdc.resetn)
 
         dtl = [ self.axi_dac_tiles[i] for i in range(2) for j in range(4) ]
         atl = [ self.axi_adc_tiles[i] for i in range(4) for j in range(2) ]
@@ -204,7 +200,8 @@ class RealSampleCapture(BDHier):
         print("Connecting trigger...")
         print(self.slice32.pins)
         self.connect(self.trigger.pins["triggers"], self.slice32.pins["din"])
-
+        self.connect(self.irq, self.rfdc.irq)
+        
         for i in range(8):
             self.connect(self.slice32.pins[f"dout{i}"], self.sample_out[i].pins["trigger"])
 
@@ -217,13 +214,13 @@ class RealSampleCapture(BDHier):
         #
             
         for net, soc in zip(self.rfdc.dac_axis_clk, all_pins(self.sample_out, "stream_out_clk")):
-            net.connect(soc)
+            soc.connect(net)
 
         for net, soc in zip(self.rfdc.dac_axis_clk, all_pins(self.filter_out, "stream_in_clk")):
-            net.connect(soc)
+            soc.connect(net)
 
         for net, soc in zip(self.rfdc.dac_axis_clk, all_pins(self.filter_out, "stream_out_clk")):
-            net.connect(soc)
+            soc.connect(net)
 
         #
         # DAC Resets
@@ -231,13 +228,13 @@ class RealSampleCapture(BDHier):
 
             
         for net, sor in zip(self.rfdc.dac_axis_resetn, all_pins(self.sample_out, "stream_out_resetn")):
-            net.connect(sor)
+            sor.connect(net)
 
         for net, sor in zip(self.rfdc.dac_axis_resetn, all_pins(self.filter_out, "stream_in_resetn")):
-            net.connect(sor)
+            sor.connect(net)
             
         for net, sor in zip(self.rfdc.dac_axis_resetn, all_pins(self.filter_out, "stream_out_resetn")):
-            net.connect(sor)
+            sor.connect(net)
 
         #
         # DAC Data
@@ -255,21 +252,21 @@ class RealSampleCapture(BDHier):
         #
             
         for net, sic in zip(self.rfdc.adc_axis_clk, all_pins(self.sample_in, "stream_in_clk")):
-            net.connect(sic)
+            sic.connect(net)
 
         #
         # ADC Resets
         #
             
         for net, sir in zip(self.rfdc.adc_axis_resetn, all_pins(self.sample_in, "stream_in_resetn")):
-            net.connect(sir)
+            sir.connect(net)
 
         #
         # ADC data 
         #
             
         for i, (si, adc_axis) in enumerate(zip(all_pins(self.sample_in, "STREAM_IN"), self.rfdc.adc_axis)):
-            adc_axis.connect(si)
+            si.connect(adc_axis)
 
 
         bd_name = f"{self.bd.bitstream_name}_i"

@@ -14,3 +14,5 @@ from .rfmc import RFMC
 from .axi import AXIMMWrapper
 from .axi_spi import AXI_SPI
 from .axis import *
+from .iq_sample_capture import IQSampleCapture
+from .real_sample_capture import RealSampleCapture

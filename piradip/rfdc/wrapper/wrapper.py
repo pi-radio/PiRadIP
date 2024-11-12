@@ -19,7 +19,7 @@ class passthru_attr:
         return getattr(obj.rfdc, self.f.__name__)
         
 class RFDCWrapper(BDHier):
-    def __init__(self, parent, name, sample_freq, reclock_adc, clocking=RFDCClockingIndependent):
+    def __init__(self, parent, name, sample_freq, reclock_adc, adc_mode="Real", dac_mode="Real", NCO_freq=1.0, clocking=RFDCClockingIndependent):
         super().__init__(parent, name)
         
         self.sample_freq = sample_freq
@@ -31,11 +31,14 @@ class RFDCWrapper(BDHier):
 
         self.clocking.update_rfdc_props(props)
 
-        print(props)
-        
+        self.update_rfdc_props(props)
+                
         self.rfdc = RFDC(self, "rf_data_converter",
                          props,
-                         sample_freq=sample_freq)
+                         sample_freq=sample_freq,
+                         adc_mode=adc_mode,
+                         dac_mode=dac_mode,
+                         NCO_freq=NCO_freq)
 
         self.adc_prefixes = [ f"adc{i}_axis" for i in range(self.NADCS) ]
         self.dac_prefixes = [ f"dac{i}_axis" for i in range(self.NDACS) ]
@@ -55,11 +58,18 @@ class RFDCWrapper(BDHier):
         #        
         self._resetn = create_pin(self, "resetn")
         self._resetn.create()
-        
-
-        
+                
         self.clocking.setup_clocking()
 
+        for adc_dom in self.clocking.adc_domains:
+            adc_dom.rfdc_axis_clk.connect(self.rfdc.pins[f"m{adc_dom.n}_axis_aclk"])
+            adc_dom.resetn.connect(self.rfdc.pins[f"m{adc_dom.n}_axis_aresetn"])
+
+        for dac_dom in self.clocking.dac_domains:
+            dac_dom.rfdc_axis_clk.connect(self.rfdc.pins[f"s{dac_dom.n}_axis_aclk"])
+            dac_dom.resetn.connect(self.rfdc.pins[f"s{dac_dom.n}_axis_aresetn"])
+
+        
         self._adc_axis = self.setup_adc_axis()
         self._dac_axis = self.setup_dac_axis()
             
@@ -68,8 +78,6 @@ class RFDCWrapper(BDHier):
         self.reexport(self.rfdc.pins["s_axi_aresetn"])
 
         # Figure out how to contain these within the hierarchical block and constrain them automagically
-
-        self.make_external(self.sysref_in)
         
         for p in self.adc_sample_clocks + self.dac_sample_clocks:
             np = self.make_external(p)
@@ -80,21 +88,19 @@ class RFDCWrapper(BDHier):
         
         self.irq = self.reexport(self.rfdc.pins["irq"])
 
-        for adc_dom in self.clocking.adc_domains:
-            adc_dom.rfdc_axis_clk.connect(self.rfdc.pins[f"m{adc_dom.n}_axis_aclk"])
-            adc_dom.resetn.connect(self.rfdc.pins[f"m{adc_dom.n}_axis_aresetn"])
-
-        for dac_dom in self.clocking.dac_domains:
-            dac_dom.rfdc_axis_clk.connect(self.rfdc.pins[f"s{dac_dom.n}_axis_aclk"])
-            dac_dom.resetn.connect(self.rfdc.pins[f"s{dac_dom.n}_axis_aresetn"])
 
             
     def setup_adc_axis(self):
+        print("Setting up ADC streams...")
         return [ self.reexport(x, name=n) for x, n in zip(self.rfdc.adc_axis, self.adc_port_names) ]
 
     def setup_dac_axis(self):
+        print("Setting up DAC streams...")
         return [ self.reexport(x, name=n) for x, n in zip(self.rfdc.dac_axis, self.dac_port_names) ]
 
+    def update_rfdc_props(self, props):
+        pass
+    
     @property
     def resetn(self):
         return self._resetn

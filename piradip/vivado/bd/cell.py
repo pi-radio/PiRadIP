@@ -36,6 +36,8 @@ class BDCell(BDObj):
         
         intf_pins = self.cmd(f"get_bd_intf_pins -quiet -of {self.obj}").split()
 
+        print(intf_pins)
+        
         if len(intf_pins):
             # CLASS CONFIG.CAN_DEBUG CONFIG.FREQ_HZ LOCATION MODE NAME PATH TYPE VLNV
 
