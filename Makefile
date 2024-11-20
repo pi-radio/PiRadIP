@@ -6,10 +6,17 @@ env: Makefile
 
 .PHONY: prepare build
 
+ipxact2009:
+	bash -c "source env/bin/activate ; xsdata generate -c piradip/build/xsdata-config-2009.xml piradip/build/schema/2009/"
+
 do_prepare:
-	pip install anytree pexpect prompt_toolkit bitarray lxml xsdata click
+	git submodule update --init
+	pip install anytree pexpect prompt_toolkit bitarray lxml xsdata[cli] click pyEDAA.IPXACT
 	pip install -e pirbuild
 
-do_build: do_prepare
+do_build: do_prepare ipxact2009
 	@echo "Building library..."
 	./buildlib.py build
+
+build_only:
+	bash -c 'source env/bin/activate ; ./buildlib.py build'

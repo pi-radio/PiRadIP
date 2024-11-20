@@ -7,7 +7,7 @@ from .ipxact_base import NS_XILINX
 import ipxact2009
 
 def xilinx_list():
-    return field(default_factory=list, metadata={ "namespace": NS_XILINX })
+    return field(default_factory=list, metadata={ 'type': 'Element', "namespace": NS_XILINX })
 
 def xilinx_attr():
     return field(metadata = { 'type': "Attribute", 'namespace': NS_XILINX })
@@ -60,14 +60,15 @@ class CoreExtensions:
             """
             IP Taxonomy
             """
-            class Meta:
+            class Meta(XMeta):
                 name = "taxonomy"
-                namespace = NS_XILINX
                 
             value: str
         
         taxonomy: List[Taxonomy] = xilinx_list()
 
+    Taxonomies([ "ass" ])
+        
     @dataclass
     class SupportedFamilies:
         """
@@ -111,8 +112,8 @@ class CoreExtensions:
         canUpgradeFrom: List[CanUpgradeFrom] = xilinx_list()
 
         
-    taxonomies: Taxonomies
     displayName: Optional[str]
+    taxonomies: Taxonomies = field(default = None)
     supportedFamilies: Optional[SupportedFamilies] = field(default=None)
     hideInCatalogGUI: Optional[bool] = field(default=None)
     xpmLibraries: XPMLibraries = field(default=None)
