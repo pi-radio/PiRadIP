@@ -36,12 +36,12 @@ def ipxact_file(fn):
     ext = PurePath(fn).suffix
 
     if ext == ".sv":
-        f.file_type = ipxact2009.FileTypeFileType.SYSTEM_VERILOG_SOURCE
+        f.file_type = ipxact2009.FileFileType.SYSTEM_VERILOG_SOURCE
     elif ext == ".svh":
-        f.file_type = ipxact2009.FileTypeFileType.SYSTEM_VERILOG_SOURCE
+        f.file_type = ipxact2009.FileFileType.SYSTEM_VERILOG_SOURCE
         f.is_include_file = True
     elif ext == ".tcl":
-        f.file_type = ipxact2009.FileTypeFileType.TCL_SOURCE
+        f.file_type = ipxact2009.FileFileType.TCL_SOURCE
     else:
         WARN(f"Unknown file type for extension {ext}")
     

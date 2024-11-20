@@ -39,12 +39,14 @@ class IPXACTComponent2():
         )
 
     def export_ipxact(self):
+        print("****************")
+        print(self.component)
+        print("****************")
         INFO(f"Writing library XML to {self.desc.xml_path}...")
         f = self.xml_file("w")
         config = SerializerConfig(pretty_print=True)
         serializer = XmlSerializer(config=config)
         print(serializer.render(self.component, ns_map=ns_map), file=f)
-
         #print(lxml.etree.tostring(self.component, encoding='UTF-8', pretty_print=True, xml_declaration=True).decode(), file=f)
 
         

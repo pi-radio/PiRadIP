@@ -47,10 +47,15 @@ class IPXACTLibrary(IPXACTComponent2):
 
         self.component.vendor_extensions = ipxact2009.VendorExtensions(
             any_element=CoreExtensions(
-                taxonomies=CoreExtensions.Taxonomies( [
+                #taxonomies=CoreExtensions.Taxonomies( [
+                #    CoreExtensions.Taxonomies.Taxonomy(i) for i in [ "/BaseIP",
+                #                                                     "/Embedded_Processing/AXI_Infrastructure",
+                #                                                     "/Memories_&_Storage_Elements" ]
+                #] ),
+                taxonomies=CoreExtensions.Taxonomies(taxonomy= [
                     "/BaseIP",
                     "/Embedded_Processing/AXI_Infrastructure",
-                    "/Memories_&_Storage_Elements"
+                    "/Memories_&_Storage_Elements" 
                 ] ),
                 displayName="Pi Radio IP Library v1.0",
                 hideInCatalogGUI=True,
